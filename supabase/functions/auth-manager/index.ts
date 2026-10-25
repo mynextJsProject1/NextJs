@@ -2,7 +2,7 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 
 const PROJECT_URL = Deno.env.get("PROJECT_URL")!;
-const SERVICE_KEY = Deno.env.get("PROJECT_SERVICE_KEY")!;
+const SERVICE_KEY = Deno.env.get("PROJECT_ANON_KEY")!;
 const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
 
 const admin = createClient(PROJECT_URL, SERVICE_KEY, {
