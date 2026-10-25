@@ -1,32 +1,12 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import Sidebar from "../components/Sidebar";
 import ChatDrawer from "../components/ChatDrawer";
-
-const banners = [
-  {
-    id: 1,
-    image:
-      "https://images.unsplash.com/photo-1511512578047-dfb367046420?w=1000",
-    alt: "Gaming banner one",
-  },
-  {
-    id: 2,
-    image:
-      "https://images.unsplash.com/photo-1606167668584-78701c57f13d?w=1000",
-    alt: "Gaming banner two",
-  },
-  {
-    id: 3,
-    image:
-      "https://images.unsplash.com/photo-1596838132731-3301c3fd4317?w=1000",
-    alt: "Gaming banner three",
-  },
-];
+import { createClient } from "../lib/supabase/client";
 
 const games = [
   {
@@ -69,20 +49,52 @@ const games = [
 
 const categories = ["All", "Popular", "Slots", "Sports"];
 
+type Banner = {
+  id: number;
+  image_url: string;
+};
+
 export default function Home() {
   const [activePage, setActivePage] = useState("home");
   const [activeCategory, setActiveCategory] = useState("All");
   const [search, setSearch] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
-  const [activeBanner, setActiveBanner] = useState(0);
+  const [banner, setBanner] = useState<Banner | null>(null);
 
   useEffect(() => {
-    const timer = window.setInterval(() => {
-      setActiveBanner((current) => (current + 1) % banners.length);
-    }, 4000);
+    let cancelled = false;
 
-    return () => window.clearInterval(timer);
+    async function loadBanner() {
+      try {
+        const supabase = createClient();
+
+        const { data, error } = await supabase
+          .from("banners")
+          .select("id, image_url")
+          .eq("is_active", true)
+          .order("id", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        if (error) {
+          console.error("Banner loading failed:", error.message);
+          return;
+        }
+
+        if (!cancelled && data) {
+          setBanner(data as Banner);
+        }
+      } catch (error) {
+        console.error("Banner loading failed:", error);
+      }
+    }
+
+    loadBanner();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   function navigate(page: string) {
@@ -122,44 +134,15 @@ export default function Home() {
       />
 
       <main className="stake-main">
-        <section
-          className="stake-banner-slider"
-          aria-label="Featured banners"
-        >
-          <div className="stake-banner-window">
-            <div
-              className="stake-banner-track"
-              style={{
-                transform: `translateX(-${activeBanner * 100}%)`,
-              }}
-            >
-              {banners.map((banner) => (
-                <div className="stake-banner-slide" key={banner.id}>
-                  <img
-                    src={banner.image}
-                    alt={banner.alt}
-                    className="stake-banner-image"
-                  />
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="stake-banner-dots">
-            {banners.map((banner, index) => (
-              <button
-                key={banner.id}
-                type="button"
-                className={`stake-banner-dot ${
-                  activeBanner === index ? "active" : ""
-                }`}
-                aria-label={`Show banner ${index + 1}`}
-                aria-pressed={activeBanner === index}
-                onClick={() => setActiveBanner(index)}
-              />
-            ))}
-          </div>
-        </section>
+        {banner && (
+          <section className="stake-banner">
+            <img
+              className="stake-banner-image"
+              src={banner.image_url}
+              alt="Promotional banner"
+            />
+          </section>
+        )}
 
         <div className="stake-search">
           <input
@@ -212,7 +195,10 @@ export default function Home() {
         <div className="stake-game-grid">
           {visibleGames.length > 0 ? (
             visibleGames.map((game) => (
-              <article className="stake-game-card" key={game.name}>
+              <article
+                className="stake-game-card"
+                key={game.name}
+              >
                 <img
                   className="stake-game-image"
                   src={game.image}
