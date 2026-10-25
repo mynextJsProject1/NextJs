@@ -1,11 +1,32 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import Sidebar from "../components/Sidebar";
 import ChatDrawer from "../components/ChatDrawer";
+
+const banners = [
+  {
+    id: 1,
+    image:
+      "https://images.unsplash.com/photo-1511512578047-dfb367046420?w=1000",
+    alt: "Gaming banner one",
+  },
+  {
+    id: 2,
+    image:
+      "https://images.unsplash.com/photo-1606167668584-78701c57f13d?w=1000",
+    alt: "Gaming banner two",
+  },
+  {
+    id: 3,
+    image:
+      "https://images.unsplash.com/photo-1596838132731-3301c3fd4317?w=1000",
+    alt: "Gaming banner three",
+  },
+];
 
 const games = [
   {
@@ -54,6 +75,15 @@ export default function Home() {
   const [search, setSearch] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
+  const [activeBanner, setActiveBanner] = useState(0);
+
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      setActiveBanner((current) => (current + 1) % banners.length);
+    }, 4000);
+
+    return () => window.clearInterval(timer);
+  }, []);
 
   function navigate(page: string) {
     if (page === "chat") {
@@ -92,21 +122,43 @@ export default function Home() {
       />
 
       <main className="stake-main">
-        <section className="stake-hero">
-          <span className="stake-hero-label">
-            THE NEXT EXPERIENCE
-          </span>
+        <section
+          className="stake-banner-slider"
+          aria-label="Featured banners"
+        >
+          <div className="stake-banner-window">
+            <div
+              className="stake-banner-track"
+              style={{
+                transform: `translateX(-${activeBanner * 100}%)`,
+              }}
+            >
+              {banners.map((banner) => (
+                <div className="stake-banner-slide" key={banner.id}>
+                  <img
+                    src={banner.image}
+                    alt={banner.alt}
+                    className="stake-banner-image"
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
 
-          <h1>
-            Play Your
-            <br />
-            Next Game<span style={{ color: "#00e701" }}>.</span>
-          </h1>
-
-          <p>
-            Discover exciting games in a modern mobile
-            experience.
-          </p>
+          <div className="stake-banner-dots">
+            {banners.map((banner, index) => (
+              <button
+                key={banner.id}
+                type="button"
+                className={`stake-banner-dot ${
+                  activeBanner === index ? "active" : ""
+                }`}
+                aria-label={`Show banner ${index + 1}`}
+                aria-pressed={activeBanner === index}
+                onClick={() => setActiveBanner(index)}
+              />
+            ))}
+          </div>
         </section>
 
         <div className="stake-search">
@@ -178,7 +230,7 @@ export default function Home() {
         </div>
 
         <footer className="stake-footer">
-          © 2026 Stake. All rights reserved.
+          © 2026 Gazicasino. All rights reserved.
         </footer>
       </main>
 
