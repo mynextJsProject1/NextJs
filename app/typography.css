@@ -1,0 +1,54 @@
+
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap");
+
+:root {
+  --font-main: "Inter", Arial, sans-serif;
+  --text-xs: 11px;
+  --text-sm: 13px;
+  --text-base: 15px;
+  --text-lg: 18px;
+  --text-xl: 24px;
+  --text-heading: 32px;
+}
+
+body {
+  font-family: var(--font-main);
+  font-size: var(--text-base);
+  font-weight: 400;
+  line-height: 1.5;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin-top: 0;
+}
+
+h1 {
+  font-size: var(--text-heading);
+  font-weight: 900;
+  line-height: 1.15;
+}
+
+h2 {
+  font-size: var(--text-xl);
+  font-weight: 800;
+}
+
+h3 {
+  font-size: var(--text-lg);
+  font-weight: 700;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+@media (max-width: 480px) {
+  :root {
+    --text-heading: 28px;
+    --text-xl: 22px;
+  }
+}
