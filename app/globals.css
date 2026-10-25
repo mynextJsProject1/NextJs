@@ -59,9 +59,9 @@ input:focus-visible {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: 8px;
   min-height: 64px;
-  padding: 10px 14px;
+  padding: 10px 12px;
   background: #0b1712;
   border-bottom: 1px solid var(--border);
 }
@@ -70,7 +70,7 @@ input:focus-visible {
 .stake-header-right {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
 }
 
 .stake-menu-btn,
@@ -82,19 +82,30 @@ input:focus-visible {
 }
 
 .stake-menu-btn {
-  padding: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  padding: 7px;
   font-size: 19px;
 }
 
 .stake-logo {
+  display: flex;
+  align-items: center;
   padding: 0;
   color: #fff;
-  font-size: 25px;
+  font-size: 20px;
   font-weight: 900;
-  letter-spacing: -1.5px;
+  letter-spacing: -0.7px;
+  white-space: nowrap;
 }
 
-.stake-logo span {
+.stake-logo .gazi-logo-text {
+  color: #fff;
+}
+
+.stake-logo .gazi-logo-accent {
   color: var(--green);
 }
 
@@ -102,12 +113,13 @@ input:focus-visible {
   display: flex;
   align-items: center;
   gap: 7px;
-  padding: 9px 11px;
+  padding: 8px;
   background: var(--panel-light);
   border: 1px solid var(--border);
   border-radius: 8px;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
+  white-space: nowrap;
 }
 
 .stake-wallet-pill i {
@@ -115,13 +127,14 @@ input:focus-visible {
 }
 
 .stake-btn-wallet {
-  padding: 10px 12px;
+  padding: 10px 11px;
   border: 0;
   border-radius: 7px;
   background: var(--green);
   color: #07110f;
   font-size: 12px;
   font-weight: 800;
+  white-space: nowrap;
 }
 
 .stake-main {
@@ -274,7 +287,7 @@ input:focus-visible {
   bottom: 0;
   left: 50%;
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   width: 100%;
   max-width: 520px;
   padding: 9px 4px calc(9px + env(safe-area-inset-bottom));
@@ -287,19 +300,31 @@ input:focus-visible {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: 5px;
-  padding: 5px 2px;
+  min-width: 0;
+  padding: 5px 1px;
   border: 0;
   background: transparent;
   color: var(--muted);
   font-size: 10px;
+  white-space: nowrap;
 }
 
-.stake-nav-item i {
-  font-size: 18px;
+.stake-nav-item svg {
+  display: block;
+  flex-shrink: 0;
 }
 
 .stake-nav-item.active {
+  color: var(--green);
+}
+
+.stake-nav-item.active svg {
+  stroke: var(--green);
+}
+
+.stake-nav-item.active span {
   color: var(--green);
 }
 
@@ -451,24 +476,34 @@ input:focus-visible {
 
 @media (max-width: 360px) {
   .stake-header {
-    padding-right: 9px;
-    padding-left: 9px;
+    padding-right: 7px;
+    padding-left: 7px;
   }
 
   .stake-header-left,
   .stake-header-right {
-    gap: 7px;
+    gap: 5px;
+  }
+
+  .stake-logo {
+    font-size: 17px;
   }
 
   .stake-wallet-pill {
-    padding: 8px;
+    gap: 4px;
+    padding: 7px;
+    font-size: 11px;
   }
 
   .stake-btn-wallet {
-    padding: 9px;
+    padding: 9px 8px;
   }
 
   .stake-game-grid {
     gap: 7px;
+  }
+
+  .stake-nav-item {
+    font-size: 9px;
   }
 }
