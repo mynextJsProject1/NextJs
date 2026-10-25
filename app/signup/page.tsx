@@ -1,12 +1,9 @@
 
 "use client";
 
-import { FormEvent, useState } from "react";
+import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import Header from "../../components/Header";
-import Footer from "../../components/Footer";
-import { createClient } from "../../lib/supabase/client";
 
 export default function SignupPage() {
   const router = useRouter();
@@ -16,29 +13,28 @@ export default function SignupPage() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [message, setMessage] = useState("");
   const [gameId, setGameId] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
 
-  async function handleSignup(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setError("");
+  async function handleSignup(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setMessage("");
     setGameId("");
 
     const cleanMobile = mobile.replace(/\D/g, "");
 
     if (!/^01[3-9]\d{8}$/.test(cleanMobile)) {
-      setError("Enter a valid Bangladesh mobile number.");
+      setMessage("সঠিক বাংলাদেশের মোবাইল নম্বর দিন।");
       return;
     }
 
     if (password.length < 8 || password.length > 128) {
-      setError("Password must be between 8 and 128 characters.");
+      setMessage("পাসওয়ার্ড ৮ থেকে ১২৮ অক্ষরের মধ্যে দিন।");
       return;
     }
 
     if (password !== confirmPassword) {
-      setError("Passwords do not match.");
+      setMessage("দুটি পাসওয়ার্ড এক নয়।");
       return;
     }
 
@@ -46,10 +42,10 @@ export default function SignupPage() {
 
     try {
       const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-      const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+      const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-      if (!url || !anonKey) {
-        throw new Error("Supabase configuration is missing.");
+      if (!url || !key) {
+        throw new Error("Supabase configuration পাওয়া যায়নি।");
       }
 
       const response = await fetch(
@@ -58,8 +54,8 @@ export default function SignupPage() {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            apikey: anonKey,
-            Authorization: `Bearer ${anonKey}`,
+            apikey: key,
+            Authorization: `Bearer ${key}`,
           },
           body: JSON.stringify({
             action: "signup",
@@ -75,43 +71,39 @@ export default function SignupPage() {
 
       if (!response.ok) {
         throw new Error(
-          result.error || "Account creation failed."
+          result.error || "অ্যাকাউন্ট তৈরি করা যায়নি।"
         );
-      }
-
-      if (result.game_id) {
-        setGameId(result.game_id);
       }
 
       if (result.session?.access_token &&
           result.session?.refresh_token) {
+        const { createClient } = await import(
+          "../../lib/supabase/client"
+        );
+
         const supabase = createClient();
 
-        const { error: sessionError } =
-          await supabase.auth.setSession({
-            access_token: result.session.access_token,
-            refresh_token: result.session.refresh_token,
-          });
+        const { error } = await supabase.auth.setSession({
+          access_token: result.session.access_token,
+          refresh_token: result.session.refresh_token,
+        });
 
-        if (sessionError) {
-          throw new Error(
-            "Account created, but session setup failed. Please log in."
-          );
-        }
+        if (error) throw error;
 
         router.replace("/");
         router.refresh();
         return;
       }
 
-      setError(
-        "Account created, but automatic login failed. Please log in."
+      setGameId(result.game_id || "");
+      setMessage(
+        "অ্যাকাউন্ট তৈরি হয়েছে। এখন Login করুন।"
       );
-    } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : "Something went wrong."
+    } catch (error) {
+      setMessage(
+        error instanceof Error
+          ? error.message
+          : "একটি সমস্যা হয়েছে। আবার চেষ্টা করুন।"
       );
     } finally {
       setLoading(false);
@@ -120,10 +112,16 @@ export default function SignupPage() {
 
   return (
     <div className="stake-app">
-      <Header
-        onMenuClick={() => router.push("/")}
-        onHomeClick={() => router.push("/")}
-      />
+      <header className="stake-header">
+        <Link href="/" className="stake-logo">
+          <span className="gazi-logo-text">
+            Gazi<span className="gazi-logo-accent">casino</span>
+          </span>
+        </Link>
+        <Link href="/login" className="stake-btn-wallet">
+          Login
+        </Link>
+      </header>
 
       <main className="stake-main auth-main">
         <section className="auth-card">
@@ -132,99 +130,80 @@ export default function SignupPage() {
           </div>
 
           <p className="auth-eyebrow">JOIN GAZICASINO</p>
-          <h1 className="auth-title">Create your account</h1>
+          <h1 className="auth-title">Create Account</h1>
           <p className="auth-description">
-            Fill in your details to get started.
+            আপনার অ্যাকাউন্ট তৈরি করতে তথ্য দিন।
           </p>
 
           <form onSubmit={handleSignup} className="auth-form">
-            <label htmlFor="signup-name">Full Name</label>
+            <label htmlFor="fullName">Full Name</label>
             <div className="auth-input-wrap">
-              <i className="fa-solid fa-user" />
               <input
-                id="signup-name"
-                type="text"
-                autoComplete="name"
-                placeholder="Enter your full name"
+                id="fullName"
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
+                placeholder="আপনার নাম"
                 minLength={2}
                 maxLength={100}
                 required
               />
             </div>
 
-            <label htmlFor="signup-mobile">Mobile Number</label>
+            <label htmlFor="mobile">Mobile Number</label>
             <div className="auth-input-wrap">
-              <i className="fa-solid fa-phone" />
               <input
-                id="signup-mobile"
+                id="mobile"
                 type="tel"
                 inputMode="numeric"
-                autoComplete="tel"
-                placeholder="01XXXXXXXXX"
                 value={mobile}
                 onChange={(e) =>
                   setMobile(e.target.value.replace(/\D/g, ""))
                 }
+                placeholder="01XXXXXXXXX"
                 maxLength={11}
                 required
               />
             </div>
 
-            <label htmlFor="signup-password">Password</label>
+            <label htmlFor="password">Password</label>
             <div className="auth-input-wrap">
-              <i className="fa-solid fa-lock" />
               <input
-                id="signup-password"
-                type={showPassword ? "text" : "password"}
+                id="password"
+                type="password"
                 autoComplete="new-password"
-                placeholder="Minimum 8 characters"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                placeholder="কমপক্ষে ৮ অক্ষর"
                 minLength={8}
                 maxLength={128}
                 required
               />
-              <button
-                type="button"
-                className="auth-eye"
-                aria-label="Toggle password visibility"
-                onClick={() => setShowPassword(!showPassword)}
-              >
-                <i
-                  className={
-                    showPassword
-                      ? "fa-solid fa-eye-slash"
-                      : "fa-solid fa-eye"
-                  }
-                />
-              </button>
             </div>
 
-            <label htmlFor="signup-confirm">
+            <label htmlFor="confirmPassword">
               Confirm Password
             </label>
             <div className="auth-input-wrap">
-              <i className="fa-solid fa-lock" />
               <input
-                id="signup-confirm"
-                type={showPassword ? "text" : "password"}
+                id="confirmPassword"
+                type="password"
                 autoComplete="new-password"
-                placeholder="Enter password again"
                 value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
+                onChange={(e) =>
+                  setConfirmPassword(e.target.value)
+                }
+                placeholder="পাসওয়ার্ড আবার লিখুন"
                 maxLength={128}
                 required
               />
             </div>
 
-            {error && (
+            {message && (
               <div className="auth-error" role="alert">
-                {error}
+                {message}
                 {gameId && (
                   <p className="auth-game-id">
-                    Your Game ID: <strong>{gameId}</strong>
+                    Game ID: <strong>{gameId}</strong>
                   </p>
                 )}
               </div>
@@ -236,29 +215,19 @@ export default function SignupPage() {
               disabled={loading}
             >
               {loading ? "Creating account..." : "CREATE ACCOUNT"}
-              {!loading && (
-                <i className="fa-solid fa-arrow-right" />
-              )}
             </button>
           </form>
 
           <p className="auth-switch">
-            Already have an account?{" "}
-            <Link href="/login">Login</Link>
+            আগে থেকেই অ্যাকাউন্ট আছে?{" "}
+            <Link href="/login">Login করুন</Link>
           </p>
         </section>
       </main>
 
-      <Footer
-        activePage="signup"
-        onNavigate={(page) => {
-          if (page === "home") router.push("/");
-          else if (page === "chat") router.push("/");
-          else if (page === "casino") router.push("/");
-          else if (page === "sports") router.push("/");
-        }}
-      />
+      <footer className="stake-footer">
+        © 2026 Gazicasino. All rights reserved.
+      </footer>
     </div>
   );
 }
-
