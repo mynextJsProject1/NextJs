@@ -18,10 +18,6 @@
       {
         "name": "next"
       }
-    ],
-    "exclude": [
-      "node_modules",
-      "supabase/functions/**"
     ]
   },
   "include": [
@@ -29,5 +25,9 @@
     ".next/types/**/*.ts",
     "**/*.ts",
     "**/*.tsx"
+  ],
+  "exclude": [
+    "node_modules",
+    "supabase/functions/**"
   ]
 }
