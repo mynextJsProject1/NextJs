@@ -1,75 +1,202 @@
 
+"use client";
+
+import { useState } from "react";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
+import Sidebar from "@/components/Sidebar";
+import ChatDrawer from "@/components/ChatDrawer";
+
+const games = [
+  {
+    name: "Lucky Slots",
+    category: "Slots",
+    image:
+      "https://images.unsplash.com/photo-1511512578047-dfb367046420?w=400",
+  },
+  {
+    name: "Golden Casino",
+    category: "Popular",
+    image:
+      "https://images.unsplash.com/photo-1606167668584-78701c57f13d?w=400",
+  },
+  {
+    name: "Royal Play",
+    category: "Slots",
+    image:
+      "https://images.unsplash.com/photo-1596838132731-3301c3fd4317?w=400",
+  },
+  {
+    name: "Neon Games",
+    category: "Popular",
+    image:
+      "https://images.unsplash.com/photo-1542751371-adc38448a05e?w=400",
+  },
+  {
+    name: "Sports Arena",
+    category: "Sports",
+    image:
+      "https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=400",
+  },
+  {
+    name: "Adventure",
+    category: "Popular",
+    image:
+      "https://images.unsplash.com/photo-1542751371-adc38448a05e?w=400",
+  },
+];
+
+const categories = ["All", "Popular", "Slots", "Sports"];
+
 export default function Home() {
+  const [activePage, setActivePage] = useState("home");
+  const [activeCategory, setActiveCategory] = useState("All");
+  const [search, setSearch] = useState("");
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [chatOpen, setChatOpen] = useState(false);
+
+  function navigate(page: string) {
+    if (page === "chat") {
+      setChatOpen(true);
+      return;
+    }
+
+    setActivePage(page);
+    setActiveCategory("All");
+    setSearch("");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  const filteredGames = games.filter((game) => {
+    const matchesCategory =
+      activeCategory === "All" ||
+      game.category === activeCategory;
+
+    const matchesSearch = game.name
+      .toLowerCase()
+      .includes(search.toLowerCase());
+
+    return matchesCategory && matchesSearch;
+  });
+
+  const visibleGames =
+    activePage === "sports"
+      ? games.filter((game) => game.category === "Sports")
+      : filteredGames;
+
   return (
-    <main className="min-h-screen bg-slate-950 text-white">
-      <nav className="flex items-center justify-between px-6 py-5 md:px-16">
-        <h1 className="text-2xl font-bold text-cyan-400">
-          NextSpace
-        </h1>
-        <a
-          href="#features"
-          className="rounded-full border border-slate-600 px-5 py-2"
-        >
-          Explore
-        </a>
-      </nav>
+    <div className="stake-app">
+      <Header
+        onMenuClick={() => setMenuOpen(true)}
+        onHomeClick={() => navigate("home")}
+      />
 
-      <section className="flex min-h-[75vh] flex-col items-center justify-center px-6 text-center">
-        <p className="mb-5 rounded-full border border-cyan-500/40 px-4 py-2 text-sm text-cyan-300">
-          Welcome to the future
-        </p>
+      <main className="stake-main">
+        <section className="stake-hero">
+          <span className="stake-hero-label">
+            THE NEXT EXPERIENCE
+          </span>
 
-        <h2 className="max-w-3xl text-5xl font-extrabold leading-tight md:text-7xl">
-          Build Your
-          <span className="text-cyan-400"> Next Idea.</span>
-        </h2>
+          <h1>
+            Play Your
+            <br />
+            Next Game<span style={{ color: "#00e701" }}>.</span>
+          </h1>
 
-        <p className="mt-6 max-w-xl text-lg leading-8 text-slate-400">
-          A new digital experience starts here.
-          Discover what you can create with NextSpace.
-        </p>
+          <p>
+            Discover exciting games in a modern mobile
+            experience.
+          </p>
+        </section>
 
-        <a
-          href="#features"
-          className="mt-8 rounded-full bg-cyan-400 px-8 py-4 font-bold text-slate-950 transition hover:bg-cyan-300"
-        >
-          Get Started →
-        </a>
-      </section>
+        <div className="stake-search">
+          <input
+            type="search"
+            placeholder="Search games..."
+            aria-label="Search games"
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+          />
+        </div>
 
-      <section
-        id="features"
-        className="grid gap-5 px-6 pb-20 md:grid-cols-3 md:px-16"
-      >
-        {[
-          {
-            title: "⚡ Fast",
-            text: "A modern experience built for speed.",
-          },
-          {
-            title: "🎨 Modern",
-            text: "Clean design that looks great on mobile.",
-          },
-          {
-            title: "🔒 Reliable",
-            text: "Ready to grow with your next project.",
-          },
-        ].map((item) => (
-          <div
-            key={item.title}
-            className="rounded-2xl border border-slate-800 bg-slate-900 p-7"
+        <div className="stake-section-heading">
+          <h2>
+            {activePage === "sports"
+              ? "Sports"
+              : activePage === "casino"
+                ? "Casino Games"
+                : "Explore Games"}
+          </h2>
+
+          <button
+            className="stake-view-all"
+            type="button"
+            onClick={() => {
+              setActivePage("casino");
+              setActiveCategory("All");
+            }}
           >
-            <h3 className="text-xl font-bold">{item.title}</h3>
-            <p className="mt-3 leading-7 text-slate-400">
-              {item.text}
-            </p>
-          </div>
-        ))}
-      </section>
+            View All →
+          </button>
+        </div>
 
-      <footer className="border-t border-slate-800 py-6 text-center text-sm text-slate-500">
-        © 2026 NextSpace. All rights reserved.
-      </footer>
-    </main>
+        {activePage !== "sports" && (
+          <div className="stake-categories">
+            {categories.map((category) => (
+              <button
+                key={category}
+                type="button"
+                className={`stake-category ${
+                  activeCategory === category ? "active" : ""
+                }`}
+                onClick={() => setActiveCategory(category)}
+              >
+                {category}
+              </button>
+            ))}
+          </div>
+        )}
+
+        <div className="stake-game-grid">
+          {visibleGames.length > 0 ? (
+            visibleGames.map((game) => (
+              <article className="stake-game-card" key={game.name}>
+                <img
+                  className="stake-game-image"
+                  src={game.image}
+                  alt={game.name}
+                  loading="lazy"
+                />
+                <div className="stake-game-name">
+                  {game.name}
+                </div>
+              </article>
+            ))
+          ) : (
+            <p className="stake-empty">No games found.</p>
+          )}
+        </div>
+
+        <footer className="stake-footer">
+          © 2026 Stake. All rights reserved.
+        </footer>
+      </main>
+
+      <Footer
+        activePage={activePage}
+        onNavigate={navigate}
+      />
+
+      <Sidebar
+        isOpen={menuOpen}
+        onClose={() => setMenuOpen(false)}
+        onNavigate={navigate}
+      />
+
+      <ChatDrawer
+        isOpen={chatOpen}
+        onClose={() => setChatOpen(false)}
+      />
+    </div>
   );
 }
