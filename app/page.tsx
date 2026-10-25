@@ -2,29 +2,31 @@
 import { createClient } from "../lib/supabase/server";
 
 export default async function Home() {
-  let message = "Supabase connected successfully!";
+  const supabase = await createClient();
 
-  try {
-    const supabase = await createClient();
-
-    const { error } = await supabase
-      .from("connection_test")
-      .select("*")
-      .limit(1);
-
-    if (error) {
-      message = "Supabase response: " + error.message;
-    }
-  } catch {
-    message = "Supabase connection failed.";
-  }
+  const { data, error } = await supabase
+    .from("connection_test")
+    .select("id, message")
+    .limit(5);
 
   return (
     <main className="min-h-screen flex flex-col items-center justify-center p-6">
       <h1 className="text-3xl font-bold">
         Next.js + Supabase
       </h1>
-      <p className="mt-4 break-words">{message}</p>
+
+      {error ? (
+        <p className="mt-4 break-words">
+          Error: {error.message}
+        </p>
+      ) : (
+        <div className="mt-4">
+          <p>Supabase connected successfully!</p>
+          {data?.map((item) => (
+            <p key={item.id}>{item.message}</p>
+          ))}
+        </div>
+      )}
     </main>
   );
 }
