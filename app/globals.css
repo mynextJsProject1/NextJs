@@ -506,4 +506,25 @@ input:focus-visible {
   .stake-nav-item {
     font-size: 9px;
   }
+  .stake-banner {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  margin: 0 0 22px;
+  padding: 0;
+  box-sizing: border-box;
+  overflow: hidden;
+  border-radius: 12px;
+}
+
+.stake-banner-image {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 7;
+  object-fit: cover;
+  object-position: center;
+  box-sizing: border-box;
+}
 }
