@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, type FormEvent } from "react";
@@ -45,11 +44,15 @@ export default function SignupPage() {
       const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
       if (!url || !key) {
-        throw new Error("Supabase configuration পাওয়া যায়নি।");
+        throw new Error(
+          "Supabase configuration পাওয়া যায়নি। GitHub Environment Variables পরীক্ষা করুন।"
+        );
       }
 
+      const supabaseUrl = url.replace(/\/+$/, "");
+
       const response = await fetch(
-        `${url}/functions/v1/auth-manager`,
+        `${supabaseUrl}/functions/v1/super-action`,
         {
           method: "POST",
           headers: {
@@ -67,16 +70,37 @@ export default function SignupPage() {
         }
       );
 
-      const result = await response.json();
+      const responseText = await response.text();
 
-      if (!response.ok) {
+      let result: {
+        error?: string;
+        message?: string;
+        game_id?: string;
+        session?: {
+          access_token?: string;
+          refresh_token?: string;
+        };
+      };
+
+      try {
+        result = JSON.parse(responseText);
+      } catch {
         throw new Error(
-          result.error || "অ্যাকাউন্ট তৈরি করা যায়নি।"
+          `Supabase থেকে সঠিক JSON Response আসেনি (HTTP ${response.status})। Function-এর Logs পরীক্ষা করুন।`
         );
       }
 
-      if (result.session?.access_token &&
-          result.session?.refresh_token) {
+      if (!response.ok) {
+        throw new Error(
+          result.error ||
+            `Signup ব্যর্থ হয়েছে (HTTP ${response.status})।`
+        );
+      }
+
+      if (
+        result.session?.access_token &&
+        result.session?.refresh_token
+      ) {
         const { createClient } = await import(
           "../../lib/supabase/client"
         );
@@ -88,7 +112,11 @@ export default function SignupPage() {
           refresh_token: result.session.refresh_token,
         });
 
-        if (error) throw error;
+        if (error) {
+          throw new Error(
+            "অ্যাকাউন্ট তৈরি হয়েছে, কিন্তু Session সেট করা যায়নি। Login করুন।"
+          );
+        }
 
         router.replace("/");
         router.refresh();
@@ -97,14 +125,21 @@ export default function SignupPage() {
 
       setGameId(result.game_id || "");
       setMessage(
-        "অ্যাকাউন্ট তৈরি হয়েছে। এখন Login করুন।"
+        result.message ||
+          "অ্যাকাউন্ট তৈরি হয়েছে। এখন Login করুন।"
       );
     } catch (error) {
-      setMessage(
-        error instanceof Error
-          ? error.message
-          : "একটি সমস্যা হয়েছে। আবার চেষ্টা করুন।"
-      );
+      if (error instanceof TypeError) {
+        setMessage(
+          "Supabase-এর সঙ্গে সংযোগ করা যায়নি। Function URL, CORS এবং Network পরীক্ষা করুন।"
+        );
+      } else {
+        setMessage(
+          error instanceof Error
+            ? error.message
+            : "একটি সমস্যা হয়েছে। আবার চেষ্টা করুন।"
+        );
+      }
     } finally {
       setLoading(false);
     }
@@ -118,6 +153,7 @@ export default function SignupPage() {
             Gazi<span className="gazi-logo-accent">casino</span>
           </span>
         </Link>
+
         <Link href="/login" className="stake-btn-wallet">
           Login
         </Link>
@@ -130,13 +166,16 @@ export default function SignupPage() {
           </div>
 
           <p className="auth-eyebrow">JOIN GAZICASINO</p>
+
           <h1 className="auth-title">Create Account</h1>
+
           <p className="auth-description">
             আপনার অ্যাকাউন্ট তৈরি করতে তথ্য দিন।
           </p>
 
           <form onSubmit={handleSignup} className="auth-form">
             <label htmlFor="fullName">Full Name</label>
+
             <div className="auth-input-wrap">
               <input
                 id="fullName"
@@ -150,6 +189,7 @@ export default function SignupPage() {
             </div>
 
             <label htmlFor="mobile">Mobile Number</label>
+
             <div className="auth-input-wrap">
               <input
                 id="mobile"
@@ -166,6 +206,7 @@ export default function SignupPage() {
             </div>
 
             <label htmlFor="password">Password</label>
+
             <div className="auth-input-wrap">
               <input
                 id="password"
@@ -183,6 +224,7 @@ export default function SignupPage() {
             <label htmlFor="confirmPassword">
               Confirm Password
             </label>
+
             <div className="auth-input-wrap">
               <input
                 id="confirmPassword"
@@ -193,6 +235,7 @@ export default function SignupPage() {
                   setConfirmPassword(e.target.value)
                 }
                 placeholder="পাসওয়ার্ড আবার লিখুন"
+                minLength={8}
                 maxLength={128}
                 required
               />
@@ -201,6 +244,7 @@ export default function SignupPage() {
             {message && (
               <div className="auth-error" role="alert">
                 {message}
+
                 {gameId && (
                   <p className="auth-game-id">
                     Game ID: <strong>{gameId}</strong>
