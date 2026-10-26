@@ -3,7 +3,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "../../lib/supabase/client";
+import { createClient } from "../../lib/supabase/client";
 
 type PaymentMethod = {
   id: number;
@@ -30,6 +30,7 @@ type WalletTransaction = {
 export default function WalletsPage() {
   const router = useRouter();
 
+  const [supabase] = useState(() => createClient());
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [userId, setUserId] = useState("");
@@ -46,55 +47,58 @@ export default function WalletsPage() {
     setLoading(true);
     setError("");
 
-    const { data: authData, error: authError } =
-      await supabase.auth.getUser();
+    try {
+      const { data: authData, error: authError } =
+        await supabase.auth.getUser();
 
-    if (authError || !authData.user) {
-      router.replace("/login/");
-      return;
+      if (authError || !authData.user) {
+        router.replace("/login/");
+        return;
+      }
+
+      setUserId(authData.user.id);
+
+      const [methodsResult, transactionsResult] = await Promise.all([
+        supabase
+          .from("payment_methods")
+          .select(
+            "id, method_code, method_name, is_enabled, deposit_enabled, withdrawal_enabled, payment_number, usdt_address, usdt_network"
+          )
+          .eq("is_enabled", true)
+          .order("id"),
+
+        supabase
+          .from("wallet_transactions")
+          .select(
+            "id, transaction_type, method_code, amount, transaction_reference, status, created_at"
+          )
+          .eq("user_id", authData.user.id)
+          .order("created_at", { ascending: false })
+          .limit(20),
+      ]);
+
+      if (methodsResult.error) {
+        setError("পেমেন্ট পদ্ধতি লোড করা যায়নি। Supabase সেটিংস পরীক্ষা করুন।");
+      } else {
+        setMethods((methodsResult.data ?? []) as PaymentMethod[]);
+      }
+
+      if (transactionsResult.error) {
+        setError("লেনদেনের তালিকা লোড করা যায়নি। Supabase RLS নীতি পরীক্ষা করুন।");
+      } else {
+        setTransactions(
+          (transactionsResult.data ?? []) as WalletTransaction[]
+        );
+      }
+    } catch {
+      setError("Supabase সংযোগে সমস্যা হয়েছে। আবার চেষ্টা করুন।");
+    } finally {
+      setLoading(false);
     }
-
-    setUserId(authData.user.id);
-
-    const [methodsResult, transactionsResult] = await Promise.all([
-      supabase
-        .from("payment_methods")
-        .select(
-          "id, method_code, method_name, is_enabled, deposit_enabled, withdrawal_enabled, payment_number, usdt_address, usdt_network"
-        )
-        .eq("is_enabled", true)
-        .order("id"),
-
-      supabase
-        .from("wallet_transactions")
-        .select(
-          "id, transaction_type, method_code, amount, transaction_reference, status, created_at"
-        )
-        .order("created_at", { ascending: false })
-        .limit(20),
-    ]);
-
-    if (methodsResult.error) {
-      setError("পেমেন্ট পদ্ধতি লোড করা যায়নি। পরে আবার চেষ্টা করুন।");
-    } else {
-      setMethods((methodsResult.data ?? []) as PaymentMethod[]);
-    }
-
-    if (transactionsResult.error) {
-      setError(
-        "লেনদেনের তালিকা লোড করা যায়নি। Supabase-এর নীতিমালা পরীক্ষা করুন।"
-      );
-    } else {
-      setTransactions(
-        (transactionsResult.data ?? []) as WalletTransaction[]
-      );
-    }
-
-    setLoading(false);
-  }, [router]);
+  }, [router, supabase]);
 
   useEffect(() => {
-    loadWallet();
+    void loadWallet();
   }, [loadWallet]);
 
   const availableMethods = methods.filter((method) =>
@@ -149,39 +153,49 @@ export default function WalletsPage() {
 
     setSubmitting(true);
 
-    const { error: insertError } = await supabase
-      .from("wallet_transactions")
-      .insert({
-        user_id: userId,
-        transaction_type: type,
-        method_code: selectedMethod.method_code,
-        amount: numericAmount,
-        transaction_reference: reference.trim(),
-        status: "pending",
-      });
+    try {
+      const { data: authData, error: authError } =
+        await supabase.auth.getUser();
 
-    setSubmitting(false);
+      if (authError || !authData.user || authData.user.id !== userId) {
+        setError("আপনার Login সেশন যাচাই করা যায়নি। আবার Login করুন।");
+        router.replace("/login/");
+        return;
+      }
 
-    if (insertError) {
-      setError(
-        "অনুরোধ জমা হয়নি। Supabase-এর RLS নীতি এবং সংযোগ পরীক্ষা করুন।"
-      );
-      return;
+      const { error: insertError } = await supabase
+        .from("wallet_transactions")
+        .insert({
+          user_id: authData.user.id,
+          transaction_type: type,
+          method_code: selectedMethod.method_code,
+          amount: numericAmount,
+          transaction_reference: reference.trim(),
+          status: "pending",
+        });
+
+      if (insertError) {
+        setError(
+          "অনুরোধ জমা হয়নি। Supabase টেবিল, কলাম ও RLS নীতি পরীক্ষা করুন।"
+        );
+        return;
+      }
+
+      setMessage("আপনার অনুরোধ জমা হয়েছে। যাচাইয়ের জন্য অপেক্ষা করুন।");
+      setAmount("");
+      setReference("");
+      await loadWallet();
+    } catch {
+      setError("অনুরোধ জমা দিতে সমস্যা হয়েছে। আবার চেষ্টা করুন।");
+    } finally {
+      setSubmitting(false);
     }
-
-    setMessage("আপনার অনুরোধ জমা হয়েছে। যাচাইয়ের জন্য অপেক্ষা করুন।");
-    setAmount("");
-    setReference("");
-    await loadWallet();
   }
 
-  const methodDestination = (method: PaymentMethod) => {
-    if (method.method_code === "usdt") {
-      return method.usdt_address || "";
-    }
-
-    return method.payment_number || "";
-  };
+  const methodDestination = (method: PaymentMethod) =>
+    method.method_code === "usdt"
+      ? method.usdt_address || ""
+      : method.payment_number || "";
 
   if (loading) {
     return (
@@ -249,6 +263,7 @@ export default function WalletsPage() {
           <h2 className="mb-1 text-xl font-bold">
             {type === "deposit" ? "Deposit Coins" : "Withdraw Coins"}
           </h2>
+
           <p className="mb-5 text-sm text-slate-400">
             {type === "deposit"
               ? "একটি চালু পেমেন্ট পদ্ধতি নির্বাচন করুন।"
@@ -297,7 +312,7 @@ export default function WalletsPage() {
                       : "পদ্ধতি"}
                   </p>
 
-                  {type === "deposit" && (
+                  {type === "deposit" ? (
                     <>
                       <p className="break-all font-semibold text-cyan-300">
                         {methodDestination(selectedMethod) ||
@@ -311,9 +326,7 @@ export default function WalletsPage() {
                           </p>
                         )}
                     </>
-                  )}
-
-                  {type === "withdrawal" && (
+                  ) : (
                     <p className="font-semibold text-cyan-300">
                       {selectedMethod.method_name}
                     </p>
@@ -358,13 +371,19 @@ export default function WalletsPage() {
               </div>
 
               {error && (
-                <p role="alert" className="rounded-lg bg-red-950/50 p-3 text-sm text-red-300">
+                <p
+                  role="alert"
+                  className="rounded-lg bg-red-950/50 p-3 text-sm text-red-300"
+                >
                   {error}
                 </p>
               )}
 
               {message && (
-                <p role="status" className="rounded-lg bg-emerald-950/50 p-3 text-sm text-emerald-300">
+                <p
+                  role="status"
+                  className="rounded-lg bg-emerald-950/50 p-3 text-sm text-emerald-300"
+                >
                   {message}
                 </p>
               )}
@@ -419,15 +438,15 @@ export default function WalletsPage() {
                         transaction.status === "approved"
                           ? "bg-emerald-950 text-emerald-300"
                           : transaction.status === "rejected"
-                          ? "bg-red-950 text-red-300"
-                          : "bg-amber-950 text-amber-300"
+                            ? "bg-red-950 text-red-300"
+                            : "bg-amber-950 text-amber-300"
                       }`}
                     >
                       {transaction.status === "pending"
                         ? "Pending"
                         : transaction.status === "approved"
-                        ? "Approved"
-                        : "Rejected"}
+                          ? "Approved"
+                          : "Rejected"}
                     </span>
                   </div>
 
@@ -436,6 +455,7 @@ export default function WalletsPage() {
                       maximumFractionDigits: 2,
                     })}
                   </p>
+
                   <p className="mt-1 text-xs text-slate-500">
                     {new Date(transaction.created_at).toLocaleString()}
                   </p>
