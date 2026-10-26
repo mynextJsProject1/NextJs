@@ -49,7 +49,6 @@ const methodImages: Record<string, string> = {
 };
 
 const allowedMethods = ["bkash", "nagad", "rocket", "usdt"];
-
 const fiatMethods = ["bkash", "nagad", "rocket"];
 const cryptoMethods = ["usdt"];
 
@@ -69,10 +68,8 @@ export default function WalletPage() {
   const [methods, setMethods] = useState<PaymentMethod[]>([]);
   const [transactions, setTransactions] = useState<WalletTransaction[]>([]);
   const [mode, setMode] = useState<ModalMode>("deposit");
-  const [paymentCategory, setPaymentCategory] =
-    useState<PaymentCategory>("fiat");
-  const [selectedMethod, setSelectedMethod] =
-    useState<PaymentMethod | null>(null);
+  const [paymentCategory, setPaymentCategory] = useState<PaymentCategory>("fiat");
+  const [selectedMethod, setSelectedMethod] = useState<PaymentMethod | null>(null);
   const [amount, setAmount] = useState("");
   const [reference, setReference] = useState("");
   const [destination, setDestination] = useState("");
@@ -82,6 +79,9 @@ export default function WalletPage() {
   const [messageSuccess, setMessageSuccess] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [historyFilter, setHistoryFilter] = useState("all");
+  
+  // নতুন যোগ করা ব্যালেন্স স্টেট
+  const [profileBalance, setProfileBalance] = useState<number>(0);
 
   // UI-only state: does not change wallet/database logic.
   const [isClosing, setIsClosing] = useState(false);
@@ -101,7 +101,8 @@ export default function WalletPage() {
         return;
       }
 
-      const [methodResult, transactionResult] = await Promise.all([
+      // প্রোফাইল থেকে ব্যালেন্স লোড করার জন্য profileResult যোগ করা হয়েছে
+      const [methodResult, transactionResult, profileResult] = await Promise.all([
         supabase
           .from("payment_methods")
           .select(
@@ -118,6 +119,12 @@ export default function WalletPage() {
           .eq("user_id", user.id)
           .order("created_at", { ascending: false })
           .limit(50),
+
+        supabase
+          .from("profiles")
+          .select("balance")
+          .eq("id", user.id)
+          .maybeSingle()
       ]);
 
       if (methodResult.error) {
@@ -136,6 +143,10 @@ export default function WalletPage() {
         setTransactions(
           (transactionResult.data ?? []) as WalletTransaction[]
         );
+      }
+
+      if (profileResult.data) {
+        setProfileBalance(Number(profileResult.data.balance));
       }
     } catch {
       setMessage("ওয়ালেট লোড করতে সমস্যা হয়েছে। আবার চেষ্টা করুন।");
@@ -281,6 +292,12 @@ export default function WalletPage() {
         return;
       }
 
+      // নতুন যোগ করা ব্যালেন্স চেক (Withdrawal এর জন্য)
+      if (type === "withdrawal" && numericAmount > profileBalance) {
+        setMessage("আপনার অ্যাকাউন্টে পর্যাপ্ত ব্যালেন্স নেই।");
+        return;
+      }
+
       if (referenceText.length > 200 || destinationText.length > 250) {
         setMessage("দেওয়া তথ্য অনেক বড়। আবার চেষ্টা করুন।");
         return;
@@ -398,6 +415,12 @@ export default function WalletPage() {
           <div className="wallet-heading-icon">
             <i className="fa-solid fa-wallet" />
           </div>
+        </div>
+
+        {/* নতুন যোগ করা ব্যালেন্স ডিসপ্লে */}
+        <div style={{ textAlign: "center", marginBottom: "1rem", padding: "12px", background: "rgba(0, 231, 1, 0.1)", borderRadius: "8px", border: "1px solid rgba(0, 231, 1, 0.2)" }}>
+          <span style={{ color: "#b1bad3", fontSize: "0.9rem", display: "block", marginBottom: "4px" }}>Available Balance</span>
+          <strong style={{ color: "#00e701", fontSize: "1.5rem" }}>৳ {profileBalance.toFixed(2)}</strong>
         </div>
 
         <div className="wallet-tabs" role="tablist" aria-label="Wallet action">
