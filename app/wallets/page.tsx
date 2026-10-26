@@ -21,16 +21,6 @@ type PaymentMethod = {
   usdt_network: string | null;
 };
 
-type WalletTransaction = {
-  id: string;
-  transaction_type: "deposit" | "withdrawal";
-  method_code: string;
-  amount: number | string;
-  transaction_reference: string | null;
-  status: "pending" | "approved" | "rejected";
-  created_at: string;
-};
-
 type ModalMode = "deposit" | "withdrawal";
 type PaymentCategory = "fiat" | "crypto";
 
@@ -50,23 +40,15 @@ const methodImages: Record<string, string> = {
 
 const allowedMethods = ["bkash", "nagad", "rocket", "usdt"];
 const fiatMethods = ["bkash", "nagad", "rocket"];
-const cryptoMethods = ["usdt"];
 
 const paymentImageBase =
   process.env.NODE_ENV === "production" ? "/NextJs" : "";
-
-const formatAmount = (amount: number | string) =>
-  Number(amount).toLocaleString("en-US", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
 
 export default function WalletPage() {
   const router = useRouter();
   const supabase = useMemo(() => createClient(), []);
 
   const [methods, setMethods] = useState<PaymentMethod[]>([]);
-  const [transactions, setTransactions] = useState<WalletTransaction[]>([]);
   const [mode, setMode] = useState<ModalMode>("deposit");
   const [paymentCategory, setPaymentCategory] = useState<PaymentCategory>("fiat");
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethod | null>(null);
@@ -78,7 +60,6 @@ export default function WalletPage() {
   const [message, setMessage] = useState("");
   const [messageSuccess, setMessageSuccess] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [historyFilter, setHistoryFilter] = useState("all");
   const [profileBalance, setProfileBalance] = useState<number>(0);
 
   const [isClosing, setIsClosing] = useState(false);
@@ -88,17 +69,14 @@ export default function WalletPage() {
     setLoading(true);
 
     try {
-      const {
-        data: { user },
-        error: authError,
-      } = await supabase.auth.getUser();
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
 
       if (authError || !user) {
         router.replace("/login/");
         return;
       }
 
-      const [methodResult, transactionResult, profileResult] = await Promise.all([
+      const [methodResult, profileResult] = await Promise.all([
         supabase
           .from("payment_methods")
           .select(
@@ -106,15 +84,6 @@ export default function WalletPage() {
           )
           .eq("is_enabled", true)
           .order("id"),
-
-        supabase
-          .from("wallet_transactions")
-          .select(
-            "id, transaction_type, method_code, amount, transaction_reference, status, created_at"
-          )
-          .eq("user_id", user.id)
-          .order("created_at", { ascending: false })
-          .limit(50),
 
         supabase
           .from("profiles")
@@ -128,13 +97,6 @@ export default function WalletPage() {
         setMessageSuccess(false);
       } else {
         setMethods((methodResult.data ?? []) as PaymentMethod[]);
-      }
-
-      if (transactionResult.error) {
-        setMessage("লেনদেনের ইতিহাস লোড হয়নি। Supabase RLS পরীক্ষা করুন।");
-        setMessageSuccess(false);
-      } else {
-        setTransactions((transactionResult.data ?? []) as WalletTransaction[]);
       }
 
       if (profileResult.data) {
@@ -216,6 +178,16 @@ export default function WalletPage() {
     }
   };
 
+  const handleCryptoClick = () => {
+    setPaymentCategory("crypto");
+    setMessage("");
+    setMessageSuccess(false);
+    const usdtMethod = methods.find((m) => m.method_code === "usdt" && m.deposit_enabled);
+    if (usdtMethod) {
+      openModal(usdtMethod, "deposit");
+    }
+  };
+
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
@@ -226,10 +198,7 @@ export default function WalletPage() {
     setMessageSuccess(false);
 
     try {
-      const {
-        data: { user },
-        error: authError,
-      } = await supabase.auth.getUser();
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
 
       if (authError || !user) {
         setMessage("সেশন শেষ হয়েছে। আবার লগইন করুন।");
@@ -244,11 +213,6 @@ export default function WalletPage() {
       const referenceText = reference.trim();
       const destinationText = destination.trim();
 
-      if (!["deposit", "withdrawal"].includes(type)) {
-        setMessage("লেনদেনের ধরন সঠিক নয়।");
-        return;
-      }
-
       if (!allowedMethods.includes(methodCode)) {
         setMessage("পেমেন্ট পদ্ধতি সঠিক নয়।");
         return;
@@ -262,11 +226,7 @@ export default function WalletPage() {
       const numericAmount = Number(amountText);
 
       if (!Number.isFinite(numericAmount) || numericAmount <= 0 || numericAmount > 10000000) {
-        setMessage(
-          type === "withdrawal"
-            ? "Withdrawal amount অবশ্যই ০.০১ থেকে ১০,০০,০০০ এর মধ্যে হতে হবে। ০ বা শূন্য গ্রহণযোগ্য নয়।"
-            : "পরিমাণ ০.০১ থেকে ১০,০০,০০০ পর্যন্ত লিখুন।"
-        );
+        setMessage("পরিমাণ ০.০১ থেকে ১০,০০,০০০ পর্যন্ত লিখুন। ০ গ্রহণযোগ্য নয়।");
         return;
       }
 
@@ -282,11 +242,6 @@ export default function WalletPage() {
 
       if (type === "withdrawal" && numericAmount > profileBalance) {
         setMessage("আপনার অ্যাকাউন্টে পর্যাপ্ত ব্যালেন্স নেই।");
-        return;
-      }
-
-      if (referenceText.length > 200 || destinationText.length > 250) {
-        setMessage("দেওয়া তথ্য অনেক বড়। আবার চেষ্টা করুন।");
         return;
       }
 
@@ -325,7 +280,6 @@ export default function WalletPage() {
         });
 
       if (insertError) {
-        console.error("Wallet request insert failed:", insertError.message);
         setMessage("রিকোয়েস্ট জমা হয়নি। Supabase RLS, টেবিলের কলাম ও INSERT অনুমতি পরীক্ষা করুন।");
         setMessageSuccess(false);
         return;
@@ -333,11 +287,9 @@ export default function WalletPage() {
 
       setMessage("আপনার রিকোয়েস্ট জমা হয়েছে। অনুমোদন না হওয়া পর্যন্ত স্ট্যাটাস Pending থাকবে।");
       setMessageSuccess(true);
-
       setAmount("");
       setReference("");
       setDestination("");
-
       await loadWallet();
     } catch {
       setMessage("রিকোয়েস্ট জমা দিতে সমস্যা হয়েছে। আবার চেষ্টা করুন।");
@@ -349,54 +301,30 @@ export default function WalletPage() {
 
   const navigate = (page: string) => {
     const routes: Record<string, string> = {
-      home: "/",
-      casino: "/casino/",
-      lottery: "/lottery/",
-      sports: "/sports/",
-      chat: "/",
+      home: "/", casino: "/casino/", lottery: "/lottery/", sports: "/sports/", chat: "/",
     };
     router.push(routes[page] ?? "/");
   };
 
-  const filteredTransactions =
-    historyFilter === "all"
-      ? transactions
-      : transactions.filter((item) => item.status === historyFilter);
-
   const availableMethods = methods.filter((method) => {
     if (mode === "deposit") {
       if (!method.deposit_enabled) return false;
-      if (paymentCategory === "fiat") {
-        return fiatMethods.includes(method.method_code);
-      }
-      return cryptoMethods.includes(method.method_code);
+      if (paymentCategory === "fiat") return fiatMethods.includes(method.method_code);
+      return false; // We handle crypto modal directly
     }
     return method.withdrawal_enabled;
   });
 
   return (
     <div className="stake-app wallet-page">
-      <Header
-        onMenuClick={() => setSidebarOpen(true)}
-        onHomeClick={() => router.push("/")}
-      />
-
-      <Sidebar
-        isOpen={sidebarOpen}
-        onClose={() => setSidebarOpen(false)}
-        onNavigate={navigate}
-      />
+      <Header onMenuClick={() => setSidebarOpen(true)} onHomeClick={() => router.push("/")} />
+      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} onNavigate={navigate} />
 
       <main className="stake-main wallet-main">
         <div className="wallet-heading">
           <div className="wallet-heading-icon">
             <i className="fa-solid fa-wallet" />
           </div>
-        </div>
-
-        <div className="wallet-balance-card">
-          <span>Available Balance</span>
-          <strong>৳ {profileBalance.toFixed(2)}</strong>
         </div>
 
         <div className="wallet-tabs" role="tablist" aria-label="Wallet action">
@@ -438,30 +366,30 @@ export default function WalletPage() {
                 role="tab"
                 aria-selected={paymentCategory === "crypto"}
                 className={paymentCategory === "crypto" ? "active" : ""}
-                onClick={() => { setPaymentCategory("crypto"); setMessage(""); setMessageSuccess(false); }}
+                onClick={handleCryptoClick}
               >
                 Crypto
               </button>
             </div>
-
             <p className="wallet-category-hint">
               {paymentCategory === "fiat" ? "bKash · Nagad · Rocket" : "USDT"}
             </p>
           </>
         )}
 
-        <div className="wallet-section-title">
-          <div>
-            <h2>{mode === "deposit" ? "Choose Deposit Method" : "Choose Withdrawal Method"}</h2>
-            <p>
-              {mode === "deposit"
-                ? "Select a payment method to submit a deposit request."
-                : "Select a method to request a withdrawal."}
-            </p>
+        {/* Crypto Mode Fallback Button (If user closes modal) */}
+        {mode === "deposit" && paymentCategory === "crypto" ? (
+          <div style={{ textAlign: "center", marginTop: "2rem" }}>
+             <button
+                type="button"
+                className="wallet-submit"
+                style={{ display: "inline-block", width: "auto", padding: "12px 32px" }}
+                onClick={handleCryptoClick}
+             >
+                <i className="fa-solid fa-wallet" /> Deposit USDT
+             </button>
           </div>
-        </div>
-
-        {loading ? (
+        ) : loading ? (
           <div className="wallet-state">
             <i className="fa-solid fa-spinner fa-spin" />
             <span>Loading wallet...</span>
@@ -470,13 +398,12 @@ export default function WalletPage() {
           <div className="wallet-state">
             <i className="fa-solid fa-circle-info" />
             <strong>No methods available</strong>
-            <span>এই ধরনের লেনদেনের জন্য কোনো পদ্ধতি চালু নেই। অ্যাডমিনের সঙ্গে যোগাযোগ করুন।</span>
+            <span>এই ধরনের লেনদেনের জন্য কোনো পদ্ধতি চালু নেই।</span>
           </div>
         ) : (
           <div className="wallet-method-grid">
             {availableMethods.map((method) => {
               const isSelected = selectedMethod?.method_code === method.method_code;
-
               return (
                 <button
                   type="button"
@@ -487,11 +414,7 @@ export default function WalletPage() {
                 >
                   <div className="wallet-method-logo-box">
                     {methodImages[method.method_code] ? (
-                      <img
-                        src={`${paymentImageBase}/images/payment/${methodImages[method.method_code]}`}
-                        alt={`${method.method_name} logo`}
-                        loading="lazy"
-                      />
+                      <img src={`${paymentImageBase}/images/payment/${methodImages[method.method_code]}`} alt={`${method.method_name} logo`} loading="lazy" />
                     ) : (
                       <i className="fa-solid fa-wallet" />
                     )}
@@ -500,7 +423,6 @@ export default function WalletPage() {
                     <strong>{method.method_name.toUpperCase()}</strong>
                     <i className="fa-solid fa-arrow-up-right-from-square action-icon" />
                   </div>
-                  
                   {isSelected && (
                     <div className="wallet-selected-check">
                       <i className="fa-solid fa-check" />
@@ -511,68 +433,6 @@ export default function WalletPage() {
             })}
           </div>
         )}
-
-        <section className="wallet-history">
-          <div className="wallet-history-heading">
-            <div>
-              <h2>Transaction History</h2>
-              <p>Your latest 50 wallet requests</p>
-            </div>
-            <button
-              type="button"
-              className="wallet-refresh"
-              onClick={() => void loadWallet()}
-              disabled={loading}
-            >
-              <i className={`fa-solid fa-rotate ${loading ? "fa-spin" : ""}`} />
-            </button>
-          </div>
-
-          <div className="wallet-filter">
-            {[["all", "All"], ["pending", "Pending"], ["approved", "Approved"], ["rejected", "Rejected"]].map(([value, label]) => (
-              <button
-                key={value}
-                type="button"
-                className={historyFilter === value ? "active" : ""}
-                onClick={() => setHistoryFilter(value)}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-
-          {loading ? (
-            <div className="wallet-history-empty">Loading transactions...</div>
-          ) : filteredTransactions.length === 0 ? (
-            <div className="wallet-history-empty">
-              <i className="fa-solid fa-receipt" />
-              <strong>No transactions yet</strong>
-              <span>Your wallet requests will appear here.</span>
-            </div>
-          ) : (
-            <div className="wallet-transaction-list">
-              {filteredTransactions.map((transaction) => {
-                const method = methods.find((item) => item.method_code === transaction.method_code);
-                return (
-                  <article className="wallet-transaction" key={transaction.id}>
-                    <div className={`wallet-transaction-icon ${transaction.transaction_type}`}>
-                      <i className={`fa-solid ${transaction.transaction_type === "deposit" ? "fa-arrow-down" : "fa-arrow-up"}`} />
-                    </div>
-                    <div className="wallet-transaction-info">
-                      <strong>{transaction.transaction_type === "deposit" ? "Deposit" : "Withdrawal"}</strong>
-                      <span>{method?.method_name ?? transaction.method_code.toUpperCase()}</span>
-                      <time dateTime={transaction.created_at}>{new Date(transaction.created_at).toLocaleString()}</time>
-                    </div>
-                    <div className="wallet-transaction-right">
-                      <strong>{formatAmount(transaction.amount)}</strong>
-                      <span className={`wallet-status ${transaction.status}`}>{transaction.status}</span>
-                    </div>
-                  </article>
-                );
-              })}
-            </div>
-          )}
-        </section>
       </main>
 
       <Footer activePage="wallet" onNavigate={navigate} />
@@ -583,25 +443,16 @@ export default function WalletPage() {
           role="presentation"
           onClick={(event) => { if (event.target === event.currentTarget) closeModal(); }}
         >
-          <section
-            className={`wallet-modal ${isClosing ? "is-closing" : ""}`}
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="wallet-modal-title"
-          >
+          <section className={`wallet-modal ${isClosing ? "is-closing" : ""}`} role="dialog" aria-modal="true">
             <div className="wallet-modal-header">
-              <div className="wallet-modal-title-wrap">
-                <h2 id="wallet-modal-title">
-                  {mode === "deposit" ? "Deposit" : "Withdraw"} {selectedMethod.method_name}
-                </h2>
-              </div>
-              <button
-                type="button"
-                className="wallet-modal-close"
-                onClick={closeModal}
-                disabled={submitting || isClosing}
-              >
-                <i className="fa-solid fa-xmark" />
+              <h2>{mode === "deposit" ? "Deposit" : "Withdraw"} {selectedMethod.method_name}</h2>
+              
+              {/* FIXED SVG CLOSE BUTTON */}
+              <button type="button" className="wallet-modal-close" onClick={closeModal} disabled={submitting || isClosing} aria-label="Close">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
               </button>
             </div>
 
@@ -622,7 +473,7 @@ export default function WalletPage() {
                 </div>
               )}
 
-              {/* USDT / Crypto Deposit Info (Image 1 Style) */}
+              {/* USDT / Crypto Deposit Info */}
               {mode === "deposit" && selectedMethod.method_code === "usdt" && (
                 <div className="crypto-deposit-wrapper">
                   <div className="crypto-dropdowns">
@@ -642,10 +493,7 @@ export default function WalletPage() {
 
                   <div className="wallet-qr-box">
                     {selectedMethod.usdt_address ? (
-                      <img 
-                        src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${selectedMethod.usdt_address}`} 
-                        alt="USDT QR Code" 
-                      />
+                      <img src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${selectedMethod.usdt_address}`} alt="USDT QR Code" />
                     ) : (
                       <span style={{color: '#000'}}>No Address</span>
                     )}
