@@ -71,8 +71,9 @@ export default function WalletPage() {
     try {
       const { data: { user }, error: authError } = await supabase.auth.getUser();
 
+      // লগইন না থাকলে signup পেজে রিডাইরেক্ট হবে
       if (authError || !user) {
-        router.replace("/login/");
+        router.replace("/signup/");
         return;
       }
 
@@ -203,7 +204,7 @@ export default function WalletPage() {
       if (authError || !user) {
         setMessage("সেশন শেষ হয়েছে। আবার লগইন করুন।");
         setMessageSuccess(false);
-        router.replace("/login/");
+        router.replace("/signup/");
         return;
       }
 
@@ -310,7 +311,7 @@ export default function WalletPage() {
     if (mode === "deposit") {
       if (!method.deposit_enabled) return false;
       if (paymentCategory === "fiat") return fiatMethods.includes(method.method_code);
-      return false; // We handle crypto modal directly
+      return false; 
     }
     return method.withdrawal_enabled;
   });
@@ -321,11 +322,7 @@ export default function WalletPage() {
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} onNavigate={navigate} />
 
       <main className="stake-main wallet-main">
-        <div className="wallet-heading">
-          <div className="wallet-heading-icon">
-            <i className="fa-solid fa-wallet" />
-          </div>
-        </div>
+        {/* সরানো হয়েছে: wallet-heading আইকন */}
 
         <div className="wallet-tabs" role="tablist" aria-label="Wallet action">
           <span className={`wallet-tabs-indicator ${mode}`} aria-hidden="true" />
@@ -371,13 +368,11 @@ export default function WalletPage() {
                 Crypto
               </button>
             </div>
-            <p className="wallet-category-hint">
-              {paymentCategory === "fiat" ? "bKash · Nagad · Rocket" : "USDT"}
-            </p>
+            {/* সরানো হয়েছে: bKash · Nagad · Rocket লেখা */}
           </>
         )}
 
-        {/* Crypto Mode Fallback Button (If user closes modal) */}
+        {/* Crypto Mode Fallback Button */}
         {mode === "deposit" && paymentCategory === "crypto" ? (
           <div style={{ textAlign: "center", marginTop: "2rem" }}>
              <button
@@ -421,7 +416,7 @@ export default function WalletPage() {
                   </div>
                   <div className="wallet-method-bottom">
                     <strong>{method.method_name.toUpperCase()}</strong>
-                    <i className="fa-solid fa-arrow-up-right-from-square action-icon" />
+                    {/* সরানো হয়েছে: action-icon (অ্যারো আইকন) */}
                   </div>
                   {isSelected && (
                     <div className="wallet-selected-check">
@@ -447,7 +442,6 @@ export default function WalletPage() {
             <div className="wallet-modal-header">
               <h2>{mode === "deposit" ? "Deposit" : "Withdraw"} {selectedMethod.method_name}</h2>
               
-              {/* FIXED SVG CLOSE BUTTON */}
               <button type="button" className="wallet-modal-close" onClick={closeModal} disabled={submitting || isClosing} aria-label="Close">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <line x1="18" y1="6" x2="6" y2="18"></line>
