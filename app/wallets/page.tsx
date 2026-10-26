@@ -4,6 +4,10 @@
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "../../lib/supabase/client";
+import Header from "../../components/Header";
+import Sidebar from "../../components/Sidebar";
+import Footer from "../../components/Footer";
+import { submitWalletRequest } from "./actions";
 
 type PaymentMethod = {
   id: number;
@@ -21,450 +25,573 @@ type WalletTransaction = {
   id: string;
   transaction_type: "deposit" | "withdrawal";
   method_code: string;
-  amount: number;
+  amount: number | string;
   transaction_reference: string | null;
   status: "pending" | "approved" | "rejected";
   created_at: string;
 };
 
-export default function WalletsPage() {
-  const router = useRouter();
+type ModalMode = "deposit" | "withdrawal";
 
-  const [supabase] = useState(() => createClient());
-  const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
-  const [userId, setUserId] = useState("");
+const methodIcons: Record<string, string> = {
+  bkash: "fa-mobile-screen-button",
+  nagad: "fa-wallet",
+  rocket: "fa-rocket",
+  usdt: "fa-coins",
+};
+
+const methodColors: Record<string, string> = {
+  bkash: "#e2136e",
+  nagad: "#f58220",
+  rocket: "#8b5cf6",
+  usdt: "#26a17b",
+};
+
+const formatAmount = (amount: number | string) =>
+  Number(amount).toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+
+export default function WalletPage() {
+  const router = useRouter();
+  const supabase = createClient();
+
+  const [userId, setUserId] = useState<string | null>(null);
   const [methods, setMethods] = useState<PaymentMethod[]>([]);
   const [transactions, setTransactions] = useState<WalletTransaction[]>([]);
-  const [type, setType] = useState<"deposit" | "withdrawal">("deposit");
-  const [methodCode, setMethodCode] = useState("");
+  const [mode, setMode] = useState<ModalMode>("deposit");
+  const [selectedMethod, setSelectedMethod] = useState<PaymentMethod | null>(null);
   const [amount, setAmount] = useState("");
   const [reference, setReference] = useState("");
+  const [destination, setDestination] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState("");
-  const [error, setError] = useState("");
+  const [messageSuccess, setMessageSuccess] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [historyFilter, setHistoryFilter] = useState("all");
 
   const loadWallet = useCallback(async () => {
     setLoading(true);
-    setError("");
 
-    try {
-      const { data: authData, error: authError } =
-        await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
 
-      if (authError || !authData.user) {
-        router.replace("/login/");
-        return;
-      }
-
-      setUserId(authData.user.id);
-
-      const [methodsResult, transactionsResult] = await Promise.all([
-        supabase
-          .from("payment_methods")
-          .select(
-            "id, method_code, method_name, is_enabled, deposit_enabled, withdrawal_enabled, payment_number, usdt_address, usdt_network"
-          )
-          .eq("is_enabled", true)
-          .order("id"),
-
-        supabase
-          .from("wallet_transactions")
-          .select(
-            "id, transaction_type, method_code, amount, transaction_reference, status, created_at"
-          )
-          .eq("user_id", authData.user.id)
-          .order("created_at", { ascending: false })
-          .limit(20),
-      ]);
-
-      if (methodsResult.error) {
-        setError("পেমেন্ট পদ্ধতি লোড করা যায়নি। Supabase সেটিংস পরীক্ষা করুন।");
-      } else {
-        setMethods((methodsResult.data ?? []) as PaymentMethod[]);
-      }
-
-      if (transactionsResult.error) {
-        setError("লেনদেনের তালিকা লোড করা যায়নি। Supabase RLS নীতি পরীক্ষা করুন।");
-      } else {
-        setTransactions(
-          (transactionsResult.data ?? []) as WalletTransaction[]
-        );
-      }
-    } catch {
-      setError("Supabase সংযোগে সমস্যা হয়েছে। আবার চেষ্টা করুন।");
-    } finally {
-      setLoading(false);
+    if (authError || !user) {
+      router.replace("/login/");
+      return;
     }
+
+    setUserId(user.id);
+
+    const [methodResult, transactionResult] = await Promise.all([
+      supabase
+        .from("payment_methods")
+        .select(
+          "id, method_code, method_name, is_enabled, deposit_enabled, withdrawal_enabled, payment_number, usdt_address, usdt_network"
+        )
+        .eq("is_enabled", true)
+        .order("id"),
+      supabase
+        .from("wallet_transactions")
+        .select(
+          "id, transaction_type, method_code, amount, transaction_reference, status, created_at"
+        )
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(50),
+    ]);
+
+    if (methodResult.error) {
+      setMessage("পেমেন্ট পদ্ধতি লোড হয়নি। Supabase RLS ও অনুমতি পরীক্ষা করুন।");
+      setMessageSuccess(false);
+    } else {
+      setMethods((methodResult.data ?? []) as PaymentMethod[]);
+    }
+
+    if (transactionResult.error) {
+      setMessage("লেনদেনের ইতিহাস লোড হয়নি। Supabase RLS পরীক্ষা করুন।");
+      setMessageSuccess(false);
+    } else {
+      setTransactions((transactionResult.data ?? []) as WalletTransaction[]);
+    }
+
+    setLoading(false);
   }, [router, supabase]);
 
   useEffect(() => {
     void loadWallet();
   }, [loadWallet]);
 
-  const availableMethods = methods.filter((method) =>
-    type === "deposit"
-      ? method.deposit_enabled
-      : method.withdrawal_enabled
-  );
-
-  const selectedMethod = availableMethods.find(
-    (method) => method.method_code === methodCode
-  );
-
-  useEffect(() => {
-    if (
-      methodCode &&
-      !availableMethods.some((method) => method.method_code === methodCode)
-    ) {
-      setMethodCode("");
-    }
-  }, [methodCode, methods, type]);
-
-  async function submitRequest(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
+  const openModal = (method: PaymentMethod, selectedMode: ModalMode) => {
+    setSelectedMethod(method);
+    setMode(selectedMode);
+    setAmount("");
+    setReference("");
+    setDestination("");
     setMessage("");
-    setError("");
+  };
 
-    if (!userId) {
-      setError("প্রথমে Login করুন।");
-      return;
+  const closeModal = () => {
+    if (submitting) return;
+    setSelectedMethod(null);
+    setMessage("");
+  };
+
+  const copyText = async (value: string) => {
+    try {
+      await navigator.clipboard.writeText(value);
+      setMessage("কপি হয়েছে।");
+      setMessageSuccess(true);
+    } catch {
+      setMessage("কপি করা যায়নি। ঠিকানাটি হাতে কপি করুন।");
+      setMessageSuccess(false);
     }
+  };
 
-    const numericAmount = Number(amount);
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
 
-    if (!Number.isFinite(numericAmount) || numericAmount <= 0) {
-      setError("সঠিক পরিমাণ লিখুন।");
-      return;
-    }
-
-    if (!selectedMethod) {
-      setError("একটি চালু পেমেন্ট পদ্ধতি নির্বাচন করুন।");
-      return;
-    }
-
-    if (!reference.trim()) {
-      setError(
-        type === "deposit"
-          ? "Transaction ID লিখুন।"
-          : "যে নম্বর বা Address-এ টাকা তুলবেন সেটি লিখুন।"
-      );
-      return;
-    }
+    if (!selectedMethod || submitting) return;
 
     setSubmitting(true);
+    setMessage("");
+
+    const formData = new FormData();
+    formData.set("transaction_type", mode);
+    formData.set("method_code", selectedMethod.method_code);
+    formData.set("amount", amount);
+    formData.set("transaction_reference", reference);
+    formData.set("destination_details", destination);
 
     try {
-      const { data: authData, error: authError } =
-        await supabase.auth.getUser();
+      const result = await submitWalletRequest(formData);
+      setMessage(result.message);
+      setMessageSuccess(result.success);
 
-      if (authError || !authData.user || authData.user.id !== userId) {
-        setError("আপনার Login সেশন যাচাই করা যায়নি। আবার Login করুন।");
-        router.replace("/login/");
-        return;
+      if (result.success) {
+        setAmount("");
+        setReference("");
+        setDestination("");
+        await loadWallet();
       }
-
-      const { error: insertError } = await supabase
-        .from("wallet_transactions")
-        .insert({
-          user_id: authData.user.id,
-          transaction_type: type,
-          method_code: selectedMethod.method_code,
-          amount: numericAmount,
-          transaction_reference: reference.trim(),
-          status: "pending",
-        });
-
-      if (insertError) {
-        setError(
-          "অনুরোধ জমা হয়নি। Supabase টেবিল, কলাম ও RLS নীতি পরীক্ষা করুন।"
-        );
-        return;
-      }
-
-      setMessage("আপনার অনুরোধ জমা হয়েছে। যাচাইয়ের জন্য অপেক্ষা করুন।");
-      setAmount("");
-      setReference("");
-      await loadWallet();
     } catch {
-      setError("অনুরোধ জমা দিতে সমস্যা হয়েছে। আবার চেষ্টা করুন।");
+      setMessage("রিকোয়েস্ট জমা দিতে সমস্যা হয়েছে। আবার চেষ্টা করুন।");
+      setMessageSuccess(false);
     } finally {
       setSubmitting(false);
     }
-  }
+  };
 
-  const methodDestination = (method: PaymentMethod) =>
-    method.method_code === "usdt"
-      ? method.usdt_address || ""
-      : method.payment_number || "";
+  const navigate = (page: string) => {
+    const routes: Record<string, string> = {
+      home: "/",
+      casino: "/casino/",
+      lottery: "/lottery/",
+      sports: "/sports/",
+      chat: "/",
+    };
+    router.push(routes[page] ?? "/");
+  };
 
-  if (loading) {
-    return (
-      <main className="min-h-screen bg-slate-950 p-6 text-center text-white">
-        Wallet লোড হচ্ছে...
-      </main>
-    );
-  }
+  const filteredTransactions =
+    historyFilter === "all"
+      ? transactions
+      : transactions.filter((item) => item.status === historyFilter);
+
+  const availableMethods = methods.filter((method) =>
+    mode === "deposit" ? method.deposit_enabled : method.withdrawal_enabled
+  );
 
   return (
-    <main className="min-h-screen bg-slate-950 px-4 py-8 text-white">
-      <div className="mx-auto max-w-2xl">
-        <button
-          onClick={() => router.push("/")}
-          className="mb-5 rounded-lg border border-slate-700 px-4 py-2 text-sm text-slate-300"
-        >
-          ← Home
-        </button>
+    <div className="stake-app wallet-page">
+      <Header
+        onMenuClick={() => setSidebarOpen(true)}
+        onHomeClick={() => router.push("/")}
+      />
 
-        <header className="mb-7">
-          <p className="text-sm font-semibold uppercase tracking-widest text-cyan-400">
-            My Wallet
-          </p>
-          <h1 className="mt-2 text-3xl font-bold">Wallets</h1>
-          <p className="mt-2 text-slate-400">
-            আপনার Deposit ও Withdrawal অনুরোধ পরিচালনা করুন।
-          </p>
-        </header>
+      <Sidebar
+        isOpen={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+        onNavigate={navigate}
+      />
 
-        <div className="mb-6 grid grid-cols-2 gap-3">
+      <main className="stake-main wallet-main">
+        <div className="wallet-heading">
+          <div>
+            <p className="wallet-eyebrow">ACCOUNT MANAGEMENT</p>
+            <h1>My Wallet</h1>
+            <p className="wallet-subtitle">
+              Deposit, withdraw and track your transactions.
+            </p>
+          </div>
+          <div className="wallet-heading-icon">
+            <i className="fa-solid fa-wallet" />
+          </div>
+        </div>
+
+        <section className="wallet-summary">
+          <div className="wallet-summary-icon">
+            <i className="fa-solid fa-shield-halved" />
+          </div>
+          <div>
+            <span>Wallet Requests</span>
+            <strong>Secure Processing</strong>
+            <p>Every request is recorded for review.</p>
+          </div>
+        </section>
+
+        <div className="wallet-tabs" role="tablist" aria-label="Wallet action">
           <button
             type="button"
+            role="tab"
+            aria-selected={mode === "deposit"}
+            className={mode === "deposit" ? "active" : ""}
             onClick={() => {
-              setType("deposit");
+              setMode("deposit");
               setMessage("");
-              setError("");
             }}
-            className={`rounded-xl border p-4 font-bold ${
-              type === "deposit"
-                ? "border-cyan-400 bg-cyan-500/15 text-cyan-300"
-                : "border-slate-700 bg-slate-900 text-slate-300"
-            }`}
           >
-            ↓ Deposit
+            <i className="fa-solid fa-circle-arrow-down" />
+            Deposit
           </button>
-
           <button
             type="button"
+            role="tab"
+            aria-selected={mode === "withdrawal"}
+            className={mode === "withdrawal" ? "active" : ""}
             onClick={() => {
-              setType("withdrawal");
+              setMode("withdrawal");
               setMessage("");
-              setError("");
             }}
-            className={`rounded-xl border p-4 font-bold ${
-              type === "withdrawal"
-                ? "border-cyan-400 bg-cyan-500/15 text-cyan-300"
-                : "border-slate-700 bg-slate-900 text-slate-300"
-            }`}
           >
-            ↑ Withdrawal
+            <i className="fa-solid fa-circle-arrow-up" />
+            Withdraw
           </button>
         </div>
 
-        <section className="rounded-2xl border border-slate-800 bg-slate-900 p-5 sm:p-6">
-          <h2 className="mb-1 text-xl font-bold">
-            {type === "deposit" ? "Deposit Coins" : "Withdraw Coins"}
-          </h2>
+        <div className="wallet-section-title">
+          <div>
+            <h2>{mode === "deposit" ? "Choose Deposit Method" : "Choose Withdrawal Method"}</h2>
+            <p>
+              {mode === "deposit"
+                ? "Select a payment method to submit a deposit request."
+                : "Select a method to request a withdrawal."}
+            </p>
+          </div>
+        </div>
 
-          <p className="mb-5 text-sm text-slate-400">
-            {type === "deposit"
-              ? "একটি চালু পেমেন্ট পদ্ধতি নির্বাচন করুন।"
-              : "উত্তোলনের জন্য আপনার প্রাপ্য ব্যালেন্স পরে যাচাই করা হবে।"}
-          </p>
+        {loading ? (
+          <div className="wallet-state">
+            <i className="fa-solid fa-spinner fa-spin" />
+            <span>Loading wallet...</span>
+          </div>
+        ) : availableMethods.length === 0 ? (
+          <div className="wallet-state">
+            <i className="fa-solid fa-circle-info" />
+            <strong>No methods available</strong>
+            <span>
+              এই ধরনের লেনদেনের জন্য কোনো পদ্ধতি চালু নেই। অ্যাডমিনের সঙ্গে যোগাযোগ করুন।
+            </span>
+          </div>
+        ) : (
+          <div className="wallet-method-grid">
+            {availableMethods.map((method) => (
+              <button
+                type="button"
+                className="wallet-method-card"
+                key={method.method_code}
+                onClick={() => openModal(method, mode)}
+              >
+                <span
+                  className="wallet-method-icon"
+                  style={{ "--method-color": methodColors[method.method_code] ?? "#00e701" } as React.CSSProperties}
+                >
+                  <i className={`fa-solid ${methodIcons[method.method_code] ?? "fa-wallet"}`} />
+                </span>
+                <strong>{method.method_name}</strong>
+                <span className="wallet-method-action">
+                  {mode === "deposit" ? "Deposit now" : "Withdraw"}
+                  <i className="fa-solid fa-chevron-right" />
+                </span>
+              </button>
+            ))}
+          </div>
+        )}
 
-          {availableMethods.length === 0 ? (
-            <div className="rounded-xl border border-amber-700/50 bg-amber-950/30 p-4 text-sm text-amber-200">
-              এই মুহূর্তে কোনো পেমেন্ট পদ্ধতি চালু নেই।
+        <section className="wallet-history">
+          <div className="wallet-history-heading">
+            <div>
+              <h2>Transaction History</h2>
+              <p>Your latest 50 wallet requests</p>
+            </div>
+            <button
+              type="button"
+              className="wallet-refresh"
+              onClick={() => void loadWallet()}
+              aria-label="Refresh transaction history"
+              disabled={loading}
+            >
+              <i className={`fa-solid fa-rotate ${loading ? "fa-spin" : ""}`} />
+            </button>
+          </div>
+
+          <div className="wallet-filter">
+            {[
+              ["all", "All"],
+              ["pending", "Pending"],
+              ["approved", "Approved"],
+              ["rejected", "Rejected"],
+            ].map(([value, label]) => (
+              <button
+                key={value}
+                type="button"
+                className={historyFilter === value ? "active" : ""}
+                onClick={() => setHistoryFilter(value)}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+
+          {loading ? (
+            <div className="wallet-history-empty">Loading transactions...</div>
+          ) : filteredTransactions.length === 0 ? (
+            <div className="wallet-history-empty">
+              <i className="fa-solid fa-receipt" />
+              <strong>No transactions yet</strong>
+              <span>Your wallet requests will appear here.</span>
             </div>
           ) : (
-            <form onSubmit={submitRequest} className="space-y-5">
-              <div>
-                <label className="mb-2 block text-sm font-medium text-slate-300">
-                  Payment Method
-                </label>
-
-                <div className="grid grid-cols-2 gap-3">
-                  {availableMethods.map((method) => (
-                    <button
-                      key={method.id}
-                      type="button"
-                      onClick={() => setMethodCode(method.method_code)}
-                      className={`rounded-xl border p-4 text-left font-semibold ${
-                        methodCode === method.method_code
-                          ? "border-cyan-400 bg-cyan-500/10 text-cyan-300"
-                          : "border-slate-700 bg-slate-950 text-white"
-                      }`}
-                    >
-                      {method.method_name}
-                      <span className="mt-1 block text-xs font-normal text-slate-400">
-                        {method.method_code === "usdt"
-                          ? "Crypto"
-                          : "Mobile Payment"}
+            <div className="wallet-transaction-list">
+              {filteredTransactions.map((transaction) => {
+                const method = methods.find(
+                  (item) => item.method_code === transaction.method_code
+                );
+                return (
+                  <article className="wallet-transaction" key={transaction.id}>
+                    <div className={`wallet-transaction-icon ${transaction.transaction_type}`}>
+                      <i
+                        className={`fa-solid ${
+                          transaction.transaction_type === "deposit"
+                            ? "fa-arrow-down"
+                            : "fa-arrow-up"
+                        }`}
+                      />
+                    </div>
+                    <div className="wallet-transaction-info">
+                      <strong>
+                        {transaction.transaction_type === "deposit" ? "Deposit" : "Withdrawal"}
+                      </strong>
+                      <span>{method?.method_name ?? transaction.method_code.toUpperCase()}</span>
+                      <time dateTime={transaction.created_at}>
+                        {new Date(transaction.created_at).toLocaleString()}
+                      </time>
+                    </div>
+                    <div className="wallet-transaction-right">
+                      <strong>{formatAmount(transaction.amount)}</strong>
+                      <span className={`wallet-status ${transaction.status}`}>
+                        {transaction.status}
                       </span>
-                    </button>
-                  ))}
-                </div>
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+          )}
+        </section>
+
+        <p className="wallet-security-note">
+          <i className="fa-solid fa-lock" />
+          Requests remain pending until reviewed. Never share your password or OTP.
+        </p>
+      </main>
+
+      <Footer activePage="wallet" onNavigate={navigate} />
+
+      {selectedMethod && (
+        <div
+          className="wallet-modal-overlay"
+          role="presentation"
+          onClick={(event) => {
+            if (event.target === event.currentTarget) closeModal();
+          }}
+        >
+          <section
+            className="wallet-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="wallet-modal-title"
+          >
+            <div className="wallet-modal-header">
+              <div>
+                <span className="wallet-modal-eyebrow">
+                  {mode === "deposit" ? "ADD FUNDS" : "CASH OUT"}
+                </span>
+                <h2 id="wallet-modal-title">
+                  {mode === "deposit" ? "Deposit" : "Withdraw"} with{" "}
+                  {selectedMethod.method_name}
+                </h2>
               </div>
+              <button
+                type="button"
+                className="wallet-modal-close"
+                onClick={closeModal}
+                disabled={submitting}
+                aria-label="Close dialog"
+              >
+                <i className="fa-solid fa-xmark" />
+              </button>
+            </div>
 
-              {selectedMethod && (
-                <div className="rounded-xl border border-slate-700 bg-slate-950 p-4">
-                  <p className="mb-2 text-sm text-slate-400">
-                    {type === "deposit"
-                      ? "পেমেন্টের জন্য নির্ধারিত নম্বর / Address"
-                      : "পদ্ধতি"}
+            <form className="wallet-form" onSubmit={handleSubmit}>
+              {mode === "deposit" && selectedMethod.method_code !== "usdt" && (
+                <div className="wallet-payment-details">
+                  <span>Send payment to this number</span>
+                  <div className="wallet-copy-row">
+                    <strong>
+                      {selectedMethod.payment_number || "Admin has not set a number yet"}
+                    </strong>
+                    {selectedMethod.payment_number && (
+                      <button
+                        type="button"
+                        onClick={() => void copyText(selectedMethod.payment_number!)}
+                        aria-label="Copy payment number"
+                      >
+                        <i className="fa-regular fa-copy" /> Copy
+                      </button>
+                    )}
+                  </div>
+                  <p>
+                    Payment numberটি অ্যাডমিনের সেট করা তথ্য। টাকা পাঠানোর আগে নম্বর যাচাই করুন।
                   </p>
-
-                  {type === "deposit" ? (
-                    <>
-                      <p className="break-all font-semibold text-cyan-300">
-                        {methodDestination(selectedMethod) ||
-                          "পেমেন্ট নম্বর বা Address এখনো সেট করা হয়নি।"}
-                      </p>
-
-                      {selectedMethod.method_code === "usdt" &&
-                        selectedMethod.usdt_network && (
-                          <p className="mt-2 text-sm text-slate-300">
-                            Network: {selectedMethod.usdt_network}
-                          </p>
-                        )}
-                    </>
-                  ) : (
-                    <p className="font-semibold text-cyan-300">
-                      {selectedMethod.method_name}
-                    </p>
-                  )}
                 </div>
               )}
 
-              <div>
-                <label className="mb-2 block text-sm font-medium text-slate-300">
-                  Amount
-                </label>
-                <input
-                  type="number"
-                  min="0.01"
-                  step="0.01"
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                  placeholder="পরিমাণ লিখুন"
-                  required
-                  className="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-cyan-400"
-                />
+              {mode === "deposit" && selectedMethod.method_code === "usdt" && (
+                <div className="wallet-payment-details">
+                  <span>Network</span>
+                  <strong>{selectedMethod.usdt_network || "Network not configured"}</strong>
+                  <span className="wallet-address-label">USDT Deposit Address</span>
+                  <div className="wallet-address-box">
+                    <code>
+                      {selectedMethod.usdt_address || "Admin has not set an address yet"}
+                    </code>
+                    {selectedMethod.usdt_address && (
+                      <button
+                        type="button"
+                        onClick={() => void copyText(selectedMethod.usdt_address!)}
+                        aria-label="Copy USDT address"
+                      >
+                        <i className="fa-regular fa-copy" /> Copy
+                      </button>
+                    )}
+                  </div>
+                  <p>
+                    পাঠানোর আগে নেটওয়ার্ক ও ঠিকানা মিলিয়ে নিন। ভুল নেটওয়ার্কে পাঠালে অর্থ হারাতে পারেন।
+                  </p>
+                </div>
+              )}
+
+              {mode === "withdrawal" && (
+                <div className="wallet-field">
+                  <label htmlFor="wallet-destination">
+                    {selectedMethod.method_code === "usdt"
+                      ? "Your USDT wallet address"
+                      : "Your receiving number"}
+                  </label>
+                  <input
+                    id="wallet-destination"
+                    type="text"
+                    autoComplete="off"
+                    value={destination}
+                    onChange={(event) => setDestination(event.target.value)}
+                    placeholder={
+                      selectedMethod.method_code === "usdt"
+                        ? "Enter your USDT address"
+                        : "Enter your receiving number"
+                    }
+                    maxLength={250}
+                    required
+                  />
+                </div>
+              )}
+
+              <div className="wallet-field">
+                <label htmlFor="wallet-amount">Amount</label>
+                <div className="wallet-amount-input">
+                  <span>{selectedMethod.method_code === "usdt" ? "USDT" : "BDT"}</span>
+                  <input
+                    id="wallet-amount"
+                    type="number"
+                    inputMode="decimal"
+                    min="0.01"
+                    max="10000000"
+                    step="0.01"
+                    value={amount}
+                    onChange={(event) => setAmount(event.target.value)}
+                    placeholder="0.00"
+                    required
+                  />
+                </div>
               </div>
 
-              <div>
-                <label className="mb-2 block text-sm font-medium text-slate-300">
-                  {type === "deposit"
-                    ? "Transaction ID"
-                    : "আপনার Withdrawal নম্বর / USDT Address"}
-                </label>
-                <input
-                  type="text"
-                  value={reference}
-                  onChange={(e) => setReference(e.target.value)}
-                  placeholder={
-                    type === "deposit"
-                      ? "পেমেন্টের Transaction ID লিখুন"
-                      : "আপনার নম্বর বা Wallet Address লিখুন"
-                  }
-                  required
-                  className="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-cyan-400"
-                />
-              </div>
-
-              {error && (
-                <p
-                  role="alert"
-                  className="rounded-lg bg-red-950/50 p-3 text-sm text-red-300"
-                >
-                  {error}
-                </p>
+              {mode === "deposit" && (
+                <div className="wallet-field">
+                  <label htmlFor="wallet-reference">
+                    {selectedMethod.method_code === "usdt"
+                      ? "Transaction Hash / Reference (if available)"
+                      : "Transaction ID (TrxID)"}
+                  </label>
+                  <input
+                    id="wallet-reference"
+                    type="text"
+                    value={reference}
+                    onChange={(event) => setReference(event.target.value)}
+                    placeholder={
+                      selectedMethod.method_code === "usdt"
+                        ? "Enter transaction hash/reference"
+                        : "Enter your TrxID"
+                    }
+                    maxLength={200}
+                    required={selectedMethod.method_code !== "usdt"}
+                  />
+                </div>
               )}
 
               {message && (
-                <p
+                <div
+                  className={`wallet-form-message ${messageSuccess ? "success" : "error"}`}
                   role="status"
-                  className="rounded-lg bg-emerald-950/50 p-3 text-sm text-emerald-300"
                 >
                   {message}
-                </p>
+                </div>
               )}
 
-              <button
-                type="submit"
-                disabled={submitting || !selectedMethod}
-                className="w-full rounded-xl bg-cyan-500 px-5 py-3 font-bold text-slate-950 transition hover:bg-cyan-400 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                {submitting ? "জমা হচ্ছে..." : "অনুরোধ জমা দিন"}
+              <button className="wallet-submit" type="submit" disabled={submitting}>
+                {submitting ? (
+                  <>
+                    <i className="fa-solid fa-spinner fa-spin" /> Submitting...
+                  </>
+                ) : (
+                  <>
+                    <i className="fa-solid fa-lock" />
+                    Submit {mode === "deposit" ? "Deposit" : "Withdrawal"} Request
+                  </>
+                )}
               </button>
 
-              <p className="text-xs leading-5 text-slate-400">
-                অনুরোধ জমা দেওয়া মানেই পেমেন্ট সম্পন্ন নয়। যাচাই ও অনুমোদন
-                না হওয়া পর্যন্ত স্ট্যাটাস Pending থাকবে।
+              <p className="wallet-form-footnote">
+                <i className="fa-solid fa-circle-info" />
+                Submission does not guarantee approval. Your request will be reviewed.
               </p>
             </form>
-          )}
-        </section>
-
-        <section className="mt-8">
-          <h2 className="mb-4 text-xl font-bold">সাম্প্রতিক অনুরোধ</h2>
-
-          {transactions.length === 0 ? (
-            <div className="rounded-xl border border-slate-800 bg-slate-900 p-5 text-sm text-slate-400">
-              এখনো কোনো অনুরোধ নেই।
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {transactions.map((transaction) => (
-                <article
-                  key={transaction.id}
-                  className="rounded-xl border border-slate-800 bg-slate-900 p-4"
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <p className="font-semibold">
-                        {transaction.transaction_type === "deposit"
-                          ? "Deposit"
-                          : "Withdrawal"}
-                      </p>
-                      <p className="mt-1 text-sm text-slate-400">
-                        {methods.find(
-                          (method) =>
-                            method.method_code === transaction.method_code
-                        )?.method_name || transaction.method_code}
-                      </p>
-                    </div>
-
-                    <span
-                      className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                        transaction.status === "approved"
-                          ? "bg-emerald-950 text-emerald-300"
-                          : transaction.status === "rejected"
-                            ? "bg-red-950 text-red-300"
-                            : "bg-amber-950 text-amber-300"
-                      }`}
-                    >
-                      {transaction.status === "pending"
-                        ? "Pending"
-                        : transaction.status === "approved"
-                          ? "Approved"
-                          : "Rejected"}
-                    </span>
-                  </div>
-
-                  <p className="mt-3 text-lg font-bold">
-                    {Number(transaction.amount).toLocaleString("en-US", {
-                      maximumFractionDigits: 2,
-                    })}
-                  </p>
-
-                  <p className="mt-1 text-xs text-slate-500">
-                    {new Date(transaction.created_at).toLocaleString()}
-                  </p>
-                </article>
-              ))}
-            </div>
-          )}
-        </section>
-      </div>
-    </main>
+          </section>
+        </div>
+      )}
+    </div>
   );
 }
