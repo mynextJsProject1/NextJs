@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -8,6 +7,7 @@ import { createClient } from "../../lib/supabase/client";
 import Header from "../../components/Header";
 import Sidebar from "../../components/Sidebar";
 import Footer from "../../components/Footer";
+import "./wallets.css";
 
 type PaymentMethod = {
   id: number;
@@ -32,6 +32,7 @@ type WalletTransaction = {
 };
 
 type ModalMode = "deposit" | "withdrawal";
+type PaymentCategory = "fiat" | "crypto";
 
 const methodColors: Record<string, string> = {
   bkash: "#e2136e",
@@ -49,6 +50,9 @@ const methodImages: Record<string, string> = {
 
 const allowedMethods = ["bkash", "nagad", "rocket", "usdt"];
 
+const fiatMethods = ["bkash", "nagad", "rocket"];
+const cryptoMethods = ["usdt"];
+
 const paymentImageBase =
   process.env.NODE_ENV === "production" ? "/NextJs" : "";
 
@@ -65,6 +69,8 @@ export default function WalletPage() {
   const [methods, setMethods] = useState<PaymentMethod[]>([]);
   const [transactions, setTransactions] = useState<WalletTransaction[]>([]);
   const [mode, setMode] = useState<ModalMode>("deposit");
+  const [paymentCategory, setPaymentCategory] =
+    useState<PaymentCategory>("fiat");
   const [selectedMethod, setSelectedMethod] =
     useState<PaymentMethod | null>(null);
   const [amount, setAmount] = useState("");
@@ -116,7 +122,7 @@ export default function WalletPage() {
 
       if (methodResult.error) {
         setMessage(
-          "পেমেন্ট পদ্ধতি লোড হয়নি। Supabase RLS ও অনুমতি পরীক্ষা করুন।"
+          "পেমেন্ট পদ্ধতি লোড হয়নি। Supabase RLS ও অনুমতি পরীক্ষা করুন।"
         );
         setMessageSuccess(false);
       } else {
@@ -124,7 +130,7 @@ export default function WalletPage() {
       }
 
       if (transactionResult.error) {
-        setMessage("লেনদেনের ইতিহাস লোড হয়নি। Supabase RLS পরীক্ষা করুন।");
+        setMessage("লেনদেনের ইতিহাস লোড হয়নি। Supabase RLS পরীক্ষা করুন।");
         setMessageSuccess(false);
       } else {
         setTransactions(
@@ -132,7 +138,7 @@ export default function WalletPage() {
         );
       }
     } catch {
-      setMessage("ওয়ালেট লোড করতে সমস্যা হয়েছে। আবার চেষ্টা করুন।");
+      setMessage("ওয়ালেট লোড করতে সমস্যা হয়েছে। আবার চেষ্টা করুন।");
       setMessageSuccess(false);
     } finally {
       setLoading(false);
@@ -199,10 +205,10 @@ export default function WalletPage() {
   const copyText = async (value: string) => {
     try {
       await navigator.clipboard.writeText(value);
-      setMessage("কপি হয়েছে।");
+      setMessage("কপি হয়েছে।");
       setMessageSuccess(true);
     } catch {
-      setMessage("কপি করা যায়নি। ঠিকানাটি হাতে কপি করুন।");
+      setMessage("কপি করা যায়নি। ঠিকানাটি হাতে কপি করুন।");
       setMessageSuccess(false);
     }
   };
@@ -223,7 +229,7 @@ export default function WalletPage() {
       } = await supabase.auth.getUser();
 
       if (authError || !user) {
-        setMessage("সেশন শেষ হয়েছে। আবার লগইন করুন।");
+        setMessage("সেশন শেষ হয়েছে। আবার লগইন করুন।");
         setMessageSuccess(false);
         router.replace("/login/");
         return;
@@ -236,12 +242,12 @@ export default function WalletPage() {
       const destinationText = destination.trim();
 
       if (!["deposit", "withdrawal"].includes(type)) {
-        setMessage("লেনদেনের ধরন সঠিক নয়।");
+        setMessage("লেনদেনের ধরন সঠিক নয়।");
         return;
       }
 
       if (!allowedMethods.includes(methodCode)) {
-        setMessage("পেমেন্ট পদ্ধতি সঠিক নয়।");
+        setMessage("পেমেন্ট পদ্ধতি সঠিক নয়।");
         return;
       }
 
@@ -257,7 +263,11 @@ export default function WalletPage() {
         numericAmount <= 0 ||
         numericAmount > 10000000
       ) {
-        setMessage("পরিমাণ ০.০১ থেকে ১০,০০,০০০ পর্যন্ত লিখুন।");
+        setMessage(
+          type === "withdrawal"
+            ? "Withdrawal amount অবশ্যই ০.০১ থেকে ১০,০০,০০০ এর মধ্যে হতে হবে। ০ বা শূন্য গ্রহণযোগ্য নয়।"
+            : "পরিমাণ ০.০১ থেকে ১০,০০,০০০ পর্যন্ত লিখুন।"
+        );
         return;
       }
 
@@ -267,12 +277,12 @@ export default function WalletPage() {
       }
 
       if (type === "withdrawal" && !destinationText) {
-        setMessage("যে নম্বর বা ঠিকানায় টাকা নিতে চান, সেটি লিখুন।");
+        setMessage("যে নম্বর বা ঠিকানায় টাকা নিতে চান, সেটি লিখুন।");
         return;
       }
 
       if (referenceText.length > 200 || destinationText.length > 250) {
-        setMessage("দেওয়া তথ্য অনেক বড়। আবার চেষ্টা করুন।");
+        setMessage("দেওয়া তথ্য অনেক বড়। আবার চেষ্টা করুন।");
         return;
       }
 
@@ -318,14 +328,14 @@ export default function WalletPage() {
       if (insertError) {
         console.error("Wallet request insert failed:", insertError.message);
         setMessage(
-          "রিকোয়েস্ট জমা হয়নি। Supabase RLS, টেবিলের কলাম ও INSERT অনুমতি পরীক্ষা করুন।"
+          "রিকোয়েস্ট জমা হয়নি। Supabase RLS, টেবিলের কলাম ও INSERT অনুমতি পরীক্ষা করুন।"
         );
         setMessageSuccess(false);
         return;
       }
 
       setMessage(
-        "আপনার রিকোয়েস্ট জমা হয়েছে। অনুমোদন না হওয়া পর্যন্ত স্ট্যাটাস Pending থাকবে।"
+        "আপনার রিকোয়েস্ট জমা হয়েছে। অনুমোদন না হওয়া পর্যন্ত স্ট্যাটাস Pending থাকবে।"
       );
       setMessageSuccess(true);
 
@@ -335,7 +345,7 @@ export default function WalletPage() {
 
       await loadWallet();
     } catch {
-      setMessage("রিকোয়েস্ট জমা দিতে সমস্যা হয়েছে। আবার চেষ্টা করুন।");
+      setMessage("রিকোয়েস্ট জমা দিতে সমস্যা হয়েছে। আবার চেষ্টা করুন।");
       setMessageSuccess(false);
     } finally {
       setSubmitting(false);
@@ -359,11 +369,16 @@ export default function WalletPage() {
       ? transactions
       : transactions.filter((item) => item.status === historyFilter);
 
-  const availableMethods = methods.filter((method) =>
-    mode === "deposit"
-      ? method.deposit_enabled
-      : method.withdrawal_enabled
-  );
+  const availableMethods = methods.filter((method) => {
+    if (mode === "deposit") {
+      if (!method.deposit_enabled) return false;
+      if (paymentCategory === "fiat") {
+        return fiatMethods.includes(method.method_code);
+      }
+      return cryptoMethods.includes(method.method_code);
+    }
+    return method.withdrawal_enabled;
+  });
 
   return (
     <div className="stake-app wallet-page">
@@ -380,32 +395,16 @@ export default function WalletPage() {
 
       <main className="stake-main wallet-main">
         <div className="wallet-heading">
-          <div>
-            <p className="wallet-eyebrow">ACCOUNT MANAGEMENT</p>
-            <h1>My Wallet</h1>
-            <p className="wallet-subtitle">
-              Deposit, withdraw and track your transactions.
-            </p>
-          </div>
-
           <div className="wallet-heading-icon">
             <i className="fa-solid fa-wallet" />
           </div>
         </div>
 
-        <section className="wallet-summary">
-          <div className="wallet-summary-icon">
-            <i className="fa-solid fa-shield-halved" />
-          </div>
-
-          <div>
-            <span>Wallet Requests</span>
-            <strong>Secure Processing</strong>
-            <p>Every request is recorded for review.</p>
-          </div>
-        </section>
-
         <div className="wallet-tabs" role="tablist" aria-label="Wallet action">
+          <span
+            className={`wallet-tabs-indicator ${mode}`}
+            aria-hidden="true"
+          />
           <button
             type="button"
             role="tab"
@@ -436,6 +435,52 @@ export default function WalletPage() {
             Withdraw
           </button>
         </div>
+
+        {mode === "deposit" && (
+          <>
+            <div
+              className="wallet-category-selector"
+              role="tablist"
+              aria-label="Payment category"
+            >
+              <button
+                type="button"
+                role="tab"
+                aria-selected={paymentCategory === "fiat"}
+                className={paymentCategory === "fiat" ? "active" : ""}
+                onClick={() => {
+                  setPaymentCategory("fiat");
+                  setMessage("");
+                  setMessageSuccess(false);
+                }}
+              >
+                <i className="fa-solid fa-money-bill-wave" />
+                Fiat
+              </button>
+
+              <button
+                type="button"
+                role="tab"
+                aria-selected={paymentCategory === "crypto"}
+                className={paymentCategory === "crypto" ? "active" : ""}
+                onClick={() => {
+                  setPaymentCategory("crypto");
+                  setMessage("");
+                  setMessageSuccess(false);
+                }}
+              >
+                <i className="fa-brands fa-bitcoin" />
+                Crypto
+              </button>
+            </div>
+
+            <p className="wallet-category-hint">
+              {paymentCategory === "fiat"
+                ? "bKash · Nagad · Rocket"
+                : "USDT"}
+            </p>
+          </>
+        )}
 
         <div className="wallet-section-title">
           <div>
@@ -470,8 +515,7 @@ export default function WalletPage() {
           <div className="wallet-method-grid">
             {availableMethods.map((method) => {
               const isSelected =
-                selectedMethod?.method_code === method.method_code &&
-                mode === (selectedMethod ? mode : mode);
+                selectedMethod?.method_code === method.method_code;
 
               return (
                 <button
@@ -763,7 +807,7 @@ export default function WalletPage() {
                     </div>
 
                     <p>
-                      পাঠানোর আগে নেটওয়ার্ক ও ঠিকানা মিলিয়ে নিন। ভুল নেটওয়ার্কে
+                      পাঠানোর আগে নেটওয়ার্ক ও ঠিকানা মিলিয়ে নিন। ভুল নেটওয়ার্কে
                       পাঠালে অর্থ হারাতে পারেন।
                     </p>
                   </div>
