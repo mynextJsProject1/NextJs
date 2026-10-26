@@ -19,6 +19,7 @@ type PaymentMethod = {
   payment_number: string | null;
   usdt_address: string | null;
   usdt_network: string | null;
+  usdt_qr_url: string | null; // নতুন কলাম
 };
 
 type ModalMode = "deposit" | "withdrawal";
@@ -50,8 +51,8 @@ export default function WalletPage() {
   const [destination, setDestination] = useState("");
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(false); // নতুন স্টেট: সাবমিট সফল হলে টিক দেখানোর জন্য
-  const [isFetchingDetails, setIsFetchingDetails] = useState(false); // নতুন স্টেট: মেথডে ক্লিক করলে লোডিং দেখানোর জন্য
+  const [isSuccess, setIsSuccess] = useState(false);
+  const [isFetchingDetails, setIsFetchingDetails] = useState(false);
   const [message, setMessage] = useState("");
   const [messageSuccess, setMessageSuccess] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -75,7 +76,7 @@ export default function WalletPage() {
         supabase
           .from("payment_methods")
           .select(
-            "id, method_code, method_name, is_enabled, deposit_enabled, withdrawal_enabled, payment_number, usdt_address, usdt_network"
+            "id, method_code, method_name, is_enabled, deposit_enabled, withdrawal_enabled, payment_number, usdt_address, usdt_network, usdt_qr_url"
           )
           .eq("is_enabled", true)
           .order("id"),
@@ -132,7 +133,6 @@ export default function WalletPage() {
     };
   }, [selectedMethod, submitting, isSuccess]);
 
-  // মডাল ওপেন করার সময় লোডিং (Loading Payment details) দেখানোর লজিক
   const openModal = (method: PaymentMethod, selectedMode: ModalMode) => {
     if (closeTimerRef.current) {
       clearTimeout(closeTimerRef.current);
@@ -153,9 +153,9 @@ export default function WalletPage() {
       setIsFetchingDetails(true);
       setTimeout(() => {
         setIsFetchingDetails(false);
-      }, 800); // ৮০০ মিলিসেকেন্ড লোডিং অ্যানিমেশন দেখাবে
+      }, 800);
     } else {
-      setIsFetchingDetails(false); // Withdrawal এ সরাসরি ফর্ম আসবে
+      setIsFetchingDetails(false);
     }
   };
 
@@ -218,7 +218,7 @@ export default function WalletPage() {
       const type = mode;
       const methodCode = selectedMethod.method_code.trim().toLowerCase();
       const amountText = amount.trim();
-      const referenceText = reference.trim();
+      const referenceText = reference.trim().toUpperCase(); // অটোমেটিক বড় হাতের অক্ষরে কনভার্ট
       const destinationText = destination.trim();
 
       if (!allowedMethods.includes(methodCode)) {
@@ -238,9 +238,12 @@ export default function WalletPage() {
         return;
       }
 
-      if (type === "deposit" && methodCode !== "usdt" && !referenceText) {
-        setMessage("TrxID লিখুন।");
-        return;
+      // TrxID ভ্যালিডেশন (কমপক্ষে ৮ ডিজিট, বড় হাতের অক্ষর ও সংখ্যা)
+      if (type === "deposit" && methodCode !== "usdt") {
+        if (!/^[A-Z0-9]{8,}$/.test(referenceText)) {
+          setMessage("Transaction ID must be at least 8 characters long, containing only uppercase letters and numbers.");
+          return;
+        }
       }
 
       if (type === "withdrawal" && !destinationText) {
@@ -293,10 +296,8 @@ export default function WalletPage() {
         return;
       }
 
-      // সফলভাবে সাবমিট হলে:
-      setIsSuccess(true); // সবুজ টিক দেখাবে
+      setIsSuccess(true); 
       
-      // ১.৫ সেকেন্ড পর হোমপেজে রিডাইরেক্ট হবে
       setTimeout(() => {
         setIsSuccess(false);
         closeModal();
@@ -307,7 +308,6 @@ export default function WalletPage() {
       setMessage("রিকোয়েস্ট জমা দিতে সমস্যা হয়েছে। আবার চেষ্টা করুন।");
       setMessageSuccess(false);
     } finally {
-      // isSuccess true থাকলে submitting false করবো না যাতে রিডাইরেক্টের আগে বাটন লক থাকে
       setTimeout(() => {
         setSubmitting(false);
       }, 100); 
@@ -336,104 +336,109 @@ export default function WalletPage() {
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} onNavigate={navigate} />
 
       <main className="stake-main wallet-main">
-        <div className="wallet-tabs" role="tablist" aria-label="Wallet action">
-          <span className={`wallet-tabs-indicator ${mode}`} aria-hidden="true" />
-          <button
-            type="button"
-            role="tab"
-            aria-selected={mode === "deposit"}
-            className={mode === "deposit" ? "active" : ""}
-            onClick={() => { setMode("deposit"); setMessage(""); setMessageSuccess(false); }}
-          >
-            <i className="fa-solid fa-circle-arrow-down" /> Deposit
-          </button>
-          <button
-            type="button"
-            role="tab"
-            aria-selected={mode === "withdrawal"}
-            className={mode === "withdrawal" ? "active" : ""}
-            onClick={() => { setMode("withdrawal"); setMessage(""); setMessageSuccess(false); }}
-          >
-            <i className="fa-solid fa-circle-arrow-up" /> Withdraw
-          </button>
-        </div>
-
-        {mode === "deposit" && (
-          <div className="wallet-category-selector" role="tablist">
-            <button
-              type="button"
-              role="tab"
-              aria-selected={paymentCategory === "fiat"}
-              className={paymentCategory === "fiat" ? "active" : ""}
-              onClick={() => { setPaymentCategory("fiat"); setMessage(""); setMessageSuccess(false); }}
-            >
-              Fiat
-            </button>
-            <button
-              type="button"
-              role="tab"
-              aria-selected={paymentCategory === "crypto"}
-              className={paymentCategory === "crypto" ? "active" : ""}
-              onClick={handleCryptoClick}
-            >
-              Crypto
-            </button>
-          </div>
-        )}
-
-        {mode === "deposit" && paymentCategory === "crypto" ? (
-          <div style={{ textAlign: "center", marginTop: "2rem" }}>
-             <button
-                type="button"
-                className="wallet-submit"
-                style={{ display: "inline-block", width: "auto", padding: "12px 32px" }}
-                onClick={handleCryptoClick}
-             >
-                <i className="fa-solid fa-wallet" /> Deposit USDT
-             </button>
-          </div>
-        ) : loading ? (
-          <div className="wallet-state">
-            <i className="fa-solid fa-spinner fa-spin" />
-            <span>Loading wallet...</span>
-          </div>
-        ) : availableMethods.length === 0 ? (
-          <div className="wallet-state">
-            <i className="fa-solid fa-circle-info" />
-            <strong>No methods available</strong>
-            <span>এই ধরনের লেনদেনের জন্য কোনো পদ্ধতি চালু নেই।</span>
+        {loading ? (
+          // ৩. wallets page আসবে ইউজার wallets details Loading লেখার Animation দেখাবে center
+          <div className="wallet-center-loading">
+            <i className="fa-solid fa-circle-notch fa-spin"></i>
+            <span>Loading wallet details...</span>
           </div>
         ) : (
-          <div className="wallet-method-grid">
-            {availableMethods.map((method) => {
-              const isSelected = selectedMethod?.method_code === method.method_code;
-              return (
+          <>
+            <div className="wallet-tabs" role="tablist" aria-label="Wallet action">
+              <span className={`wallet-tabs-indicator ${mode}`} aria-hidden="true" />
+              <button
+                type="button"
+                role="tab"
+                aria-selected={mode === "deposit"}
+                className={mode === "deposit" ? "active" : ""}
+                onClick={() => { setMode("deposit"); setMessage(""); setMessageSuccess(false); }}
+              >
+                <i className="fa-solid fa-circle-arrow-down" /> Deposit
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={mode === "withdrawal"}
+                className={mode === "withdrawal" ? "active" : ""}
+                onClick={() => { setMode("withdrawal"); setMessage(""); setMessageSuccess(false); }}
+              >
+                <i className="fa-solid fa-circle-arrow-up" /> Withdraw
+              </button>
+            </div>
+
+            {mode === "deposit" && (
+              <div className="wallet-category-selector" role="tablist">
                 <button
                   type="button"
-                  className={`wallet-method-card ${isSelected ? "selected" : ""}`}
-                  key={method.method_code}
-                  onClick={() => openModal(method, mode)}
-                  aria-pressed={isSelected}
+                  role="tab"
+                  aria-selected={paymentCategory === "fiat"}
+                  className={paymentCategory === "fiat" ? "active" : ""}
+                  onClick={() => { setPaymentCategory("fiat"); setMessage(""); setMessageSuccess(false); }}
                 >
-                  <div className="wallet-method-logo-box">
-                    {methodImages[method.method_code] ? (
-                      <img src={`${paymentImageBase}/images/payment/${methodImages[method.method_code]}`} alt={`${method.method_name} logo`} loading="lazy" />
-                    ) : (
-                      <i className="fa-solid fa-wallet" />
-                    )}
-                  </div>
-                  <div className="wallet-method-bottom">
-                    <strong>{method.method_name.toUpperCase()}</strong>
-                  </div>
-                  {isSelected && (
-                    <div className="wallet-selected-check">
-                      <i className="fa-solid fa-check" />
-                    </div>
-                  )}
+                  Fiat
                 </button>
-              );
-            })}
-          </div>
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={paymentCategory === "crypto"}
+                  className={paymentCategory === "crypto" ? "active" : ""}
+                  onClick={handleCryptoClick}
+                >
+                  Crypto
+                </button>
+              </div>
+            )}
+
+            {mode === "deposit" && paymentCategory === "crypto" ? (
+              <div style={{ textAlign: "center", marginTop: "1rem" }}>
+                 <button
+                    type="button"
+                    className="wallet-submit"
+                    style={{ display: "inline-block", width: "auto", padding: "10px 24px" }}
+                    onClick={handleCryptoClick}
+                 >
+                    <i className="fa-solid fa-wallet" /> Deposit USDT
+                 </button>
+              </div>
+            ) : availableMethods.length === 0 ? (
+              <div className="wallet-state">
+                <i className="fa-solid fa-circle-info" />
+                <strong>No methods available</strong>
+                <span>এই ধরনের লেনদেনের জন্য কোনো পদ্ধতি চালু নেই।</span>
+              </div>
+            ) : (
+              <div className="wallet-method-grid">
+                {availableMethods.map((method) => {
+                  const isSelected = selectedMethod?.method_code === method.method_code;
+                  return (
+                    <button
+                      type="button"
+                      className={`wallet-method-card ${isSelected ? "selected" : ""}`}
+                      key={method.method_code}
+                      onClick={() => openModal(method, mode)}
+                      aria-pressed={isSelected}
+                    >
+                      <div className="wallet-method-logo-box">
+                        {methodImages[method.method_code] ? (
+                          <img src={`${paymentImageBase}/images/payment/${methodImages[method.method_code]}`} alt={`${method.method_name} logo`} loading="lazy" />
+                        ) : (
+                          <i className="fa-solid fa-wallet" />
+                        )}
+                      </div>
+                      <div className="wallet-method-bottom">
+                        <strong>{method.method_name.toUpperCase()}</strong>
+                      </div>
+                      {isSelected && (
+                        <div className="wallet-selected-check">
+                          <i className="fa-solid fa-check" />
+                        </div>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </>
         )}
       </main>
 
@@ -459,7 +464,6 @@ export default function WalletPage() {
               </button>
             </div>
 
-            {/* লোডিং পেমেন্ট ডিটেইলস (রিকোয়ারমেন্ট ১) */}
             {isFetchingDetails ? (
               <div className="wallet-loading-details">
                 <i className="fa-solid fa-circle-notch fa-spin"></i>
@@ -468,7 +472,6 @@ export default function WalletPage() {
             ) : (
               <form className="wallet-form" onSubmit={handleSubmit}>
                 
-                {/* Fiat Deposit Info */}
                 {mode === "deposit" && selectedMethod.method_code !== "usdt" && (
                   <div className="wallet-payment-details">
                     <span>Send payment to this number</span>
@@ -483,7 +486,6 @@ export default function WalletPage() {
                   </div>
                 )}
 
-                {/* USDT / Crypto Deposit Info */}
                 {mode === "deposit" && selectedMethod.method_code === "usdt" && (
                   <div className="crypto-deposit-wrapper">
                     <div className="crypto-dropdowns">
@@ -502,7 +504,11 @@ export default function WalletPage() {
                     </div>
 
                     <div className="wallet-qr-box">
-                      {selectedMethod.usdt_address ? (
+                      {selectedMethod.usdt_qr_url ? (
+                        // ১. ইউজারের আপলোড করা QR ইমেজ দেখাবে
+                        <img src={selectedMethod.usdt_qr_url} alt="USDT QR Code" />
+                      ) : selectedMethod.usdt_address ? (
+                        // ব্যাকআপ: ইমেজ না থাকলে অ্যাড্রেস দিয়ে অটো জেনারেট করবে
                         <img src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${selectedMethod.usdt_address}`} alt="USDT QR Code" />
                       ) : (
                         <span style={{color: '#000'}}>No Address</span>
@@ -572,12 +578,20 @@ export default function WalletPage() {
                       id="wallet-reference"
                       type="text"
                       value={reference}
-                      onChange={(event) => setReference(event.target.value)}
-                      placeholder={selectedMethod.method_code === "usdt" ? "Enter transaction hash/reference" : "Enter your TrxID"}
+                      onChange={(event) => setReference(event.target.value.toUpperCase())} // ২. অটোমেটিক বড় হাতের অক্ষর হবে
+                      placeholder={selectedMethod.method_code === "usdt" ? "Enter transaction hash/reference" : "Enter your TrxID (Uppercase)"}
                       maxLength={200}
                       required={selectedMethod.method_code !== "usdt"}
+                      style={{ textTransform: "uppercase" }} 
                     />
                   </div>
+                )}
+
+                {/* ৫. Submit Deposit Request এর উপরে নতুন লেখা */}
+                {mode === "deposit" && (
+                  <p className="wallet-hint-text">
+                    You can watch the transaction ID in the wallet app payment video to know how to do this payment.
+                  </p>
                 )}
 
                 {message && (
@@ -586,7 +600,6 @@ export default function WalletPage() {
                   </div>
                 )}
 
-                {/* সাবমিট বাটনের স্টেট (রিকোয়ারমেন্ট ২ ও ৩) */}
                 <button 
                   className={`wallet-submit ${submitting ? 'is-processing' : ''} ${isSuccess ? 'is-success' : ''}`} 
                   type="submit" 
