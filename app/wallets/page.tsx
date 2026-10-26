@@ -24,13 +24,6 @@ type PaymentMethod = {
 type ModalMode = "deposit" | "withdrawal";
 type PaymentCategory = "fiat" | "crypto";
 
-const methodColors: Record<string, string> = {
-  bkash: "#e2136e",
-  nagad: "#f58220",
-  rocket: "#8b5cf6",
-  usdt: "#26a17b",
-};
-
 const methodImages: Record<string, string> = {
   bkash: "bkash.png",
   nagad: "nagad.png",
@@ -57,6 +50,8 @@ export default function WalletPage() {
   const [destination, setDestination] = useState("");
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false); // নতুন স্টেট: সাবমিট সফল হলে টিক দেখানোর জন্য
+  const [isFetchingDetails, setIsFetchingDetails] = useState(false); // নতুন স্টেট: মেথডে ক্লিক করলে লোডিং দেখানোর জন্য
   const [message, setMessage] = useState("");
   const [messageSuccess, setMessageSuccess] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -71,7 +66,6 @@ export default function WalletPage() {
     try {
       const { data: { user }, error: authError } = await supabase.auth.getUser();
 
-      // লগইন না থাকলে signup পেজে রিডাইরেক্ট হবে
       if (authError || !user) {
         router.replace("/signup/");
         return;
@@ -119,7 +113,7 @@ export default function WalletPage() {
     if (!selectedMethod) return;
 
     const handleEscape = (event: KeyboardEvent) => {
-      if (event.key === "Escape" && !submitting) {
+      if (event.key === "Escape" && !submitting && !isSuccess) {
         closeModal();
       }
     };
@@ -136,8 +130,9 @@ export default function WalletPage() {
         closeTimerRef.current = null;
       }
     };
-  }, [selectedMethod, submitting]);
+  }, [selectedMethod, submitting, isSuccess]);
 
+  // মডাল ওপেন করার সময় লোডিং (Loading Payment details) দেখানোর লজিক
   const openModal = (method: PaymentMethod, selectedMode: ModalMode) => {
     if (closeTimerRef.current) {
       clearTimeout(closeTimerRef.current);
@@ -145,6 +140,7 @@ export default function WalletPage() {
     }
 
     setIsClosing(false);
+    setIsSuccess(false);
     setSelectedMethod(method);
     setMode(selectedMode);
     setAmount("");
@@ -152,10 +148,19 @@ export default function WalletPage() {
     setDestination("");
     setMessage("");
     setMessageSuccess(false);
+
+    if (selectedMode === "deposit") {
+      setIsFetchingDetails(true);
+      setTimeout(() => {
+        setIsFetchingDetails(false);
+      }, 800); // ৮০০ মিলিসেকেন্ড লোডিং অ্যানিমেশন দেখাবে
+    } else {
+      setIsFetchingDetails(false); // Withdrawal এ সরাসরি ফর্ম আসবে
+    }
   };
 
   const closeModal = () => {
-    if (submitting || isClosing || !selectedMethod) return;
+    if (submitting || isClosing || isSuccess || !selectedMethod) return;
 
     setIsClosing(true);
     setMessage("");
@@ -164,6 +169,7 @@ export default function WalletPage() {
     closeTimerRef.current = setTimeout(() => {
       setSelectedMethod(null);
       setIsClosing(false);
+      setIsFetchingDetails(false);
       closeTimerRef.current = null;
     }, 240);
   };
@@ -195,6 +201,7 @@ export default function WalletPage() {
     if (!selectedMethod || submitting) return;
 
     setSubmitting(true);
+    setIsSuccess(false);
     setMessage("");
     setMessageSuccess(false);
 
@@ -286,17 +293,24 @@ export default function WalletPage() {
         return;
       }
 
-      setMessage("আপনার রিকোয়েস্ট জমা হয়েছে। অনুমোদন না হওয়া পর্যন্ত স্ট্যাটাস Pending থাকবে।");
-      setMessageSuccess(true);
-      setAmount("");
-      setReference("");
-      setDestination("");
-      await loadWallet();
+      // সফলভাবে সাবমিট হলে:
+      setIsSuccess(true); // সবুজ টিক দেখাবে
+      
+      // ১.৫ সেকেন্ড পর হোমপেজে রিডাইরেক্ট হবে
+      setTimeout(() => {
+        setIsSuccess(false);
+        closeModal();
+        router.push("/");
+      }, 1500);
+
     } catch {
       setMessage("রিকোয়েস্ট জমা দিতে সমস্যা হয়েছে। আবার চেষ্টা করুন।");
       setMessageSuccess(false);
     } finally {
-      setSubmitting(false);
+      // isSuccess true থাকলে submitting false করবো না যাতে রিডাইরেক্টের আগে বাটন লক থাকে
+      setTimeout(() => {
+        setSubmitting(false);
+      }, 100); 
     }
   };
 
@@ -322,8 +336,6 @@ export default function WalletPage() {
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} onNavigate={navigate} />
 
       <main className="stake-main wallet-main">
-        {/* সরানো হয়েছে: wallet-heading আইকন */}
-
         <div className="wallet-tabs" role="tablist" aria-label="Wallet action">
           <span className={`wallet-tabs-indicator ${mode}`} aria-hidden="true" />
           <button
@@ -347,32 +359,28 @@ export default function WalletPage() {
         </div>
 
         {mode === "deposit" && (
-          <>
-            <div className="wallet-category-selector" role="tablist">
-              <button
-                type="button"
-                role="tab"
-                aria-selected={paymentCategory === "fiat"}
-                className={paymentCategory === "fiat" ? "active" : ""}
-                onClick={() => { setPaymentCategory("fiat"); setMessage(""); setMessageSuccess(false); }}
-              >
-                Fiat
-              </button>
-              <button
-                type="button"
-                role="tab"
-                aria-selected={paymentCategory === "crypto"}
-                className={paymentCategory === "crypto" ? "active" : ""}
-                onClick={handleCryptoClick}
-              >
-                Crypto
-              </button>
-            </div>
-            {/* সরানো হয়েছে: bKash · Nagad · Rocket লেখা */}
-          </>
+          <div className="wallet-category-selector" role="tablist">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={paymentCategory === "fiat"}
+              className={paymentCategory === "fiat" ? "active" : ""}
+              onClick={() => { setPaymentCategory("fiat"); setMessage(""); setMessageSuccess(false); }}
+            >
+              Fiat
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={paymentCategory === "crypto"}
+              className={paymentCategory === "crypto" ? "active" : ""}
+              onClick={handleCryptoClick}
+            >
+              Crypto
+            </button>
+          </div>
         )}
 
-        {/* Crypto Mode Fallback Button */}
         {mode === "deposit" && paymentCategory === "crypto" ? (
           <div style={{ textAlign: "center", marginTop: "2rem" }}>
              <button
@@ -416,7 +424,6 @@ export default function WalletPage() {
                   </div>
                   <div className="wallet-method-bottom">
                     <strong>{method.method_name.toUpperCase()}</strong>
-                    {/* সরানো হয়েছে: action-icon (অ্যারো আইকন) */}
                   </div>
                   {isSelected && (
                     <div className="wallet-selected-check">
@@ -436,13 +443,15 @@ export default function WalletPage() {
         <div
           className={`wallet-modal-overlay ${isClosing ? "is-closing" : ""}`}
           role="presentation"
-          onClick={(event) => { if (event.target === event.currentTarget) closeModal(); }}
+          onClick={(event) => { 
+            if (event.target === event.currentTarget && !isFetchingDetails && !isSuccess) closeModal(); 
+          }}
         >
           <section className={`wallet-modal ${isClosing ? "is-closing" : ""}`} role="dialog" aria-modal="true">
             <div className="wallet-modal-header">
               <h2>{mode === "deposit" ? "Deposit" : "Withdraw"} {selectedMethod.method_name}</h2>
               
-              <button type="button" className="wallet-modal-close" onClick={closeModal} disabled={submitting || isClosing} aria-label="Close">
+              <button type="button" className="wallet-modal-close" onClick={closeModal} disabled={submitting || isClosing || isFetchingDetails || isSuccess} aria-label="Close">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <line x1="18" y1="6" x2="6" y2="18"></line>
                   <line x1="6" y1="6" x2="18" y2="18"></line>
@@ -450,134 +459,155 @@ export default function WalletPage() {
               </button>
             </div>
 
-            <form className="wallet-form" onSubmit={handleSubmit}>
-              
-              {/* Fiat Deposit Info */}
-              {mode === "deposit" && selectedMethod.method_code !== "usdt" && (
-                <div className="wallet-payment-details">
-                  <span>Send payment to this number</span>
-                  <div className="wallet-copy-row">
-                    <strong>{selectedMethod.payment_number || "Admin has not set a number yet"}</strong>
-                    {selectedMethod.payment_number && (
-                      <button type="button" onClick={() => void copyText(selectedMethod.payment_number!)}>
-                        <i className="fa-regular fa-copy" /> Copy
-                      </button>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* USDT / Crypto Deposit Info */}
-              {mode === "deposit" && selectedMethod.method_code === "usdt" && (
-                <div className="crypto-deposit-wrapper">
-                  <div className="crypto-dropdowns">
-                    <div className="crypto-select-box">
-                      <span>Currency</span>
-                      <div className="crypto-select-inner">
-                        <i className="fa-brands fa-bitcoin" style={{color: '#26a17b'}} /> USDT
-                      </div>
-                    </div>
-                    <div className="crypto-select-box">
-                      <span>Network</span>
-                      <div className="crypto-select-inner">
-                        {selectedMethod.usdt_network || "Network not set"}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="wallet-qr-box">
-                    {selectedMethod.usdt_address ? (
-                      <img src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${selectedMethod.usdt_address}`} alt="USDT QR Code" />
-                    ) : (
-                      <span style={{color: '#000'}}>No Address</span>
-                    )}
-                  </div>
-
-                  <div className="wallet-address-label">Deposit address</div>
-                  <div className="wallet-address-box-dark">
-                    <code>{selectedMethod.usdt_address || "Admin has not set an address yet"}</code>
-                    {selectedMethod.usdt_address && (
-                      <button type="button" onClick={() => void copyText(selectedMethod.usdt_address!)}>
-                        <i className="fa-regular fa-copy" />
-                      </button>
-                    )}
-                  </div>
-
-                  <div className="wallet-alert-box">
-                    <i className="fa-solid fa-circle-exclamation" />
-                    <p>Send only {selectedMethod.method_name} to this deposit address. Transfers below minimum will not be credited.</p>
-                  </div>
-                </div>
-              )}
-
-              {mode === "withdrawal" && (
-                <div className="wallet-field">
-                  <label htmlFor="wallet-destination">
-                    {selectedMethod.method_code === "usdt" ? "Your USDT wallet address" : "Your receiving number"}
-                  </label>
-                  <input
-                    id="wallet-destination"
-                    type="text"
-                    autoComplete="off"
-                    value={destination}
-                    onChange={(event) => setDestination(event.target.value)}
-                    placeholder={selectedMethod.method_code === "usdt" ? "Enter your USDT address" : "Enter your receiving number"}
-                    maxLength={250}
-                    required
-                  />
-                </div>
-              )}
-
-              <div className="wallet-field">
-                <label htmlFor="wallet-amount">Amount</label>
-                <div className="wallet-amount-input">
-                  <span>{selectedMethod.method_code === "usdt" ? "USDT" : "BDT"}</span>
-                  <input
-                    id="wallet-amount"
-                    type="number"
-                    inputMode="decimal"
-                    min="0.01"
-                    max="10000000"
-                    step="0.01"
-                    value={amount}
-                    onChange={(event) => setAmount(event.target.value)}
-                    placeholder="0.00"
-                    required
-                  />
-                </div>
+            {/* লোডিং পেমেন্ট ডিটেইলস (রিকোয়ারমেন্ট ১) */}
+            {isFetchingDetails ? (
+              <div className="wallet-loading-details">
+                <i className="fa-solid fa-circle-notch fa-spin"></i>
+                <p>Loading payment details...</p>
               </div>
-
-              {mode === "deposit" && (
-                <div className="wallet-field">
-                  <label htmlFor="wallet-reference">
-                    {selectedMethod.method_code === "usdt" ? "Transaction Hash / Reference (if available)" : "Transaction ID (TrxID)"}
-                  </label>
-                  <input
-                    id="wallet-reference"
-                    type="text"
-                    value={reference}
-                    onChange={(event) => setReference(event.target.value)}
-                    placeholder={selectedMethod.method_code === "usdt" ? "Enter transaction hash/reference" : "Enter your TrxID"}
-                    maxLength={200}
-                    required={selectedMethod.method_code !== "usdt"}
-                  />
-                </div>
-              )}
-
-              {message && (
-                <div className={`wallet-form-message ${messageSuccess ? "success" : "error"}`} role="status">
-                  {message}
-                </div>
-              )}
-
-              <button className="wallet-submit" type="submit" disabled={submitting}>
-                {submitting ? (
-                  <><span className="wallet-submit-spinner" aria-hidden="true" /><span>Submitting...</span></>
-                ) : (
-                  <><i className="fa-solid fa-lock" /> Submit {mode === "deposit" ? "Deposit" : "Withdrawal"} Request</>
+            ) : (
+              <form className="wallet-form" onSubmit={handleSubmit}>
+                
+                {/* Fiat Deposit Info */}
+                {mode === "deposit" && selectedMethod.method_code !== "usdt" && (
+                  <div className="wallet-payment-details">
+                    <span>Send payment to this number</span>
+                    <div className="wallet-copy-row">
+                      <strong>{selectedMethod.payment_number || "Admin has not set a number yet"}</strong>
+                      {selectedMethod.payment_number && (
+                        <button type="button" onClick={() => void copyText(selectedMethod.payment_number!)}>
+                          <i className="fa-regular fa-copy" /> Copy
+                        </button>
+                      )}
+                    </div>
+                  </div>
                 )}
-              </button>
-            </form>
+
+                {/* USDT / Crypto Deposit Info */}
+                {mode === "deposit" && selectedMethod.method_code === "usdt" && (
+                  <div className="crypto-deposit-wrapper">
+                    <div className="crypto-dropdowns">
+                      <div className="crypto-select-box">
+                        <span>Currency</span>
+                        <div className="crypto-select-inner">
+                          <i className="fa-brands fa-bitcoin" style={{color: '#26a17b'}} /> USDT
+                        </div>
+                      </div>
+                      <div className="crypto-select-box">
+                        <span>Network</span>
+                        <div className="crypto-select-inner">
+                          {selectedMethod.usdt_network || "Network not set"}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="wallet-qr-box">
+                      {selectedMethod.usdt_address ? (
+                        <img src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${selectedMethod.usdt_address}`} alt="USDT QR Code" />
+                      ) : (
+                        <span style={{color: '#000'}}>No Address</span>
+                      )}
+                    </div>
+
+                    <div className="wallet-address-label">Deposit address</div>
+                    <div className="wallet-address-box-dark">
+                      <code>{selectedMethod.usdt_address || "Admin has not set an address yet"}</code>
+                      {selectedMethod.usdt_address && (
+                        <button type="button" onClick={() => void copyText(selectedMethod.usdt_address!)}>
+                          <i className="fa-regular fa-copy" />
+                        </button>
+                      )}
+                    </div>
+
+                    <div className="wallet-alert-box">
+                      <i className="fa-solid fa-circle-exclamation" />
+                      <p>Send only {selectedMethod.method_name} to this deposit address. Transfers below minimum will not be credited.</p>
+                    </div>
+                  </div>
+                )}
+
+                {mode === "withdrawal" && (
+                  <div className="wallet-field">
+                    <label htmlFor="wallet-destination">
+                      {selectedMethod.method_code === "usdt" ? "Your USDT wallet address" : "Your receiving number"}
+                    </label>
+                    <input
+                      id="wallet-destination"
+                      type="text"
+                      autoComplete="off"
+                      value={destination}
+                      onChange={(event) => setDestination(event.target.value)}
+                      placeholder={selectedMethod.method_code === "usdt" ? "Enter your USDT address" : "Enter your receiving number"}
+                      maxLength={250}
+                      required
+                    />
+                  </div>
+                )}
+
+                <div className="wallet-field">
+                  <label htmlFor="wallet-amount">Amount</label>
+                  <div className="wallet-amount-input">
+                    <span>{selectedMethod.method_code === "usdt" ? "USDT" : "BDT"}</span>
+                    <input
+                      id="wallet-amount"
+                      type="number"
+                      inputMode="decimal"
+                      min="0.01"
+                      max="10000000"
+                      step="0.01"
+                      value={amount}
+                      onChange={(event) => setAmount(event.target.value)}
+                      placeholder="0.00"
+                      required
+                    />
+                  </div>
+                </div>
+
+                {mode === "deposit" && (
+                  <div className="wallet-field">
+                    <label htmlFor="wallet-reference">
+                      {selectedMethod.method_code === "usdt" ? "Transaction Hash / Reference (if available)" : "Transaction ID (TrxID)"}
+                    </label>
+                    <input
+                      id="wallet-reference"
+                      type="text"
+                      value={reference}
+                      onChange={(event) => setReference(event.target.value)}
+                      placeholder={selectedMethod.method_code === "usdt" ? "Enter transaction hash/reference" : "Enter your TrxID"}
+                      maxLength={200}
+                      required={selectedMethod.method_code !== "usdt"}
+                    />
+                  </div>
+                )}
+
+                {message && (
+                  <div className={`wallet-form-message ${messageSuccess ? "success" : "error"}`} role="status">
+                    {message}
+                  </div>
+                )}
+
+                {/* সাবমিট বাটনের স্টেট (রিকোয়ারমেন্ট ২ ও ৩) */}
+                <button 
+                  className={`wallet-submit ${submitting ? 'is-processing' : ''} ${isSuccess ? 'is-success' : ''}`} 
+                  type="submit" 
+                  disabled={submitting || isSuccess}
+                >
+                  {isSuccess ? (
+                    <div className="submit-success-content">
+                      <i className="fa-solid fa-circle-check" />
+                      <span>Success!</span>
+                    </div>
+                  ) : submitting ? (
+                    <div className={`submit-processing-content ${mode === "withdrawal" ? "large-text" : ""}`}>
+                      <i className="fa-solid fa-circle-notch fa-spin" />
+                      <span>Processing...</span>
+                    </div>
+                  ) : (
+                    <><i className="fa-solid fa-lock" /> Submit {mode === "deposit" ? "Deposit" : "Withdrawal"} Request</>
+                  )}
+                </button>
+              </form>
+            )}
           </section>
         </div>
       )}
