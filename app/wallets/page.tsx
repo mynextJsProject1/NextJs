@@ -8,7 +8,6 @@ import { createClient } from "../../lib/supabase/client";
 import Header from "../../components/Header";
 import Sidebar from "../../components/Sidebar";
 import Footer from "../../components/Footer";
-import { submitWalletRequest } from "./actions";
 
 type PaymentMethod = {
   id: number;
@@ -48,6 +47,8 @@ const methodColors: Record<string, string> = {
   usdt: "#26a17b",
 };
 
+const allowedMethods = ["bkash", "nagad", "rocket", "usdt"];
+
 const formatAmount = (amount: number | string) =>
   Number(amount).toLocaleString("en-US", {
     minimumFractionDigits: 2,
@@ -56,8 +57,6 @@ const formatAmount = (amount: number | string) =>
 
 export default function WalletPage() {
   const router = useRouter();
-
-  // Keep the Supabase client stable between renders.
   const supabase = useMemo(() => createClient(), []);
 
   const [methods, setMethods] = useState<PaymentMethod[]>([]);
@@ -118,9 +117,7 @@ export default function WalletPage() {
       }
 
       if (transactionResult.error) {
-        setMessage(
-          "লেনদেনের ইতিহাস লোড হয়নি। Supabase RLS পরীক্ষা করুন।"
-        );
+        setMessage("লেনদেনের ইতিহাস লোড হয়নি। Supabase RLS পরীক্ষা করুন।");
         setMessageSuccess(false);
       } else {
         setTransactions(
@@ -176,25 +173,123 @@ export default function WalletPage() {
     setMessage("");
     setMessageSuccess(false);
 
-    const formData = new FormData();
-    formData.set("transaction_type", mode);
-    formData.set("method_code", selectedMethod.method_code);
-    formData.set("amount", amount.trim());
-    formData.set("transaction_reference", reference.trim());
-    formData.set("destination_details", destination.trim());
-
     try {
-      const result = await submitWalletRequest(formData);
+      const {
+        data: { user },
+        error: authError,
+      } = await supabase.auth.getUser();
 
-      setMessage(result.message);
-      setMessageSuccess(result.success);
-
-      if (result.success) {
-        setAmount("");
-        setReference("");
-        setDestination("");
-        await loadWallet();
+      if (authError || !user) {
+        setMessage("সেশন শেষ হয়েছে। আবার লগইন করুন।");
+        setMessageSuccess(false);
+        router.replace("/login/");
+        return;
       }
+
+      const type = mode;
+      const methodCode = selectedMethod.method_code.trim().toLowerCase();
+      const amountText = amount.trim();
+      const referenceText = reference.trim();
+      const destinationText = destination.trim();
+
+      if (!["deposit", "withdrawal"].includes(type)) {
+        setMessage("লেনদেনের ধরন সঠিক নয়।");
+        return;
+      }
+
+      if (!allowedMethods.includes(methodCode)) {
+        setMessage("পেমেন্ট পদ্ধতি সঠিক নয়।");
+        return;
+      }
+
+      if (!/^\d+(\.\d{1,2})?$/.test(amountText)) {
+        setMessage("সঠিক পরিমাণ লিখুন। সর্বোচ্চ ২টি দশমিক ঘর ব্যবহার করুন।");
+        return;
+      }
+
+      const numericAmount = Number(amountText);
+
+      if (
+        !Number.isFinite(numericAmount) ||
+        numericAmount <= 0 ||
+        numericAmount > 10000000
+      ) {
+        setMessage("পরিমাণ ০.০১ থেকে ১০,০০,০০০ পর্যন্ত লিখুন।");
+        return;
+      }
+
+      if (type === "deposit" && methodCode !== "usdt" && !referenceText) {
+        setMessage("TrxID লিখুন।");
+        return;
+      }
+
+      if (type === "withdrawal" && !destinationText) {
+        setMessage("যে নম্বর বা ঠিকানায় টাকা নিতে চান, সেটি লিখুন।");
+        return;
+      }
+
+      if (referenceText.length > 200 || destinationText.length > 250) {
+        setMessage("দেওয়া তথ্য অনেক বড়। আবার চেষ্টা করুন।");
+        return;
+      }
+
+      // Check the method again before inserting the request.
+      const { data: method, error: methodError } = await supabase
+        .from("payment_methods")
+        .select(
+          "method_code, is_enabled, deposit_enabled, withdrawal_enabled"
+        )
+        .eq("method_code", methodCode)
+        .eq("is_enabled", true)
+        .maybeSingle();
+
+      if (methodError || !method) {
+        setMessage("এই পেমেন্ট পদ্ধতি বর্তমানে চালু নেই।");
+        return;
+      }
+
+      if (type === "deposit" && !method.deposit_enabled) {
+        setMessage("এই পদ্ধতিতে Deposit বন্ধ আছে।");
+        return;
+      }
+
+      if (type === "withdrawal" && !method.withdrawal_enabled) {
+        setMessage("এই পদ্ধতিতে Withdrawal বন্ধ আছে।");
+        return;
+      }
+
+      const { error: insertError } = await supabase
+        .from("wallet_transactions")
+        .insert({
+          user_id: user.id,
+          transaction_type: type,
+          method_code: methodCode,
+          amount: numericAmount,
+          transaction_reference: referenceText || null,
+          destination_details:
+            type === "withdrawal" ? destinationText : null,
+          status: "pending",
+        });
+
+      if (insertError) {
+        console.error("Wallet request insert failed:", insertError.message);
+        setMessage(
+          "রিকোয়েস্ট জমা হয়নি। Supabase RLS, টেবিলের কলাম ও INSERT অনুমতি পরীক্ষা করুন।"
+        );
+        setMessageSuccess(false);
+        return;
+      }
+
+      setMessage(
+        "আপনার রিকোয়েস্ট জমা হয়েছে। অনুমোদন না হওয়া পর্যন্ত স্ট্যাটাস Pending থাকবে।"
+      );
+      setMessageSuccess(true);
+
+      setAmount("");
+      setReference("");
+      setDestination("");
+
+      await loadWallet();
     } catch {
       setMessage("রিকোয়েস্ট জমা দিতে সমস্যা হয়েছে। আবার চেষ্টা করুন।");
       setMessageSuccess(false);
@@ -266,11 +361,7 @@ export default function WalletPage() {
           </div>
         </section>
 
-        <div
-          className="wallet-tabs"
-          role="tablist"
-          aria-label="Wallet action"
-        >
+        <div className="wallet-tabs" role="tablist" aria-label="Wallet action">
           <button
             type="button"
             role="tab"
@@ -309,7 +400,6 @@ export default function WalletPage() {
                 ? "Choose Deposit Method"
                 : "Choose Withdrawal Method"}
             </h2>
-
             <p>
               {mode === "deposit"
                 ? "Select a payment method to submit a deposit request."
@@ -328,7 +418,8 @@ export default function WalletPage() {
             <i className="fa-solid fa-circle-info" />
             <strong>No methods available</strong>
             <span>
-              এই ধরনের লেনদেনের জন্য কোনো পদ্ধতি চালু নেই। অ্যাডমিনের সঙ্গে যোগাযোগ করুন।
+              এই ধরনের লেনদেনের জন্য কোনো পদ্ধতি চালু নেই। অ্যাডমিনের সঙ্গে
+              যোগাযোগ করুন।
             </span>
           </div>
         ) : (
@@ -382,9 +473,7 @@ export default function WalletPage() {
               disabled={loading}
             >
               <i
-                className={`fa-solid fa-rotate ${
-                  loading ? "fa-spin" : ""
-                }`}
+                className={`fa-solid fa-rotate ${loading ? "fa-spin" : ""}`}
               />
             </button>
           </div>
@@ -408,9 +497,7 @@ export default function WalletPage() {
           </div>
 
           {loading ? (
-            <div className="wallet-history-empty">
-              Loading transactions...
-            </div>
+            <div className="wallet-history-empty">Loading transactions...</div>
           ) : filteredTransactions.length === 0 ? (
             <div className="wallet-history-empty">
               <i className="fa-solid fa-receipt" />
@@ -421,15 +508,11 @@ export default function WalletPage() {
             <div className="wallet-transaction-list">
               {filteredTransactions.map((transaction) => {
                 const method = methods.find(
-                  (item) =>
-                    item.method_code === transaction.method_code
+                  (item) => item.method_code === transaction.method_code
                 );
 
                 return (
-                  <article
-                    className="wallet-transaction"
-                    key={transaction.id}
-                  >
+                  <article className="wallet-transaction" key={transaction.id}>
                     <div
                       className={`wallet-transaction-icon ${transaction.transaction_type}`}
                     >
@@ -455,18 +538,13 @@ export default function WalletPage() {
                       </span>
 
                       <time dateTime={transaction.created_at}>
-                        {new Date(
-                          transaction.created_at
-                        ).toLocaleString()}
+                        {new Date(transaction.created_at).toLocaleString()}
                       </time>
                     </div>
 
                     <div className="wallet-transaction-right">
                       <strong>{formatAmount(transaction.amount)}</strong>
-
-                      <span
-                        className={`wallet-status ${transaction.status}`}
-                      >
+                      <span className={`wallet-status ${transaction.status}`}>
                         {transaction.status}
                       </span>
                     </div>
@@ -559,10 +637,8 @@ export default function WalletPage() {
                 selectedMethod.method_code === "usdt" && (
                   <div className="wallet-payment-details">
                     <span>Network</span>
-
                     <strong>
-                      {selectedMethod.usdt_network ||
-                        "Network not configured"}
+                      {selectedMethod.usdt_network || "Network not configured"}
                     </strong>
 
                     <span className="wallet-address-label">
@@ -589,8 +665,8 @@ export default function WalletPage() {
                     </div>
 
                     <p>
-                      পাঠানোর আগে নেটওয়ার্ক ও ঠিকানা মিলিয়ে নিন। ভুল
-                      নেটওয়ার্কে পাঠালে অর্থ হারাতে পারেন।
+                      পাঠানোর আগে নেটওয়ার্ক ও ঠিকানা মিলিয়ে নিন। ভুল নেটওয়ার্কে
+                      পাঠালে অর্থ হারাতে পারেন।
                     </p>
                   </div>
                 )}
@@ -608,9 +684,7 @@ export default function WalletPage() {
                     type="text"
                     autoComplete="off"
                     value={destination}
-                    onChange={(event) =>
-                      setDestination(event.target.value)
-                    }
+                    onChange={(event) => setDestination(event.target.value)}
                     placeholder={
                       selectedMethod.method_code === "usdt"
                         ? "Enter your USDT address"
@@ -627,9 +701,7 @@ export default function WalletPage() {
 
                 <div className="wallet-amount-input">
                   <span>
-                    {selectedMethod.method_code === "usdt"
-                      ? "USDT"
-                      : "BDT"}
+                    {selectedMethod.method_code === "usdt" ? "USDT" : "BDT"}
                   </span>
 
                   <input
@@ -659,9 +731,7 @@ export default function WalletPage() {
                     id="wallet-reference"
                     type="text"
                     value={reference}
-                    onChange={(event) =>
-                      setReference(event.target.value)
-                    }
+                    onChange={(event) => setReference(event.target.value)}
                     placeholder={
                       selectedMethod.method_code === "usdt"
                         ? "Enter transaction hash/reference"
@@ -691,14 +761,13 @@ export default function WalletPage() {
               >
                 {submitting ? (
                   <>
-                    <i className="fa-solid fa-spinner fa-spin" />{" "}
-                    Submitting...
+                    <i className="fa-solid fa-spinner fa-spin" /> Submitting...
                   </>
                 ) : (
                   <>
                     <i className="fa-solid fa-lock" />
-                    Submit{" "}
-                    {mode === "deposit" ? "Deposit" : "Withdrawal"} Request
+                    Submit {mode === "deposit" ? "Deposit" : "Withdrawal"}{" "}
+                    Request
                   </>
                 )}
               </button>
