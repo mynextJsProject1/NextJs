@@ -33,13 +33,6 @@ type WalletTransaction = {
 
 type ModalMode = "deposit" | "withdrawal";
 
-const methodIcons: Record<string, string> = {
-  bkash: "fa-mobile-screen-button",
-  nagad: "fa-wallet",
-  rocket: "fa-rocket",
-  usdt: "fa-coins",
-};
-
 const methodColors: Record<string, string> = {
   bkash: "#e2136e",
   nagad: "#f58220",
@@ -47,7 +40,19 @@ const methodColors: Record<string, string> = {
   usdt: "#26a17b",
 };
 
+const methodImages: Record<string, string> = {
+  bkash: "bkash.png",
+  nagad: "nagad.png",
+  rocket: "rocket.png",
+  usdt: "usdt.png",
+};
+
 const allowedMethods = ["bkash", "nagad", "rocket", "usdt"];
+
+// GitHub Pages basePath: /NextJs
+// Images must be stored in public/images/payment/.
+const paymentImageBase =
+  process.env.NODE_ENV === "production" ? "/NextJs" : "";
 
 const formatAmount = (amount: number | string) =>
   Number(amount).toLocaleString("en-US", {
@@ -135,6 +140,26 @@ export default function WalletPage() {
   useEffect(() => {
     void loadWallet();
   }, [loadWallet]);
+
+  useEffect(() => {
+    if (!selectedMethod) return;
+
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && !submitting) {
+        setSelectedMethod(null);
+        setMessage("");
+        setMessageSuccess(false);
+      }
+    };
+
+    document.addEventListener("keydown", handleEscape);
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.removeEventListener("keydown", handleEscape);
+      document.body.style.overflow = "";
+    };
+  }, [selectedMethod, submitting]);
 
   const openModal = (method: PaymentMethod, selectedMode: ModalMode) => {
     setSelectedMethod(method);
@@ -233,7 +258,7 @@ export default function WalletPage() {
         return;
       }
 
-      // Check the method again before inserting the request.
+      // Revalidate the selected method before inserting the request.
       const { data: method, error: methodError } = await supabase
         .from("payment_methods")
         .select(
@@ -440,11 +465,15 @@ export default function WalletPage() {
                     } as CSSProperties
                   }
                 >
-                  <i
-                    className={`fa-solid ${
-                      methodIcons[method.method_code] ?? "fa-wallet"
-                    }`}
-                  />
+                  {methodImages[method.method_code] ? (
+                    <img
+                      src={`${paymentImageBase}/images/payment/${methodImages[method.method_code]}`}
+                      alt={`${method.method_name} logo`}
+                      loading="lazy"
+                    />
+                  ) : (
+                    <i className="fa-solid fa-wallet" />
+                  )}
                 </span>
 
                 <strong>{method.method_name}</strong>
@@ -579,7 +608,7 @@ export default function WalletPage() {
             aria-labelledby="wallet-modal-title"
           >
             <div className="wallet-modal-header">
-              <div>
+              <div className="wallet-modal-title-wrap">
                 <span className="wallet-modal-eyebrow">
                   {mode === "deposit" ? "ADD FUNDS" : "CASH OUT"}
                 </span>
@@ -761,7 +790,8 @@ export default function WalletPage() {
               >
                 {submitting ? (
                   <>
-                    <i className="fa-solid fa-spinner fa-spin" /> Submitting...
+                    <span className="wallet-submit-spinner" aria-hidden="true" />
+                    <span>Submitting...</span>
                   </>
                 ) : (
                   <>
@@ -771,6 +801,16 @@ export default function WalletPage() {
                   </>
                 )}
               </button>
+
+              {submitting && (
+                <div className="wallet-processing" role="status" aria-live="polite">
+                  <span className="wallet-processing-ring" aria-hidden="true">
+                    <span />
+                  </span>
+                  <strong>Processing...</strong>
+                  <span>Please wait while we submit your request.</span>
+                </div>
+              )}
 
               <p className="wallet-form-footnote">
                 <i className="fa-solid fa-circle-info" />
