@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties, FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "../../lib/supabase/client";
@@ -49,8 +49,6 @@ const methodImages: Record<string, string> = {
 
 const allowedMethods = ["bkash", "nagad", "rocket", "usdt"];
 
-// GitHub Pages basePath: /NextJs
-// Images must be stored in public/images/payment/.
 const paymentImageBase =
   process.env.NODE_ENV === "production" ? "/NextJs" : "";
 
@@ -78,6 +76,10 @@ export default function WalletPage() {
   const [messageSuccess, setMessageSuccess] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [historyFilter, setHistoryFilter] = useState("all");
+
+  // UI-only state: does not change wallet/database logic.
+  const [isClosing, setIsClosing] = useState(false);
+  const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const loadWallet = useCallback(async () => {
     setLoading(true);
@@ -146,9 +148,7 @@ export default function WalletPage() {
 
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key === "Escape" && !submitting) {
-        setSelectedMethod(null);
-        setMessage("");
-        setMessageSuccess(false);
+        closeModal();
       }
     };
 
@@ -158,10 +158,21 @@ export default function WalletPage() {
     return () => {
       document.removeEventListener("keydown", handleEscape);
       document.body.style.overflow = "";
+
+      if (closeTimerRef.current) {
+        clearTimeout(closeTimerRef.current);
+        closeTimerRef.current = null;
+      }
     };
   }, [selectedMethod, submitting]);
 
   const openModal = (method: PaymentMethod, selectedMode: ModalMode) => {
+    if (closeTimerRef.current) {
+      clearTimeout(closeTimerRef.current);
+      closeTimerRef.current = null;
+    }
+
+    setIsClosing(false);
     setSelectedMethod(method);
     setMode(selectedMode);
     setAmount("");
@@ -172,10 +183,17 @@ export default function WalletPage() {
   };
 
   const closeModal = () => {
-    if (submitting) return;
-    setSelectedMethod(null);
+    if (submitting || isClosing || !selectedMethod) return;
+
+    setIsClosing(true);
     setMessage("");
     setMessageSuccess(false);
+
+    closeTimerRef.current = setTimeout(() => {
+      setSelectedMethod(null);
+      setIsClosing(false);
+      closeTimerRef.current = null;
+    }, 240);
   };
 
   const copyText = async (value: string) => {
@@ -258,7 +276,7 @@ export default function WalletPage() {
         return;
       }
 
-      // Revalidate the selected method before inserting the request.
+      // Existing payment-method revalidation is preserved.
       const { data: method, error: methodError } = await supabase
         .from("payment_methods")
         .select(
@@ -283,6 +301,7 @@ export default function WalletPage() {
         return;
       }
 
+      // Existing database insert is preserved.
       const { error: insertError } = await supabase
         .from("wallet_transactions")
         .insert({
@@ -449,41 +468,58 @@ export default function WalletPage() {
           </div>
         ) : (
           <div className="wallet-method-grid">
-            {availableMethods.map((method) => (
-              <button
-                type="button"
-                className="wallet-method-card"
-                key={method.method_code}
-                onClick={() => openModal(method, mode)}
-              >
-                <span
-                  className="wallet-method-icon"
-                  style={
-                    {
-                      "--method-color":
-                        methodColors[method.method_code] ?? "#00e701",
-                    } as CSSProperties
-                  }
+            {availableMethods.map((method) => {
+              const isSelected =
+                selectedMethod?.method_code === method.method_code &&
+                mode === (selectedMethod ? mode : mode);
+
+              return (
+                <button
+                  type="button"
+                  className={`wallet-method-card ${
+                    isSelected ? "selected" : ""
+                  }`}
+                  key={method.method_code}
+                  onClick={() => openModal(method, mode)}
+                  aria-pressed={isSelected}
                 >
-                  {methodImages[method.method_code] ? (
-                    <img
-                      src={`${paymentImageBase}/images/payment/${methodImages[method.method_code]}`}
-                      alt={`${method.method_name} logo`}
-                      loading="lazy"
-                    />
-                  ) : (
-                    <i className="fa-solid fa-wallet" />
-                  )}
-                </span>
+                  <span
+                    className="wallet-method-icon"
+                    style={
+                      {
+                        "--method-color":
+                          methodColors[method.method_code] ?? "#00e701",
+                      } as CSSProperties
+                    }
+                  >
+                    {methodImages[method.method_code] ? (
+                      <img
+                        src={`${paymentImageBase}/images/payment/${methodImages[method.method_code]}`}
+                        alt={`${method.method_name} logo`}
+                        loading="lazy"
+                      />
+                    ) : (
+                      <i className="fa-solid fa-wallet" />
+                    )}
+                  </span>
 
-                <strong>{method.method_name}</strong>
+                  <strong>{method.method_name}</strong>
 
-                <span className="wallet-method-action">
-                  {mode === "deposit" ? "Deposit now" : "Withdraw"}
-                  <i className="fa-solid fa-chevron-right" />
-                </span>
-              </button>
-            ))}
+                  <span className="wallet-method-action">
+                    {mode === "deposit" ? "Deposit now" : "Withdraw"}
+                    <i className="fa-solid fa-chevron-right" />
+                  </span>
+
+                  <span className="wallet-card-indicator" aria-hidden="true">
+                    {isSelected ? (
+                      <i className="fa-solid fa-check" />
+                    ) : (
+                      <i className="fa-solid fa-arrow-up-right-from-square" />
+                    )}
+                  </span>
+                </button>
+              );
+            })}
           </div>
         )}
 
@@ -595,18 +631,51 @@ export default function WalletPage() {
 
       {selectedMethod && (
         <div
-          className="wallet-modal-overlay"
+          className={`wallet-modal-overlay ${
+            isClosing ? "is-closing" : ""
+          }`}
           role="presentation"
           onClick={(event) => {
             if (event.target === event.currentTarget) closeModal();
           }}
         >
           <section
-            className="wallet-modal"
+            className={`wallet-modal ${isClosing ? "is-closing" : ""}`}
             role="dialog"
             aria-modal="true"
             aria-labelledby="wallet-modal-title"
           >
+            <div
+              className="wallet-modal-method-strip"
+              style={
+                {
+                  "--method-color":
+                    methodColors[selectedMethod.method_code] ?? "#00e701",
+                } as CSSProperties
+              }
+            >
+              <span className="wallet-modal-method-logo">
+                {methodImages[selectedMethod.method_code] ? (
+                  <img
+                    src={`${paymentImageBase}/images/payment/${methodImages[selectedMethod.method_code]}`}
+                    alt=""
+                  />
+                ) : (
+                  <i className="fa-solid fa-wallet" />
+                )}
+              </span>
+              <span>
+                {selectedMethod.method_name}
+                <small>
+                  {mode === "deposit" ? "Secure Deposit" : "Withdrawal Request"}
+                </small>
+              </span>
+              <span className="wallet-modal-secure">
+                <i className="fa-solid fa-shield-halved" />
+                Secure
+              </span>
+            </div>
+
             <div className="wallet-modal-header">
               <div className="wallet-modal-title-wrap">
                 <span className="wallet-modal-eyebrow">
@@ -623,7 +692,7 @@ export default function WalletPage() {
                 type="button"
                 className="wallet-modal-close"
                 onClick={closeModal}
-                disabled={submitting}
+                disabled={submitting || isClosing}
                 aria-label="Close dialog"
               >
                 <i className="fa-solid fa-xmark" />
@@ -803,7 +872,11 @@ export default function WalletPage() {
               </button>
 
               {submitting && (
-                <div className="wallet-processing" role="status" aria-live="polite">
+                <div
+                  className="wallet-processing"
+                  role="status"
+                  aria-live="polite"
+                >
                   <span className="wallet-processing-ring" aria-hidden="true">
                     <span />
                   </span>
