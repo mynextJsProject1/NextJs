@@ -1,5 +1,5 @@
 /* ============================================================
-   Wallet Page Styles (wallets.css) - Updated
+   Wallet Page Styles (wallets.css) - Compact & Optimized
    ============================================================ */
 
 .wallet-page {
@@ -16,9 +16,30 @@
 }
 
 .wallet-page .wallet-main {
-  padding: 1rem 1rem 3rem;
+  padding: 0.5rem 0.75rem 2rem; /* কমপ্যাক্ট প্যাডিং */
   max-width: 1100px;
   margin: 0 auto;
+}
+
+/* ৩. সেন্টার লোডিং অ্যানিমেশন */
+.wallet-page .wallet-center-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 50vh;
+  gap: 16px;
+  color: var(--wallet-accent);
+}
+
+.wallet-page .wallet-center-loading i {
+  font-size: 3rem;
+}
+
+.wallet-page .wallet-center-loading span {
+  color: var(--wallet-muted);
+  font-size: 1.1rem;
+  font-weight: 600;
 }
 
 /* Tabs */
@@ -28,20 +49,20 @@
   background: var(--wallet-card);
   border: 1px solid var(--wallet-border);
   border-radius: var(--wallet-radius);
-  padding: 4px;
-  margin-bottom: 1.25rem;
-  margin-top: 1rem;
+  padding: 3px;
+  margin-bottom: 0.8rem;
+  margin-top: 0.5rem;
   overflow: hidden;
 }
 
 .wallet-page .wallet-tabs-indicator {
   position: absolute;
-  top: 4px;
-  left: 4px;
-  width: calc(50% - 4px);
-  height: calc(100% - 8px);
+  top: 3px;
+  left: 3px;
+  width: calc(50% - 3px);
+  height: calc(100% - 6px);
   background: var(--wallet-accent);
-  border-radius: calc(var(--wallet-radius) - 4px);
+  border-radius: calc(var(--wallet-radius) - 3px);
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   z-index: 0;
 }
@@ -57,14 +78,14 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  padding: 12px 16px;
+  gap: 6px;
+  padding: 10px 12px;
   background: transparent;
   border: none;
   color: var(--wallet-muted);
   font-weight: 600;
-  font-size: 0.95rem;
-  border-radius: calc(var(--wallet-radius) - 4px);
+  font-size: 0.9rem;
+  border-radius: calc(var(--wallet-radius) - 3px);
   cursor: pointer;
   transition: color 0.2s ease;
 }
@@ -76,19 +97,19 @@
 /* Fiat / Crypto Selector */
 .wallet-page .wallet-category-selector {
   display: flex;
-  gap: 10px;
-  margin-bottom: 1.5rem;
+  gap: 8px;
+  margin-bottom: 0.8rem;
   justify-content: center;
 }
 
 .wallet-page .wallet-category-selector button {
-  padding: 10px 32px;
+  padding: 8px 24px;
   background: transparent;
   border: 2px solid var(--wallet-border);
   border-radius: 999px;
   color: var(--wallet-muted);
   font-weight: 600;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   cursor: pointer;
   transition: all 0.2s ease;
 }
@@ -104,17 +125,17 @@
   color: #000;
 }
 
-/* Method Grid & Cards */
+/* Method Grid & Cards - COMPACT */
 .wallet-page .wallet-method-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
-  margin-bottom: 2rem;
+  grid-template-columns: repeat(3, 1fr); /* মোবাইলে ৩ কলাম করা হয়েছে যাতে স্পেস কম লাগে */
+  gap: 8px;
+  margin-bottom: 1rem;
 }
 
-@media (min-width: 600px) {
+@media (max-width: 380px) {
   .wallet-page .wallet-method-grid {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 
@@ -122,11 +143,11 @@
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  padding: 12px;
+  gap: 6px;
+  padding: 8px;
   background: #1e2731;
   border: 2px solid transparent;
-  border-radius: 16px;
+  border-radius: 12px;
   cursor: pointer;
   text-align: left;
   color: var(--wallet-text);
@@ -143,8 +164,8 @@
 
 .wallet-page .wallet-method-logo-box {
   background: #111821;
-  border-radius: 10px;
-  height: 64px;
+  border-radius: 8px;
+  height: 40px; /* সাইজ ছোট করা হয়েছে */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -152,35 +173,35 @@
 }
 
 .wallet-page .wallet-method-logo-box img {
-  width: 36px;
-  height: 36px;
+  width: 24px; /* সাইজ ছোট করা হয়েছে */
+  height: 24px;
   object-fit: contain;
 }
 
 .wallet-page .wallet-method-bottom {
   display: flex;
   align-items: center;
-  padding: 0 4px;
+  padding: 0 2px;
 }
 
 .wallet-page .wallet-method-bottom strong {
-  font-size: 1rem;
+  font-size: 0.85rem; /* সাইজ ছোট করা হয়েছে */
   font-weight: 700;
 }
 
 .wallet-page .wallet-selected-check {
   position: absolute;
-  top: -8px;
-  right: -8px;
+  top: -6px;
+  right: -6px;
   background: var(--wallet-accent);
   color: #000;
-  width: 26px;
-  height: 26px;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.8rem;
+  font-size: 0.7rem;
   box-shadow: 0 2px 8px rgba(0, 231, 1, 0.4);
 }
 
@@ -190,17 +211,17 @@
   flex-direction: column;
   align-items: center;
   gap: 8px;
-  padding: 2.5rem 1rem;
+  padding: 1.5rem 1rem;
   background: var(--wallet-card);
   border: 1px dashed var(--wallet-border);
   border-radius: var(--wallet-radius);
   color: var(--wallet-muted);
   text-align: center;
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
 }
 
 /* ============================================================
-   Modal & Form
+   Modal & Form - COMPACT
    ============================================================ */
 .wallet-page .wallet-modal-overlay {
   position: fixed;
@@ -210,15 +231,15 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 16px;
+  padding: 12px;
   z-index: 1000;
   animation: wallet-fade-in 0.24s ease;
 }
 
 .wallet-page .wallet-modal {
   width: 100%;
-  max-width: 440px;
-  max-height: 90vh;
+  max-width: 400px;
+  max-height: 92vh;
   overflow-y: auto;
   background: #1e2731;
   border-radius: 16px;
@@ -230,12 +251,12 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px 20px;
+  padding: 12px 16px;
   border-bottom: 1px solid #2f4553;
 }
 
 .wallet-page .wallet-modal-header h2 {
-  font-size: 1.15rem;
+  font-size: 1.05rem;
   margin: 0;
 }
 
@@ -244,8 +265,8 @@
   border: none;
   color: var(--wallet-muted);
   cursor: pointer;
-  width: 34px;
-  height: 34px;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -253,86 +274,79 @@
   transition: background 0.2s ease, color 0.2s ease;
 }
 
-.wallet-page .wallet-modal-close:hover:not(:disabled) {
-  background: #3a4856;
-  color: #fff;
-}
-
-/* Loading Payment Details (Requirement 1) */
 .wallet-page .wallet-loading-details {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 4rem 2rem;
-  gap: 16px;
+  padding: 3rem 1rem;
+  gap: 12px;
   color: var(--wallet-accent);
 }
 
 .wallet-page .wallet-loading-details i {
-  font-size: 3rem;
+  font-size: 2.5rem;
 }
 
 .wallet-page .wallet-loading-details p {
   color: var(--wallet-muted);
-  font-size: 1rem;
-  font-weight: 500;
+  font-size: 0.95rem;
   margin: 0;
 }
 
 .wallet-page .wallet-form {
-  padding: 20px;
+  padding: 16px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px; /* গ্যাপ কমানো হয়েছে */
 }
 
 /* Crypto Deposit UI */
 .wallet-page .crypto-deposit-wrapper {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
 }
 
 .wallet-page .crypto-dropdowns {
   display: flex;
-  gap: 12px;
+  gap: 8px;
 }
 
 .wallet-page .crypto-select-box {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
 }
 
 .wallet-page .crypto-select-box span {
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   color: var(--wallet-muted);
 }
 
 .wallet-page .crypto-select-inner {
   background: #111821;
   border: 1px solid #2f4553;
-  padding: 12px;
+  padding: 10px;
   border-radius: 8px;
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 0.9rem;
+  gap: 6px;
+  font-size: 0.85rem;
   font-weight: 600;
 }
 
 .wallet-page .wallet-qr-box {
   background: #fff;
-  padding: 10px;
-  border-radius: 12px;
+  padding: 8px;
+  border-radius: 10px;
   display: flex;
   justify-content: center;
   align-items: center;
-  margin: 10px auto;
-  width: 180px;
-  height: 180px;
+  margin: 5px auto;
+  width: 140px;
+  height: 140px;
 }
 
 .wallet-page .wallet-qr-box img {
@@ -342,7 +356,7 @@
 
 .wallet-page .wallet-address-label {
   color: var(--wallet-muted);
-  font-size: 0.85rem;
+  font-size: 0.8rem;
 }
 
 .wallet-page .wallet-address-box-dark {
@@ -351,13 +365,13 @@
   justify-content: space-between;
   background: #111821;
   border: 1px solid #2f4553;
-  padding: 12px;
+  padding: 10px;
   border-radius: 8px;
 }
 
 .wallet-page .wallet-address-box-dark code {
   color: var(--wallet-accent);
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   word-break: break-all;
 }
 
@@ -366,15 +380,15 @@
   border: none;
   color: #fff;
   cursor: pointer;
-  font-size: 1.1rem;
+  font-size: 1rem;
 }
 
 .wallet-page .wallet-alert-box {
   display: flex;
-  gap: 10px;
+  gap: 8px;
   background: #1a3a2a;
   border: 1px solid #235039;
-  padding: 12px;
+  padding: 10px;
   border-radius: 8px;
   align-items: flex-start;
 }
@@ -382,50 +396,51 @@
 .wallet-page .wallet-alert-box i {
   color: var(--wallet-accent);
   margin-top: 2px;
+  font-size: 0.9rem;
 }
 
 .wallet-page .wallet-alert-box p {
   color: #a3c9b6;
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   margin: 0;
-  line-height: 1.4;
+  line-height: 1.3;
 }
 
 /* Fiat Deposit Info */
 .wallet-page .wallet-payment-details {
-  padding: 12px;
+  padding: 10px;
   background: #111821;
   border-radius: 8px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
 }
 
-.wallet-page .wallet-payment-details span { color: var(--wallet-muted); font-size: 0.8rem; }
+.wallet-page .wallet-payment-details span { color: var(--wallet-muted); font-size: 0.75rem; }
 .wallet-page .wallet-copy-row { display: flex; justify-content: space-between; align-items: center; }
-.wallet-page .wallet-copy-row strong { color: var(--wallet-accent); font-size: 1.1rem; }
-.wallet-page .wallet-copy-row button { background: #2f4553; color: #fff; border: none; border-radius: 4px; padding: 6px 12px; font-size: 0.8rem; cursor: pointer; }
+.wallet-page .wallet-copy-row strong { color: var(--wallet-accent); font-size: 1rem; }
+.wallet-page .wallet-copy-row button { background: #2f4553; color: #fff; border: none; border-radius: 4px; padding: 4px 10px; font-size: 0.75rem; cursor: pointer; }
 
 /* Form Fields */
 .wallet-page .wallet-field {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
 }
 
 .wallet-page .wallet-field label {
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   color: var(--wallet-muted);
 }
 
 .wallet-page .wallet-field input {
   width: 100%;
-  padding: 12px 14px;
+  padding: 10px 12px;
   background: #111821;
   border: 1px solid #2f4553;
   border-radius: 8px;
   color: var(--wallet-text);
-  font-size: 1rem;
+  font-size: 0.9rem;
   outline: none;
 }
 
@@ -442,9 +457,10 @@
 }
 
 .wallet-page .wallet-amount-input span {
-  padding: 0 14px;
+  padding: 0 12px;
   color: var(--wallet-muted);
   font-weight: 700;
+  font-size: 0.9rem;
   border-right: 1px solid #2f4553;
 }
 
@@ -453,10 +469,19 @@
   background: transparent;
 }
 
+/* ৫. নতুন হিন্ট টেক্সট */
+.wallet-page .wallet-hint-text {
+  font-size: 0.75rem;
+  color: var(--wallet-muted);
+  line-height: 1.4;
+  margin: 4px 0 0 0;
+  text-align: left;
+}
+
 .wallet-page .wallet-form-message {
-  padding: 10px 12px;
+  padding: 8px 10px;
   border-radius: 8px;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
 }
 
 .wallet-page .wallet-form-message.success {
@@ -473,26 +498,26 @@
 
 /* Submit Button */
 .wallet-page .wallet-submit {
-  padding: 14px;
+  padding: 12px;
   background: var(--wallet-accent);
   color: #000;
   border: none;
   border-radius: 8px;
   font-weight: 700;
-  font-size: 1rem;
+  font-size: 0.95rem;
   cursor: pointer;
   transition: all 0.2s;
   display: flex;
   justify-content: center;
   align-items: center;
   gap: 8px;
-  min-height: 52px;
+  min-height: 48px;
+  margin-top: 4px;
 }
 
 .wallet-page .wallet-submit:hover:not(:disabled) { background: var(--wallet-accent-dark); }
 .wallet-page .wallet-submit:disabled { cursor: not-allowed; }
 
-/* Requirement 2: Green Tick Success State */
 .wallet-page .wallet-submit.is-success {
   background: #00e701;
   color: #000;
@@ -501,26 +526,25 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   animation: pop-in 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 .wallet-page .submit-success-content i {
-  font-size: 1.4rem;
+  font-size: 1.3rem;
 }
 
-/* Requirement 3: Processing State (Large text for withdrawal) */
 .wallet-page .submit-processing-content {
   display: flex;
   align-items: center;
   gap: 8px;
 }
 .wallet-page .submit-processing-content.large-text {
-  font-size: 1.3rem; /* Original text er cheye boro */
+  font-size: 1.2rem;
   font-weight: 800;
   letter-spacing: 1px;
 }
 .wallet-page .submit-processing-content.large-text i {
-  font-size: 1.5rem;
+  font-size: 1.4rem;
 }
 
 /* Animations */
@@ -534,5 +558,4 @@
 @media (max-width: 600px) {
   .wallet-page .wallet-modal { border-radius: 16px 16px 0 0; align-self: flex-end; max-height: 95vh; }
   .wallet-page .wallet-modal-overlay { align-items: flex-end; padding: 0; }
-  .wallet-page .wallet-method-grid { grid-template-columns: repeat(2, 1fr); }
 }
