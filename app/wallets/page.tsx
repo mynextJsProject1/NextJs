@@ -218,7 +218,7 @@ export default function WalletPage() {
       const type = mode;
       const methodCode = selectedMethod.method_code.trim().toLowerCase();
       const amountText = amount.trim();
-      const referenceText = reference.trim().toUpperCase(); // অটোমেটিক বড় হাতের অক্ষরে কনভার্ট
+      const referenceText = reference.trim();
       const destinationText = destination.trim();
 
       if (!allowedMethods.includes(methodCode)) {
@@ -238,22 +238,36 @@ export default function WalletPage() {
         return;
       }
 
-      // TrxID ভ্যালিডেশন (কমপক্ষে ৮ ডিজিট, বড় হাতের অক্ষর ও সংখ্যা)
+      // TrxID ভ্যালিডেশন (কমপক্ষে ৮ অক্ষর, বড় হাতের ইংরেজি ও সংখ্যা)
       if (type === "deposit" && methodCode !== "usdt") {
+        if (!referenceText) {
+          setMessage("Transaction ID (TrxID) লিখুন।");
+          return;
+        }
         if (!/^[A-Z0-9]{8,}$/.test(referenceText)) {
-          setMessage("Transaction ID must be at least 8 characters long, containing only uppercase letters and numbers.");
+          setMessage("TrxID কমপক্ষে ৮ অক্ষরের হতে হবে এবং বড় হাতের ইংরেজি অক্ষর/সংখ্যা হতে হবে (যেমন: 8N7A2B9C)।");
           return;
         }
       }
 
-      if (type === "withdrawal" && !destinationText) {
-        setMessage("যে নম্বর বা ঠিকানায় টাকা নিতে চান, সেটি লিখুন।");
-        return;
-      }
-
-      if (type === "withdrawal" && numericAmount > profileBalance) {
-        setMessage("আপনার অ্যাকাউন্টে পর্যাপ্ত ব্যালেন্স নেই।");
-        return;
+      // Withdrawal ভ্যালিডেশন (মোবাইল নাম্বার ১১ ডিজিট এবং মিনিমাম ১০০ টাকা)
+      if (type === "withdrawal") {
+        if (!destinationText) {
+          setMessage("যে নম্বর বা ঠিকানায় টাকা নিতে চান, সেটি লিখুন।");
+          return;
+        }
+        if (methodCode !== "usdt" && !/^01[0-9]{9}$/.test(destinationText)) {
+          setMessage("সঠিক ১১ সংখ্যার মোবাইল নম্বর দিন (যেমন: 017XXXXXXXX)।");
+          return;
+        }
+        if (numericAmount < 100) {
+          setMessage("মিনিমাম উত্তোলন ১০০ টাকা।");
+          return;
+        }
+        if (numericAmount > profileBalance) {
+          setMessage("আপনার অ্যাকাউন্টে পর্যাপ্ত ব্যালেন্স নেই।");
+          return;
+        }
       }
 
       const { data: method, error: methodError } = await supabase
@@ -296,7 +310,7 @@ export default function WalletPage() {
         return;
       }
 
-      setIsSuccess(true); 
+      setIsSuccess(true);
       
       setTimeout(() => {
         setIsSuccess(false);
@@ -336,9 +350,10 @@ export default function WalletPage() {
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} onNavigate={navigate} />
 
       <main className="stake-main wallet-main">
+        
+        {/* Center Screen Loading Animation */}
         {loading ? (
-          // ৩. wallets page আসবে ইউজার wallets details Loading লেখার Animation দেখাবে center
-          <div className="wallet-center-loading">
+          <div className="wallet-full-loading">
             <i className="fa-solid fa-circle-notch fa-spin"></i>
             <span>Loading wallet details...</span>
           </div>
@@ -390,15 +405,15 @@ export default function WalletPage() {
             )}
 
             {mode === "deposit" && paymentCategory === "crypto" ? (
-              <div style={{ textAlign: "center", marginTop: "1rem" }}>
-                 <button
+              <div style={{ textAlign: "center", marginTop: "2rem" }}>
+                <button
                     type="button"
                     className="wallet-submit"
-                    style={{ display: "inline-block", width: "auto", padding: "10px 24px" }}
+                    style={{ display: "inline-block", width: "auto", padding: "12px 32px" }}
                     onClick={handleCryptoClick}
-                 >
+                >
                     <i className="fa-solid fa-wallet" /> Deposit USDT
-                 </button>
+                </button>
               </div>
             ) : availableMethods.length === 0 ? (
               <div className="wallet-state">
@@ -505,10 +520,8 @@ export default function WalletPage() {
 
                     <div className="wallet-qr-box">
                       {selectedMethod.usdt_qr_url ? (
-                        // ১. ইউজারের আপলোড করা QR ইমেজ দেখাবে
                         <img src={selectedMethod.usdt_qr_url} alt="USDT QR Code" />
                       ) : selectedMethod.usdt_address ? (
-                        // ব্যাকআপ: ইমেজ না থাকলে অ্যাড্রেস দিয়ে অটো জেনারেট করবে
                         <img src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${selectedMethod.usdt_address}`} alt="USDT QR Code" />
                       ) : (
                         <span style={{color: '#000'}}>No Address</span>
@@ -543,8 +556,8 @@ export default function WalletPage() {
                       autoComplete="off"
                       value={destination}
                       onChange={(event) => setDestination(event.target.value)}
-                      placeholder={selectedMethod.method_code === "usdt" ? "Enter your USDT address" : "Enter your receiving number"}
-                      maxLength={250}
+                      placeholder={selectedMethod.method_code === "usdt" ? "Enter your USDT address" : "Enter your 11 digit number"}
+                      maxLength={selectedMethod.method_code === "usdt" ? 250 : 11}
                       required
                     />
                   </div>
@@ -558,7 +571,7 @@ export default function WalletPage() {
                       id="wallet-amount"
                       type="number"
                       inputMode="decimal"
-                      min="0.01"
+                      min={mode === "withdrawal" ? "100" : "0.01"}
                       max="10000000"
                       step="0.01"
                       value={amount}
@@ -567,6 +580,9 @@ export default function WalletPage() {
                       required
                     />
                   </div>
+                  {mode === "withdrawal" && (
+                    <small style={{ color: "var(--wallet-muted)", marginTop: "4px" }}>Minimum withdrawal: 100 BDT</small>
+                  )}
                 </div>
 
                 {mode === "deposit" && (
@@ -578,26 +594,25 @@ export default function WalletPage() {
                       id="wallet-reference"
                       type="text"
                       value={reference}
-                      onChange={(event) => setReference(event.target.value.toUpperCase())} // ২. অটোমেটিক বড় হাতের অক্ষর হবে
-                      placeholder={selectedMethod.method_code === "usdt" ? "Enter transaction hash/reference" : "Enter your TrxID (Uppercase)"}
+                      onChange={(event) => setReference(event.target.value.toUpperCase())}
+                      placeholder={selectedMethod.method_code === "usdt" ? "Enter transaction hash/reference" : "Enter TrxID (Uppercase)"}
                       maxLength={200}
                       required={selectedMethod.method_code !== "usdt"}
-                      style={{ textTransform: "uppercase" }} 
                     />
                   </div>
-                )}
-
-                {/* ৫. Submit Deposit Request এর উপরে নতুন লেখা */}
-                {mode === "deposit" && (
-                  <p className="wallet-hint-text">
-                    You can watch the transaction ID in the wallet app payment video to know how to do this payment.
-                  </p>
                 )}
 
                 {message && (
                   <div className={`wallet-form-message ${messageSuccess ? "success" : "error"}`} role="status">
                     {message}
                   </div>
+                )}
+
+                {/* হিন্ট টেক্সট */}
+                {mode === "deposit" && selectedMethod.method_code !== "usdt" && (
+                  <p className="wallet-hint-text">
+                    You can watch the transaction ID in the wallet app payment video to know how to do this payment.
+                  </p>
                 )}
 
                 <button 
