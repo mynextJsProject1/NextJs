@@ -474,39 +474,9 @@ input:focus-visible {
   text-align: center;
 }
 
-@media (max-width: 360px) {
-  .stake-header {
-    padding-right: 7px;
-    padding-left: 7px;
-  }
+/* Banner */
 
-  .stake-header-left,
-  .stake-header-right {
-    gap: 5px;
-  }
-
-  .stake-logo {
-    font-size: 17px;
-  }
-
-  .stake-wallet-pill {
-    gap: 4px;
-    padding: 7px;
-    font-size: 11px;
-  }
-
-  .stake-btn-wallet {
-    padding: 9px 8px;
-  }
-
-  .stake-game-grid {
-    gap: 7px;
-  }
-
-  .stake-nav-item {
-    font-size: 9px;
-  }
-  .stake-banner {
+.stake-banner {
   display: block;
   width: 100%;
   max-width: 100%;
@@ -528,7 +498,6 @@ input:focus-visible {
   box-sizing: border-box;
 }
 
-  
 /* Login and Signup pages */
 
 .auth-main {
@@ -536,8 +505,7 @@ input:focus-visible {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding-top: 28px;
-  padding-bottom: 36px;
+  padding: 28px 14px 36px;
 }
 
 .auth-card {
@@ -706,7 +674,41 @@ input:focus-visible {
   overflow-wrap: anywhere;
 }
 
+/* Responsive layout */
+
 @media (max-width: 360px) {
+  .stake-header {
+    padding-right: 7px;
+    padding-left: 7px;
+  }
+
+  .stake-header-left,
+  .stake-header-right {
+    gap: 5px;
+  }
+
+  .stake-logo {
+    font-size: 17px;
+  }
+
+  .stake-wallet-pill {
+    gap: 4px;
+    padding: 7px;
+    font-size: 11px;
+  }
+
+  .stake-btn-wallet {
+    padding: 9px 8px;
+  }
+
+  .stake-game-grid {
+    gap: 7px;
+  }
+
+  .stake-nav-item {
+    font-size: 9px;
+  }
+
   .auth-card {
     padding: 22px 14px;
   }
@@ -714,6 +716,4 @@ input:focus-visible {
   .auth-title {
     font-size: 21px;
   }
-}
-
 }
