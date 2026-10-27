@@ -106,7 +106,7 @@
 .wallet-page .wallet-category-selector button:hover { border-color: var(--wallet-accent); color: var(--wallet-text); }
 .wallet-page .wallet-category-selector button.active { background: var(--wallet-accent); border-color: var(--wallet-accent); color: #000; }
 
-/* Method Grid & Cards (Minimum Padding) */
+/* Method Grid & Cards (Ultra Compact) */
 .wallet-page .wallet-method-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -122,15 +122,17 @@
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: 10px 8px;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 8px 4px;
   background: #1e2731;
   border: 2px solid transparent;
   border-radius: 10px;
   cursor: pointer;
-  text-align: center;
   color: var(--wallet-text);
   transition: border-color 0.2s ease;
+  height: 80px; /* নির্দিষ্ট হাইট দেওয়া হয়েছে যাতে বেশি বড় না হয় */
 }
 
 .wallet-page .wallet-method-card:hover { border-color: rgba(0, 231, 1, 0.5); }
@@ -139,8 +141,8 @@
 /* Badge Position */
 .wallet-page .wallet-badge-icon {
   position: absolute;
-  top: 6px;
-  left: 6px;
+  top: 4px;
+  left: 4px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -150,16 +152,16 @@
 .wallet-page .wallet-method-logo-box {
   background: #111821;
   border-radius: 6px;
-  height: 40px;
+  height: 32px;
+  width: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 100%;
 }
 
 .wallet-page .wallet-method-logo-box img {
-  width: 24px;
-  height: 24px;
+  width: 20px;
+  height: 20px;
   object-fit: contain;
 }
 
@@ -168,11 +170,11 @@
   align-items: center;
   justify-content: center;
   gap: 4px;
-  padding: 0;
+  width: 100%;
 }
 
 .wallet-page .wallet-method-bottom strong {
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   font-weight: 700;
 }
 
@@ -181,22 +183,6 @@
   align-items: center;
   justify-content: center;
   margin-top: 1px;
-}
-
-.wallet-page .wallet-selected-check {
-  position: absolute;
-  top: -6px;
-  right: -6px;
-  background: var(--wallet-accent);
-  color: #000;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.65rem;
-  box-shadow: 0 2px 6px rgba(0, 231, 1, 0.4);
 }
 
 /* States */
