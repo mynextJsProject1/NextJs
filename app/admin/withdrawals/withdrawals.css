@@ -38,18 +38,45 @@
   margin-bottom: 12px;
 }
 
-.withdraw-amount {
+.withdraw-label {
   display: block;
-  font-size: 20px;
+  font-size: 11px;
+  color: #9ca9a3;
+  text-transform: uppercase;
+  margin-bottom: 2px;
+}
+
+.withdraw-amount-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.withdraw-amount {
+  font-size: 22px;
   color: #00e701;
   font-weight: 800;
+}
+
+.copy-btn-sm {
+  background: transparent;
+  border: none;
+  color: #9ca9a3;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 4px;
+  transition: color 0.2s;
+}
+
+.copy-btn-sm:hover {
+  color: #00e701;
 }
 
 .withdraw-method-wrap {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-top: 6px;
 }
 
 .withdraw-method-logo {
@@ -91,36 +118,43 @@
   justify-content: space-between;
   align-items: center;
   background: rgba(255, 255, 255, 0.05);
-  padding: 8px 12px;
-  border-radius: 6px;
+  padding: 10px 12px;
+  border-radius: 8px;
   border: 1px solid #26352e;
+  margin-top: 4px;
 }
 
 .withdraw-destination .label {
   color: #9ca9a3;
   font-size: 12px;
-  margin-right: 8px;
+  display: block;
+  margin-bottom: 4px;
 }
 
 .withdraw-destination .value {
   font-family: monospace;
-  font-size: 14px;
+  font-size: 15px;
   color: #00e701;
   word-break: break-all;
+  font-weight: 600;
 }
 
 .copy-btn {
-  background: transparent;
-  border: none;
-  color: #f5f7f6;
-  font-size: 16px;
+  background: rgba(0, 231, 1, 0.1);
+  border: 1px solid rgba(0, 231, 1, 0.2);
+  color: #00e701;
+  font-size: 14px;
   cursor: pointer;
-  padding: 4px;
-  transition: color 0.2s;
+  padding: 8px;
+  border-radius: 6px;
+  transition: background 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .copy-btn:hover {
-  color: #00e701;
+  background: rgba(0, 231, 1, 0.2);
 }
 
 .withdraw-stats {
