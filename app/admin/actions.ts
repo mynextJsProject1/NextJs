@@ -39,7 +39,9 @@ async function isAdmin(supabase: Awaited<ReturnType<typeof createServerSupabaseC
   return profile?.role === "admin";
 }
 
-// ডিপোজিট অ্যাপ্রুভ করার ফাংশন
+// ==========================================
+// ১. ডিপোজিট অ্যাপ্রুভ করার ফাংশন
+// ==========================================
 export async function approveDeposit(transactionId: string) {
   const supabase = await createServerSupabaseClient();
 
@@ -102,4 +104,44 @@ export async function approveDeposit(transactionId: string) {
   }
 
   return { success: true, message: "Deposit approved successfully." };
+}
+
+// ==========================================
+// ২. ডিপোজিট রিজেক্ট করার ফাংশন (নতুন যোগ করা হলো)
+// ==========================================
+export async function rejectDeposit(transactionId: string) {
+  const supabase = await createServerSupabaseClient();
+
+  // ১. অ্যাডমিন কি না চেক
+  const adminCheck = await isAdmin(supabase);
+  if (!adminCheck) {
+    return { success: false, error: "Unauthorized. Admin access required." };
+  }
+
+  // ২. ট্রানজেকশন চেক করা
+  const { data: txn, error: txnError } = await supabase
+    .from("wallet_transactions")
+    .select("status")
+    .eq("id", transactionId)
+    .single();
+
+  if (txnError || !txn) {
+    return { success: false, error: "Transaction not found." };
+  }
+
+  if (txn.status !== "pending") {
+    return { success: false, error: "Transaction already processed." };
+  }
+
+  // ৩. স্ট্যাটাস rejected করে দেওয়া
+  const { error: updateError } = await supabase
+    .from("wallet_transactions")
+    .update({ status: "rejected" })
+    .eq("id", transactionId);
+
+  if (updateError) {
+    return { success: false, error: "Failed to reject transaction." };
+  }
+
+  return { success: true, message: "Deposit rejected." };
 }
