@@ -1,0 +1,220 @@
+/* ============================================================
+   Turnover Page Styles
+   ============================================================ */
+
+.turnover-page {
+  --wallet-bg: #0f212e;
+  --wallet-card: #1a2c38;
+  --wallet-border: #2f4553;
+  --wallet-text: #ffffff;
+  --wallet-muted: #b1bad3;
+  --wallet-accent: #00e701;
+  --wallet-orange: #f58220;
+}
+
+.turnover-page .turnover-main {
+  padding: 1rem 0.8rem 4rem;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.turnover-page .turnover-header {
+  margin-bottom: 1.5rem;
+}
+
+.turnover-page .turnover-header h1 {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: var(--wallet-text);
+  margin: 0 0 4px;
+}
+
+.turnover-page .turnover-header p {
+  color: var(--wallet-muted);
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+.turnover-page .turnover-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 50vh;
+  gap: 12px;
+  color: var(--wallet-accent);
+}
+
+.turnover-page .turnover-loading i {
+  font-size: 2.5rem;
+}
+
+.turnover-page .turnover-loading span {
+  color: var(--wallet-muted);
+  font-size: 0.95rem;
+}
+
+/* Overall Summary Card */
+.turnover-page .turnover-summary-card {
+  background: var(--wallet-card);
+  border: 1px solid var(--wallet-border);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 1.5rem;
+}
+
+.turnover-page .turnover-summary-top {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.turnover-page .turnover-label {
+  display: block;
+  color: var(--wallet-muted);
+  font-size: 0.75rem;
+  margin-bottom: 4px;
+}
+
+.turnover-page .turnover-value {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--wallet-text);
+}
+
+.turnover-page .turnover-progress-bar {
+  width: 100%;
+  height: 8px;
+  background: #0f212e;
+  border-radius: 999px;
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+
+.turnover-page .turnover-progress-bar.small {
+  height: 6px;
+  margin-top: 12px;
+}
+
+.turnover-page .turnover-progress-fill {
+  height: 100%;
+  background: var(--wallet-orange);
+  border-radius: 999px;
+  transition: width 0.4s ease;
+}
+
+.turnover-page .turnover-progress-fill.completed {
+  background: var(--wallet-accent);
+}
+
+.turnover-page .turnover-summary-bottom {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  color: var(--wallet-muted);
+  font-weight: 600;
+}
+
+.turnover-page .text-green { color: var(--wallet-accent) !important; }
+.turnover-page .text-orange { color: var(--wallet-orange) !important; }
+
+/* Section Title */
+.turnover-page .turnover-section-title {
+  font-size: 1.05rem;
+  color: var(--wallet-text);
+  margin: 0 0 12px;
+}
+
+/* Deposit List */
+.turnover-page .turnover-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.turnover-page .turnover-item-card {
+  background: var(--wallet-card);
+  border: 1px solid var(--wallet-border);
+  border-radius: 12px;
+  padding: 14px;
+}
+
+.turnover-page .turnover-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.turnover-page .turnover-date {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--wallet-muted);
+  margin-bottom: 4px;
+}
+
+.turnover-page .turnover-deposit-amount {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--wallet-text);
+}
+
+.turnover-page .turnover-status-badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 6px;
+  text-transform: uppercase;
+}
+
+.turnover-page .turnover-status-badge.pending {
+  background: rgba(245, 130, 32, 0.15);
+  color: var(--wallet-orange);
+  border: 1px solid rgba(245, 130, 32, 0.3);
+}
+
+.turnover-page .turnover-status-badge.completed {
+  background: rgba(0, 231, 1, 0.15);
+  color: var(--wallet-accent);
+  border: 1px solid rgba(0, 231, 1, 0.3);
+}
+
+.turnover-page .turnover-item-details {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.turnover-page .turnover-detail-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  color: var(--wallet-muted);
+}
+
+.turnover-page .turnover-detail-row span:last-child {
+  font-weight: 600;
+  color: var(--wallet-text);
+}
+
+/* Empty State */
+.turnover-page .turnover-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1rem;
+  background: var(--wallet-card);
+  border: 1px dashed var(--wallet-border);
+  border-radius: 12px;
+  color: var(--wallet-muted);
+  text-align: center;
+}
+
+.turnover-page .turnover-empty i {
+  font-size: 2.5rem;
+  color: var(--wallet-border);
+  margin-bottom: 12px;
+}
