@@ -1,0 +1,222 @@
+/* app/admin/payment-methods/payment-methods.css */
+.admin-loading {
+  text-align: center;
+  padding: 40px;
+  color: #9ca9a3;
+  font-size: 14px;
+}
+
+.admin-alert {
+  background: rgba(0, 231, 1, 0.1);
+  color: #00e701;
+  border: 1px solid rgba(0, 231, 1, 0.3);
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  font-size: 14px;
+}
+
+.payment-methods-list {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+@media (min-width: 768px) {
+  .payment-methods-list {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.pm-card {
+  background: #111d19;
+  border: 1px solid #26352e;
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.pm-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  padding-bottom: 12px;
+  margin-bottom: 12px;
+}
+
+.pm-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.pm-logo {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  background: #fff;
+  border-radius: 6px;
+  padding: 2px;
+}
+
+.pm-title-wrap h3 {
+  margin: 0;
+  font-size: 16px;
+  color: #f5f7f6;
+}
+
+.pm-edit-btn {
+  background: rgba(0, 231, 1, 0.1);
+  color: #00e701;
+  border: 1px solid rgba(0, 231, 1, 0.3);
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.pm-edit-btn:hover {
+  background: rgba(0, 231, 1, 0.2);
+}
+
+.pm-toggles {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.pm-toggle-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  color: #9ca9a3;
+}
+
+.toggle-btn {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  transition: 0.2s;
+  min-width: 50px;
+}
+
+.toggle-btn.on {
+  background: #00e701;
+  color: #07110f;
+}
+
+.toggle-btn.off {
+  background: rgba(255, 255, 255, 0.1);
+  color: #9ca9a3;
+}
+
+.pm-details-preview {
+  background: rgba(255, 255, 255, 0.03);
+  padding: 10px;
+  border-radius: 8px;
+  font-size: 13px;
+  color: #f5f7f6;
+}
+
+.pm-details-preview p {
+  margin: 0 0 6px;
+}
+
+.pm-details-preview p:last-child {
+  margin-bottom: 0;
+}
+
+/* Modal */
+.pm-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  z-index: 1000;
+}
+
+.pm-modal {
+  background: #111d19;
+  border: 1px solid #26352e;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 400px;
+  padding: 20px;
+}
+
+.pm-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.pm-modal-header h2 {
+  margin: 0;
+  font-size: 18px;
+  color: #f5f7f6;
+}
+
+.pm-modal-close {
+  background: transparent;
+  border: none;
+  color: #9ca9a3;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.pm-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.pm-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.pm-field label {
+  font-size: 12px;
+  color: #9ca9a3;
+}
+
+.pm-field input {
+  background: #07110f;
+  border: 1px solid #26352e;
+  border-radius: 6px;
+  padding: 10px;
+  color: #f5f7f6;
+  font-size: 14px;
+}
+
+.pm-field input:focus {
+  outline: none;
+  border-color: #00e701;
+}
+
+.pm-save-btn {
+  background: #00e701;
+  color: #07110f;
+  border: none;
+  padding: 12px;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 14px;
+  margin-top: 8px;
+  cursor: pointer;
+}
+
+.pm-save-btn:disabled {
+  opacity: 0.6;
+}
