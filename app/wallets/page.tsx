@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { FormEvent } from "react";
+import type { CSSProperties, FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "../../lib/supabase/client";
 import Header from "../../components/Header";
@@ -37,6 +37,25 @@ const fiatMethods = ["bkash", "nagad", "rocket"];
 
 const paymentImageBase =
   process.env.NODE_ENV === "production" ? "/NextJs" : "";
+
+// --- SVG Icons for Badges ---
+const VerifiedIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="#00e701" xmlns="http://www.w3.org/2000/svg">
+    <path fillRule="evenodd" clipRule="evenodd" d="M12 1C18.075 1 23 5.925 23 12C23 18.075 18.075 23 12 23C5.925 23 1 18.075 1 12C1 5.925 5.925 1 12 1ZM17.207 9.707C17.597 9.316 17.597 8.684 17.207 8.293C16.816 7.902 16.184 7.902 15.793 8.293L10.5 13.586L8.207 11.293C7.816 10.902 7.184 10.902 6.793 11.293C6.402 11.684 6.402 12.316 6.793 12.707L9.793 15.707C10.184 16.098 10.816 16.098 11.207 15.707L17.207 9.707Z" />
+  </svg>
+);
+
+const PrimaryIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="#FFD700" xmlns="http://www.w3.org/2000/svg" title="Primary Deposit">
+    <path d="M5 16L3 5L8.5 10L12 4L15.5 10L21 5L19 16H5ZM19 19C19 19.5304 18.7893 20.0391 18.4142 20.4142C18.0391 20.7893 17.5304 21 17 21H7C6.46957 21 5.96086 20.7893 5.58579 20.4142C5.21071 20.0391 5 19.5304 5 19V18H19V19Z" />
+  </svg>
+);
+
+const FastIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="#FF4500" xmlns="http://www.w3.org/2000/svg" title="Fast Payment">
+    <path d="M13 2L3 14H12V22L22 10H13V2Z" />
+  </svg>
+);
 
 export default function WalletPage() {
   const router = useRouter();
@@ -430,13 +449,12 @@ export default function WalletPage() {
                       onClick={() => openModal(method, mode)}
                       aria-pressed={isSelected}
                     >
-                      {/* Badges */}
-                      {method.method_code === "bkash" && (
-                        <span className="wallet-badge badge-primary">Primary deposit</span>
-                      )}
-                      {(method.method_code === "nagad" || method.method_code === "rocket") && (
-                        <span className="wallet-badge badge-fast">Fast deposit</span>
-                      )}
+                      
+                      {/* Top Badge (SVG) */}
+                      <div className="wallet-badge-icon">
+                        {method.method_code === "bkash" && <PrimaryIcon />}
+                        {(method.method_code === "nagad" || method.method_code === "rocket") && <FastIcon />}
+                      </div>
 
                       <div className="wallet-method-logo-box">
                         {methodImages[method.method_code] ? (
@@ -447,12 +465,10 @@ export default function WalletPage() {
                       </div>
                       <div className="wallet-method-bottom">
                         <strong>{method.method_name.toUpperCase()}</strong>
-                        {/* SVG Verified Icon */}
-                        <svg className="verified-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" fill="#00e701"/>
-                          <path d="M8 12L11 15L16 9" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                        </svg>
+                        {/* Verified SVG next to text */}
+                        <span className="wallet-verified-icon"><VerifiedIcon /></span>
                       </div>
+                      
                       {isSelected && (
                         <div className="wallet-selected-check">
                           <i className="fa-solid fa-check" />
