@@ -40,7 +40,7 @@ const paymentImageBase =
 
 // --- SVG Icons for Badges ---
 const VerifiedIcon = () => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="#00e701" xmlns="http://www.w3.org/2000/svg">
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="#ffffff" xmlns="http://www.w3.org/2000/svg">
     <path fillRule="evenodd" clipRule="evenodd" d="M12 1C18.075 1 23 5.925 23 12C23 18.075 18.075 23 12 23C5.925 23 1 18.075 1 12C1 5.925 5.925 1 12 1ZM17.207 9.707C17.597 9.316 17.597 8.684 17.207 8.293C16.816 7.902 16.184 7.902 15.793 8.293L10.5 13.586L8.207 11.293C7.816 10.902 7.184 10.902 6.793 11.293C6.402 11.684 6.402 12.316 6.793 12.707L9.793 15.707C10.184 16.098 10.816 16.098 11.207 15.707L17.207 9.707Z" />
   </svg>
 );
@@ -468,12 +468,6 @@ export default function WalletPage() {
                         {/* Verified SVG next to text */}
                         <span className="wallet-verified-icon"><VerifiedIcon /></span>
                       </div>
-                      
-                      {isSelected && (
-                        <div className="wallet-selected-check">
-                          <i className="fa-solid fa-check" />
-                        </div>
-                      )}
                     </button>
                   );
                 })}
