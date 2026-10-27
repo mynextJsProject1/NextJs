@@ -1,5 +1,5 @@
 /* ============================================================
-   Wallet Page Styles (wallets.css) - Compact & Zoomed Out
+   Wallet Page Styles (wallets.css) - Compact & Fixed Grid
    ============================================================ */
 
 .wallet-page {
@@ -15,10 +15,10 @@
   --wallet-radius: 12px;
 }
 
-/* জুম আউট ইফেক্ট (Max width কমানো হয়েছে এবং প্যাডিং ছোট করা হয়েছে) */
+/* জুম আউট ইফেক্ট */
 .wallet-page .wallet-main {
   padding: 0.5rem 0.8rem 3rem;
-  max-width: 600px; /* আগের 1100px থেকে 600px করা হয়েছে */
+  max-width: 600px; 
   margin: 0 auto;
 }
 
@@ -99,7 +99,7 @@
 .wallet-page .wallet-category-selector {
   display: flex;
   gap: 8px;
-  margin-bottom: 1rem;
+  margin-bottom: 1.5rem;
   justify-content: center;
 }
 
@@ -126,17 +126,17 @@
   color: #000;
 }
 
-/* Method Grid & Cards (50% Smaller) */
+/* Method Grid & Cards (Fixed) */
 .wallet-page .wallet-method-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr); /* ৩ কলাম করা হয়েছে */
-  gap: 8px;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
   margin-bottom: 2rem;
 }
 
 @media (min-width: 600px) {
   .wallet-page .wallet-method-grid {
-    grid-template-columns: repeat(4, 1fr); /* ডেস্কটপে ৪ কলাম */
+    grid-template-columns: repeat(4, 1fr);
   }
 }
 
@@ -144,15 +144,17 @@
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  padding: 8px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 8px;
   background: #1e2731;
   border: 2px solid transparent;
   border-radius: 10px;
   cursor: pointer;
-  text-align: left;
   color: var(--wallet-text);
   transition: border-color 0.2s ease;
+  overflow: visible;
 }
 
 .wallet-page .wallet-method-card:hover {
@@ -163,10 +165,37 @@
   border-color: var(--wallet-accent);
 }
 
+/* Badges */
+.wallet-page .wallet-badge {
+  position: absolute;
+  top: -8px;
+  left: -4px;
+  font-size: 0.55rem;
+  font-weight: 800;
+  padding: 3px 6px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  z-index: 2;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+  white-space: nowrap;
+}
+
+.wallet-page .wallet-badge.badge-primary {
+  background: var(--wallet-accent);
+  color: #000;
+}
+
+.wallet-page .wallet-badge.badge-fast {
+  background: #f58220;
+  color: #fff;
+}
+
+/* Logo & Text Alignment */
 .wallet-page .wallet-method-logo-box {
   background: #111821;
   border-radius: 6px;
-  height: 36px; /* আগের 64px থেকে ছোট */
+  height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -174,37 +203,46 @@
 }
 
 .wallet-page .wallet-method-logo-box img {
-  width: 20px;
-  height: 20px;
+  width: 22px;
+  height: 22px;
   object-fit: contain;
 }
 
 .wallet-page .wallet-method-bottom {
   display: flex;
   align-items: center;
-  justify-content: center; /* সেন্টারে আনা হয়েছে */
-  padding: 0;
+  justify-content: center;
+  gap: 4px;
+  width: 100%;
 }
 
 .wallet-page .wallet-method-bottom strong {
-  font-size: 0.75rem; /* ফন্ট ছোট করা হয়েছে */
+  font-size: 0.75rem;
   font-weight: 700;
+  margin: 0;
+}
+
+.wallet-page .verified-icon {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
 }
 
 .wallet-page .wallet-selected-check {
   position: absolute;
-  top: -6px;
-  right: -6px;
+  top: -8px;
+  right: -8px;
   background: var(--wallet-accent);
   color: #000;
-  width: 20px;
-  height: 20px;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.65rem;
+  font-size: 0.75rem;
   box-shadow: 0 2px 6px rgba(0, 231, 1, 0.4);
+  z-index: 3;
 }
 
 /* States */
@@ -240,7 +278,7 @@
 
 .wallet-page .wallet-modal {
   width: 100%;
-  max-width: 400px; /* মডাল সাইজ ছোট করা হয়েছে */
+  max-width: 400px;
   max-height: 90vh;
   overflow-y: auto;
   background: #1e2731;
@@ -482,7 +520,7 @@
 /* Hint Text */
 .wallet-page .wallet-hint-text {
   font-size: 0.75rem;
-  color: #f58220; /* কমলা রঙের টেক্সট */
+  color: #f58220; 
   margin: 0;
   line-height: 1.4;
   text-align: center;
