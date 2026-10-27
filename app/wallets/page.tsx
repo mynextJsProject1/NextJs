@@ -46,13 +46,13 @@ const VerifiedIcon = () => (
 );
 
 const PrimaryIcon = () => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="#FFD700" xmlns="http://www.w3.org/2000/svg" title="Primary Deposit">
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="#FFD700" xmlns="http://www.w3.org/2000/svg">
     <path d="M5 16L3 5L8.5 10L12 4L15.5 10L21 5L19 16H5ZM19 19C19 19.5304 18.7893 20.0391 18.4142 20.4142C18.0391 20.7893 17.5304 21 17 21H7C6.46957 21 5.96086 20.7893 5.58579 20.4142C5.21071 20.0391 5 19.5304 5 19V18H19V19Z" />
   </svg>
 );
 
 const FastIcon = () => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="#FF4500" xmlns="http://www.w3.org/2000/svg" title="Fast Payment">
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="#FF4500" xmlns="http://www.w3.org/2000/svg">
     <path d="M13 2L3 14H12V22L22 10H13V2Z" />
   </svg>
 );
