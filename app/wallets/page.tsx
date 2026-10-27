@@ -22,6 +22,14 @@ type PaymentMethod = {
   usdt_qr_url: string | null;
 };
 
+type BonusSetting = {
+  id: number;
+  bonus_name: string;
+  bonus_percentage: number;
+  turnover_multiplier: number;
+  min_deposit: number;
+};
+
 type ModalMode = "deposit" | "withdrawal";
 type PaymentCategory = "fiat" | "crypto";
 
@@ -62,12 +70,17 @@ export default function WalletPage() {
   const supabase = useMemo(() => createClient(), []);
 
   const [methods, setMethods] = useState<PaymentMethod[]>([]);
+  const [bonusTiers, setBonusTiers] = useState<BonusSetting[]>([]);
+  
   const [mode, setMode] = useState<ModalMode>("deposit");
   const [paymentCategory, setPaymentCategory] = useState<PaymentCategory>("fiat");
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethod | null>(null);
+  
   const [amount, setAmount] = useState("");
+  const [selectedBonus, setSelectedBonus] = useState<BonusSetting | null>(null);
   const [reference, setReference] = useState("");
   const [destination, setDestination] = useState("");
+  
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -75,7 +88,10 @@ export default function WalletPage() {
   const [message, setMessage] = useState("");
   const [messageSuccess, setMessageSuccess] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  
   const [profileBalance, setProfileBalance] = useState<number>(0);
+  const [reqTurnover, setReqTurnover] = useState<number>(0);
+  const [compTurnover, setCompTurnover] = useState<number>(0);
 
   const [isClosing, setIsClosing] = useState(false);
   const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -86,18 +102,20 @@ export default function WalletPage() {
       const { data: { user }, error: authError } = await supabase.auth.getUser();
       if (authError || !user) { router.replace("/signup/"); return; }
 
-      const [methodResult, profileResult] = await Promise.all([
-        supabase.from("payment_methods").select("id, method_code, method_name, is_enabled, deposit_enabled, withdrawal_enabled, payment_number, usdt_address, usdt_network, usdt_qr_url").eq("is_enabled", true).order("id"),
-        supabase.from("profiles").select("balance").eq("id", user.id).maybeSingle()
+      const [methodResult, profileResult, bonusResult] = await Promise.all([
+        supabase.from("payment_methods").select("*").eq("is_enabled", true).order("id"),
+        supabase.from("profiles").select("balance, total_required_turnover, total_completed_turnover").eq("id", user.id).maybeSingle(),
+        supabase.from("bonus_settings").select("*").eq("is_active", true).order("min_deposit")
       ]);
 
-      if (methodResult.error) {
-        setMessage("পেমেন্ট পদ্ধতি লোড হয়নি।");
-        setMessageSuccess(false);
-      } else {
-        setMethods((methodResult.data ?? []) as PaymentMethod[]);
+      if (methodResult.data) setMethods(methodResult.data as PaymentMethod[]);
+      if (bonusResult.data) setBonusTiers(bonusResult.data as BonusSetting[]);
+      
+      if (profileResult.data) {
+        setProfileBalance(Number(profileResult.data.balance));
+        setReqTurnover(Number(profileResult.data.total_required_turnover || 0));
+        setCompTurnover(Number(profileResult.data.total_completed_turnover || 0));
       }
-      if (profileResult.data) { setProfileBalance(Number(profileResult.data.balance)); }
     } catch {
       setMessage("ওয়ালেট লোড করতে সমস্যা হয়েছে।");
       setMessageSuccess(false);
@@ -128,7 +146,13 @@ export default function WalletPage() {
     setIsSuccess(false);
     setSelectedMethod(method);
     setMode(selectedMode);
-    setAmount(""); setReference(""); setDestination(""); setMessage(""); setMessageSuccess(false);
+    setAmount(""); 
+    setSelectedBonus(null);
+    setReference(""); 
+    setDestination(""); 
+    setMessage(""); 
+    setMessageSuccess(false);
+    
     if (selectedMode === "deposit") {
       setIsFetchingDetails(true);
       setTimeout(() => { setIsFetchingDetails(false); }, 800);
@@ -160,6 +184,11 @@ export default function WalletPage() {
     if (usdtMethod) openModal(usdtMethod, "deposit");
   };
 
+  const handleSelectBonus = (tier: BonusSetting) => {
+    setSelectedBonus(tier);
+    setAmount(tier.min_deposit.toString());
+  };
+
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!selectedMethod || submitting) return;
@@ -167,9 +196,7 @@ export default function WalletPage() {
 
     try {
       const { data: { user }, error: authError } = await supabase.auth.getUser();
-      if (authError || !user) {
-        setMessage("সেশন শেষ হয়েছে।"); setMessageSuccess(false); router.replace("/signup/"); return;
-      }
+      if (authError || !user) { router.replace("/signup/"); return; }
 
       const type = mode;
       const methodCode = selectedMethod.method_code.trim().toLowerCase();
@@ -179,31 +206,71 @@ export default function WalletPage() {
 
       if (!allowedMethods.includes(methodCode)) { setMessage("পেমেন্ট পদ্ধতি সঠিক নয়।"); return; }
       if (!/^\d+(\.\d{1,2})?$/.test(amountText)) { setMessage("সঠিক পরিমাণ লিখুন।"); return; }
+      
       const numericAmount = Number(amountText);
-      if (!Number.isFinite(numericAmount) || numericAmount <= 0 || numericAmount > 10000000) { setMessage("পরিমাণ ০.০১ থেকে ১০,০০,০০০ পর্যন্ত লিখুন।"); return; }
-
-      if (type === "deposit" && methodCode !== "usdt") {
-        if (!referenceText) { setMessage("Transaction ID (TrxID) লিখুন।"); return; }
-        if (!/^[A-Z0-9]{8,}$/.test(referenceText)) { setMessage("TrxID কমপক্ষে ৮ অক্ষরের হতে হবে।"); return; }
+      if (!Number.isFinite(numericAmount) || numericAmount <= 0 || numericAmount > 10000000) { 
+        setMessage("পরিমাণ ০.০১ থেকে ১০,০০,০০০ পর্যন্ত লিখুন।"); return; 
       }
 
+      // Withdrawal Validation
       if (type === "withdrawal") {
+        if (reqTurnover > compTurnover) {
+          setMessage("আপনার টার্নওভার সম্পূর্ণ হয়নি। টার্নওভার শেষ না করে উইথড্র করা যাবে না।"); return;
+        }
         if (!destinationText) { setMessage("যে নম্বরে টাকা নিতে চান, সেটি লিখুন।"); return; }
         if (methodCode !== "usdt" && !/^01[0-9]{9}$/.test(destinationText)) { setMessage("সঠিক ১১ সংখ্যার মোবাইল নম্বর দিন।"); return; }
         if (numericAmount < 100) { setMessage("মিনিমাম উত্তোলন ১০০ টাকা।"); return; }
         if (numericAmount > profileBalance) { setMessage("পর্যাপ্ত ব্যালেন্স নেই।"); return; }
       }
 
-      const { data: method, error: methodError } = await supabase.from("payment_methods").select("method_code, is_enabled, deposit_enabled, withdrawal_enabled").eq("method_code", methodCode).eq("is_enabled", true).maybeSingle();
-      if (methodError || !method) { setMessage("এই পেমেন্ট পদ্ধতি চালু নেই।"); return; }
-      if (type === "deposit" && !method.deposit_enabled) { setMessage("Deposit বন্ধ আছে।"); return; }
-      if (type === "withdrawal" && !method.withdrawal_enabled) { setMessage("Withdrawal বন্ধ আছে।"); return; }
+      // Deposit Validation (TrxID)
+      if (type === "deposit" && methodCode !== "usdt") {
+        if (!referenceText) { setMessage("Transaction ID (TrxID) লিখুন।"); return; }
+        if (!/^[A-Z0-9]{8,}$/.test(referenceText)) { setMessage("TrxID কমপক্ষে ৮ অক্ষরের হতে হবে।"); return; }
+      }
 
+      // Bonus & Turnover Calculations
+      let isClaimed = false;
+      let bonusAmt = 0;
+      let bonusPct = 0;
+      let multiplier = 1;
+      let reqTnv = numericAmount; // Default 1x if no bonus
+      let bonusId = null;
+
+      if (type === "deposit" && selectedBonus && numericAmount >= selectedBonus.min_deposit) {
+        isClaimed = true;
+        bonusId = selectedBonus.id;
+        bonusPct = selectedBonus.bonus_percentage;
+        bonusAmt = numericAmount * (bonusPct / 100);
+        multiplier = selectedBonus.turnover_multiplier;
+        reqTnv = (numericAmount + bonusAmt) * multiplier;
+      }
+
+      // Insert Transaction
       const { error: insertError } = await supabase.from("wallet_transactions").insert({
-        user_id: user.id, transaction_type: type, method_code: methodCode, amount: numericAmount, transaction_reference: referenceText || null, destination_details: type === "withdrawal" ? destinationText : null, status: "pending",
+        user_id: user.id, 
+        transaction_type: type, 
+        method_code: methodCode, 
+        amount: numericAmount, 
+        transaction_reference: referenceText || null, 
+        destination_details: type === "withdrawal" ? destinationText : null, 
+        status: "pending",
+        // Bonus fields
+        is_bonus_claimed: isClaimed,
+        applied_bonus_id: bonusId,
+        claimed_bonus_amount: bonusAmt,
+        claimed_bonus_percentage: bonusPct,
+        applied_turnover_multiplier: multiplier,
+        required_turnover: reqTnv,
+        completed_turnover: 0,
+        turnover_status: 'pending'
       });
 
-      if (insertError) { setMessage("রিকোয়েস্ট জমা হয়নি।"); setMessageSuccess(false); return; }
+      if (insertError) { 
+        setMessage("রিকোয়েস্ট জমা হয়নি। Supabase RLS চেক করুন।"); 
+        console.error(insertError);
+        return; 
+      }
 
       setIsSuccess(true);
       setTimeout(() => { setIsSuccess(false); closeModal(); router.push("/"); }, 1500);
@@ -228,6 +295,11 @@ export default function WalletPage() {
     }
     return method.withdrawal_enabled;
   });
+
+  // Dynamic Bonus Preview
+  const previewBonus = selectedBonus && Number(amount) >= selectedBonus.min_deposit 
+    ? (Number(amount) * (selectedBonus.bonus_percentage / 100)).toFixed(2) 
+    : "0.00";
 
   return (
     <div className="stake-app wallet-page">
@@ -291,8 +363,6 @@ export default function WalletPage() {
                           <img 
                             src={`${paymentImageBase}/images/payment/${methodImages[method.method_code]}`} 
                             alt={`${method.method_name} logo`} 
-                            loading="lazy" 
-                            /* ইমেজ ভাঙা থাকলে যেন ওয়ালেট আইকন দেখায় */
                             onError={(e) => {
                               e.currentTarget.style.display = 'none';
                               e.currentTarget.nextElementSibling?.classList.remove('d-none');
@@ -334,6 +404,8 @@ export default function WalletPage() {
               </div>
             ) : (
               <form className="wallet-form" onSubmit={handleSubmit}>
+                
+                {/* --- Deposit Info Sections --- */}
                 {mode === "deposit" && selectedMethod.method_code !== "usdt" && (
                   <div className="wallet-payment-details">
                     <span>Send payment to this number</span>
@@ -353,11 +425,7 @@ export default function WalletPage() {
                       <div className="crypto-select-box"><span>Network</span><div className="crypto-select-inner">{selectedMethod.usdt_network || "Network not set"}</div></div>
                     </div>
                     <div className="wallet-qr-box">
-                      {selectedMethod.usdt_qr_url ? (
-                        <img src={selectedMethod.usdt_qr_url} alt="USDT QR" />
-                      ) : selectedMethod.usdt_address ? (
-                        <img src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${selectedMethod.usdt_address}`} alt="USDT QR" />
-                      ) : (<span style={{color: '#000'}}>No Address</span>)}
+                      {selectedMethod.usdt_qr_url ? <img src={selectedMethod.usdt_qr_url} alt="USDT QR" /> : selectedMethod.usdt_address ? <img src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${selectedMethod.usdt_address}`} alt="USDT QR" /> : <span style={{color: '#000'}}>No Address</span>}
                     </div>
                     <div className="wallet-address-label">Deposit address</div>
                     <div className="wallet-address-box-dark">
@@ -378,15 +446,54 @@ export default function WalletPage() {
                   </div>
                 )}
 
+                {/* --- Amount & Bonus Section --- */}
                 <div className="wallet-field">
-                  <label htmlFor="wallet-amount">Amount</label>
+                  <div className="wallet-amount-header">
+                    <label htmlFor="wallet-amount">Amount</label>
+                    {mode === "deposit" && selectedBonus && Number(amount) >= selectedBonus.min_deposit && (
+                      <span className="wallet-bonus-preview">Extra +BDT {previewBonus}</span>
+                    )}
+                  </div>
+                  
                   <div className="wallet-amount-input">
                     <span>{selectedMethod.method_code === "usdt" ? "USDT" : "BDT"}</span>
-                    <input id="wallet-amount" type="number" inputMode="decimal" min={mode === "withdrawal" ? "100" : "0.01"} max="10000000" step="0.01" value={amount} onChange={(event) => setAmount(event.target.value)} placeholder="0.00" required />
+                    <input 
+                      id="wallet-amount" 
+                      type="number" 
+                      inputMode="decimal" 
+                      min={mode === "withdrawal" ? "100" : "0.01"} 
+                      max="10000000" 
+                      step="0.01" 
+                      value={amount} 
+                      onChange={(event) => setAmount(event.target.value)} 
+                      placeholder="0.00" 
+                      required 
+                    />
                   </div>
-                  {mode === "withdrawal" && (<small style={{ color: "var(--wallet-muted)", marginTop: "4px" }}>Minimum withdrawal: 100 BDT</small>)}
+
+                  {/* Bonus Tiers (Only for Deposit) */}
+                  {mode === "deposit" && bonusTiers.length > 0 && (
+                    <div className="wallet-bonus-tiers">
+                      {bonusTiers.map(tier => (
+                        <button 
+                          key={tier.id} 
+                          type="button"
+                          className={`wallet-bonus-tier ${selectedBonus?.id === tier.id ? 'active' : ''}`}
+                          onClick={() => handleSelectBonus(tier)}
+                        >
+                          <span className="bonus-badge">+{tier.bonus_percentage}%</span>
+                          <span className="bonus-amount">BDT {tier.min_deposit}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+
+                  {mode === "withdrawal" && (
+                    <small style={{ color: "var(--wallet-muted)", marginTop: "4px" }}>Minimum withdrawal: 100 BDT</small>
+                  )}
                 </div>
 
+                {/* --- TrxID Input --- */}
                 {mode === "deposit" && (
                   <div className="wallet-field">
                     <label htmlFor="wallet-reference">{selectedMethod.method_code === "usdt" ? "Transaction Hash / Reference" : "Transaction ID (TrxID)"}</label>
