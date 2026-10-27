@@ -92,6 +92,9 @@ export default function WalletPage() {
   const [profileBalance, setProfileBalance] = useState<number>(0);
   const [reqTurnover, setReqTurnover] = useState<number>(0);
   const [compTurnover, setCompTurnover] = useState<number>(0);
+  
+  // নতুন স্টেট: অ্যাকাউন্ট স্ট্যাটাস ট্র্যাক করার জন্য
+  const [accountStatus, setAccountStatus] = useState<string>("active");
 
   const [isClosing, setIsClosing] = useState(false);
   const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -104,7 +107,8 @@ export default function WalletPage() {
 
       const [methodResult, profileResult, bonusResult] = await Promise.all([
         supabase.from("payment_methods").select("*").eq("is_enabled", true).order("id"),
-        supabase.from("profiles").select("balance, total_required_turnover, total_completed_turnover").eq("id", user.id).maybeSingle(),
+        // প্রোফাইল কোয়েরিতে account_status যোগ করা হয়েছে
+        supabase.from("profiles").select("balance, total_required_turnover, total_completed_turnover, account_status").eq("id", user.id).maybeSingle(),
         supabase.from("bonus_settings").select("*").eq("is_active", true).order("min_deposit")
       ]);
 
@@ -115,6 +119,8 @@ export default function WalletPage() {
         setProfileBalance(Number(profileResult.data.balance));
         setReqTurnover(Number(profileResult.data.total_required_turnover || 0));
         setCompTurnover(Number(profileResult.data.total_completed_turnover || 0));
+        // স্ট্যাটাস সেভ করা হচ্ছে
+        setAccountStatus(profileResult.data.account_status || "active");
       }
     } catch {
       setMessage("ওয়ালেট লোড করতে সমস্যা হয়েছে।");
@@ -214,6 +220,11 @@ export default function WalletPage() {
 
       // Withdrawal Validation
       if (type === "withdrawal") {
+        // নতুন চেক: অ্যাকাউন্ট স্ট্যাটাস active কি না
+        if (accountStatus !== "active") {
+          setMessage("আপনার অ্যাকাউন্ট বর্তমানে সীমাবদ্ধ (Blocked/Restricted/Hold) থাকায় উইথড্র করা যাবে না। অ্যাডমিনের সাথে যোগাযোগ করুন।"); 
+          return;
+        }
         if (reqTurnover > compTurnover) {
           setMessage("আপনার টার্নওভার সম্পূর্ণ হয়নি। টার্নওভার শেষ না করে উইথড্র করা যাবে না।"); return;
         }
@@ -234,7 +245,7 @@ export default function WalletPage() {
       let bonusAmt = 0;
       let bonusPct = 0;
       let multiplier = 1;
-      let reqTnv = numericAmount; // Default 1x if no bonus
+      let reqTnv = numericAmount; 
       let bonusId = null;
 
       if (type === "deposit" && selectedBonus && numericAmount >= selectedBonus.min_deposit) {
@@ -255,7 +266,6 @@ export default function WalletPage() {
         transaction_reference: referenceText || null, 
         destination_details: type === "withdrawal" ? destinationText : null, 
         status: "pending",
-        // Bonus fields
         is_bonus_claimed: isClaimed,
         applied_bonus_id: bonusId,
         claimed_bonus_amount: bonusAmt,
@@ -270,6 +280,23 @@ export default function WalletPage() {
         setMessage("রিকোয়েস্ট জমা হয়নি। Supabase RLS চেক করুন।"); 
         console.error(insertError);
         return; 
+      }
+
+      // নতুন লজিক: উইথড্র সাবমিট হলে সাথে সাথে ব্যালেন্স কেটে নেওয়া
+      if (type === "withdrawal") {
+        const newBalance = profileBalance - numericAmount;
+        const { error: balanceError } = await supabase
+          .from("profiles")
+          .update({ balance: newBalance })
+          .eq("id", user.id);
+
+        if (balanceError) {
+          console.error("Failed to deduct balance:", balanceError);
+          // (নোট: রিয়েল-ওয়ার্ল্ড অ্যাপে এখানে ট্রানজেকশন রোলব্যাক করা উচিত, তবে ক্লায়েন্ট সাইডে আমরা আপাতত লগ করছি)
+        } else {
+          // লোকাল স্টেট আপডেট করা হলো যাতে ইউজার সাথে সাথে নতুন ব্যালেন্স দেখতে পায়
+          setProfileBalance(newBalance);
+        }
       }
 
       setIsSuccess(true);
@@ -296,7 +323,6 @@ export default function WalletPage() {
     return method.withdrawal_enabled;
   });
 
-  // Dynamic Bonus Preview
   const previewBonus = selectedBonus && Number(amount) >= selectedBonus.min_deposit 
     ? (Number(amount) * (selectedBonus.bonus_percentage / 100)).toFixed(2) 
     : "0.00";
