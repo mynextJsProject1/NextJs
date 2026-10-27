@@ -1,5 +1,5 @@
 /* ============================================================
-   Wallet Page Styles (wallets.css) - Fixed Grid Layout
+   Wallet Page Styles (wallets.css) - Fixed Grid Conflicts
    ============================================================ */
 
 .wallet-page {
@@ -23,6 +23,7 @@
   margin: 0 auto;
 }
 
+/* Full Screen Center Loading */
 .wallet-page .wallet-full-loading {
   display: flex; flex-direction: column; align-items: center; justify-content: center;
   min-height: 60vh; gap: 16px; color: var(--wallet-accent);
@@ -58,18 +59,18 @@
 .wallet-page .wallet-category-selector button.active { background: var(--wallet-accent); border-color: var(--wallet-accent); color: #000; }
 
 /* ============================================================
-   Method Grid & Cards (Fixed Compact Layout)
+   Method Grid & Cards (Forced Override for globals.css)
    ============================================================ */
 .wallet-page .wallet-method-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
   gap: 8px;
   margin-bottom: 2rem;
-  align-items: start; /* এটি কার্ড লম্বা হওয়া বন্ধ করবে */
+  align-items: start !important; /* Prevents cards from stretching */
 }
 
 @media (min-width: 600px) {
-  .wallet-page .wallet-method-grid { grid-template-columns: repeat(4, 1fr); }
+  .wallet-page .wallet-method-grid { grid-template-columns: repeat(4, 1fr) !important; }
 }
 
 .wallet-page .wallet-method-card {
@@ -78,16 +79,21 @@
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
-  gap: 8px;
-  padding: 10px 6px;
+  gap: 6px;
+  padding: 8px 4px !important;
   background: #1e2731;
   border: 2px solid transparent;
   border-radius: 10px;
   cursor: pointer;
   color: var(--wallet-text);
   transition: border-color 0.2s ease;
-  height: auto; /* ফিক্সড হাইট সরানো হয়েছে */
+  
+  /* জোর করে কার্ডের উচ্চতা ফিক্স করা হলো */
+  height: 95px !important; 
+  min-height: 95px !important;
+  max-height: 95px !important;
 }
+
 .wallet-page .wallet-method-card:hover { border-color: rgba(0, 231, 1, 0.5); }
 .wallet-page .wallet-method-card.selected { border-color: var(--wallet-accent); }
 
@@ -96,12 +102,14 @@
 .wallet-page .wallet-method-logo-box {
   background: #111821;
   border-radius: 6px;
-  height: 40px;
+  height: 38px !important;
+  min-height: 38px !important;
   width: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
 }
+
 .wallet-page .wallet-method-logo-box img { width: 20px; height: 20px; object-fit: contain; }
 .wallet-page .wallet-method-logo-box .fallback-icon { font-size: 1.2rem; color: var(--wallet-muted); }
 
@@ -111,7 +119,9 @@
   justify-content: center;
   gap: 4px;
   width: 100%;
+  margin-top: auto;
 }
+
 .wallet-page .wallet-method-bottom strong { font-size: 0.7rem; font-weight: 700; }
 .wallet-page .wallet-verified-icon { display: flex; align-items: center; justify-content: center; }
 
@@ -207,5 +217,5 @@
 @media (max-width: 600px) {
   .wallet-page .wallet-modal { border-radius: 16px 16px 0 0; align-self: flex-end; max-height: 95vh; }
   .wallet-page .wallet-modal-overlay { align-items: flex-end; padding: 0; }
-  .wallet-page .wallet-method-grid { grid-template-columns: repeat(3, 1fr); }
+  .wallet-page .wallet-method-grid { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
 }
