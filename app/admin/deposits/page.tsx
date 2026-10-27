@@ -31,31 +31,61 @@ export default function AdminDepositsPage() {
 
   const loadData = useCallback(async () => {
     setLoading(true);
+    setMessage("");
     
-    // ১. পেমেন্ট মেথড লোড করা
-    const { data: methodData } = await supabase.from("payment_methods").select("method_code, method_name");
-    if (methodData) {
-      const methodMap: Record<string, string> = {};
-      methodData.forEach(m => methodMap[m.method_code] = m.method_name);
-      setMethods(methodMap);
-    }
+    try {
+      // ১. পেমেন্ট মেথড লোড করা
+      const { data: methodData } = await supabase.from("payment_methods").select("method_code, method_name");
+      if (methodData) {
+        const methodMap: Record<string, string> = {};
+        methodData.forEach(m => methodMap[m.method_code] = m.method_name);
+        setMethods(methodMap);
+      }
 
-    // ২. পেন্ডিং ডিপোজিট লোড করা
-    const { data: txnData, error } = await supabase
-      .from("wallet_transactions")
-      .select(`
-        id, user_id, method_code, amount, claimed_bonus_amount, required_turnover, transaction_reference, created_at,
-        profiles ( full_name, mobile )
-      `)
-      .eq("transaction_type", "deposit")
-      .eq("status", "pending")
-      .order("created_at", { ascending: false });
+      // ২. শুধু পেন্ডিং ডিপোজিটগুলো লোড করা (জয়েন ছাড়া)
+      const { data: txnData, error: txnError } = await supabase
+        .from("wallet_transactions")
+        .select("id, user_id, method_code, amount, claimed_bonus_amount, required_turnover, transaction_reference, created_at")
+        .eq("transaction_type", "deposit")
+        .eq("status", "pending")
+        .order("created_at", { ascending: false });
 
-    if (!error && txnData) {
-      setDeposits(txnData as unknown as DepositTxn[]);
+      if (txnError) throw txnError;
+
+      if (txnData && txnData.length > 0) {
+        // ৩. ইউজারদের আইডি বের করা
+        const userIds = [...new Set(txnData.map(t => t.user_id))];
+
+        // ৪. ওই ইউজারদের প্রোফাইল ডাটা আলাদাভাবে লোড করা
+        const { data: profileData, error: profileError } = await supabase
+          .from("profiles")
+          .select("id, full_name, mobile")
+          .in("id", userIds);
+
+        if (profileError) console.error("Profile fetch error:", profileError);
+
+        // ৫. ইউজারদের ডাটা একটি Map-এ সেভ করা (সহজে খোঁজার জন্য)
+        const profileMap: Record<string, { full_name: string, mobile: string }> = {};
+        profileData?.forEach(p => {
+          profileMap[p.id] = { full_name: p.full_name, mobile: p.mobile };
+        });
+
+        // ৬. ডিপোজিটের সাথে ইউজারের ডাটা মিলিয়ে নেওয়া (Merge)
+        const mergedData = txnData.map(txn => ({
+          ...txn,
+          profiles: profileMap[txn.user_id] || null
+        }));
+
+        setDeposits(mergedData as DepositTxn[]);
+      } else {
+        setDeposits([]);
+      }
+    } catch (err: any) {
+      console.error(err);
+      setMessage(`Error loading data: ${err.message || "Unknown error"}`);
+    } finally {
+      setLoading(false);
     }
-    
-    setLoading(false);
   }, [supabase]);
 
   useEffect(() => {
@@ -66,40 +96,45 @@ export default function AdminDepositsPage() {
     setActionLoading(txn.id);
     setMessage("");
 
-    // ১. ট্রানজেকশন আপডেট (approved)
-    const { error: updateError } = await supabase
-      .from("wallet_transactions")
-      .update({ status: "approved" })
-      .eq("id", txn.id);
+    try {
+      // ১. ট্রানজেকশন আপডেট (approved)
+      const { error: updateError } = await supabase
+        .from("wallet_transactions")
+        .update({ status: "approved" })
+        .eq("id", txn.id);
 
-    if (updateError) {
-      setMessage(`Error: ${updateError.message}`);
-      setActionLoading(null);
-      return;
-    }
+      if (updateError) throw updateError;
 
-    // ২. ইউজারের ব্যালেন্স ও টার্নওভার আপডেট
-    const totalCredit = Number(txn.amount) + Number(txn.claimed_bonus_amount || 0);
-    
-    const { data: profile, error: profileError } = await supabase
-      .from("profiles")
-      .select("balance, total_required_turnover")
-      .eq("id", txn.user_id)
-      .single();
-
-    if (!profileError && profile) {
-      await supabase
+      // ২. ইউজারের ব্যালেন্স ও টার্নওভার আপডেট
+      const totalCredit = Number(txn.amount) + Number(txn.claimed_bonus_amount || 0);
+      
+      const { data: profile, error: profileError } = await supabase
         .from("profiles")
-        .update({
-          balance: Number(profile.balance) + totalCredit,
-          total_required_turnover: Number(profile.total_required_turnover) + Number(txn.required_turnover),
-        })
-        .eq("id", txn.user_id);
-    }
+        .select("balance, total_required_turnover")
+        .eq("id", txn.user_id)
+        .single();
 
-    setMessage("Deposit approved successfully!");
-    loadData();
-    setActionLoading(null);
+      if (profileError) throw profileError;
+
+      if (profile) {
+        const { error: updateProfileError } = await supabase
+          .from("profiles")
+          .update({
+            balance: Number(profile.balance) + totalCredit,
+            total_required_turnover: Number(profile.total_required_turnover) + Number(txn.required_turnover),
+          })
+          .eq("id", txn.user_id);
+
+        if (updateProfileError) throw updateProfileError;
+      }
+
+      setMessage("Deposit approved successfully!");
+      loadData(); // রিফ্রেশ
+    } catch (err: any) {
+      setMessage(`Error: ${err.message}`);
+    } finally {
+      setActionLoading(null);
+    }
   };
 
   const handleReject = async (id: string) => {
@@ -107,18 +142,21 @@ export default function AdminDepositsPage() {
     setActionLoading(id);
     setMessage("");
 
-    const { error } = await supabase
-      .from("wallet_transactions")
-      .update({ status: "rejected" })
-      .eq("id", id);
+    try {
+      const { error } = await supabase
+        .from("wallet_transactions")
+        .update({ status: "rejected" })
+        .eq("id", id);
 
-    if (error) {
-      setMessage(`Error: ${error.message}`);
-    } else {
+      if (error) throw error;
+      
       setMessage("Deposit rejected.");
       loadData();
+    } catch (err: any) {
+      setMessage(`Error: ${err.message}`);
+    } finally {
+      setActionLoading(null);
     }
-    setActionLoading(null);
   };
 
   return (
@@ -148,7 +186,7 @@ export default function AdminDepositsPage() {
               </div>
 
               <div className="deposit-user-info">
-                <p><strong>User:</strong> {txn.profiles?.full_name || "Unknown"}</p>
+                <p><strong>User:</strong> {txn.profiles?.full_name || "Unknown User"}</p>
                 <p><strong>Mobile:</strong> {txn.profiles?.mobile || "N/A"}</p>
                 <p><strong>TrxID:</strong> <span className="trx-text">{txn.transaction_reference}</span></p>
               </div>
