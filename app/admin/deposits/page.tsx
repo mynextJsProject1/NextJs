@@ -3,7 +3,6 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { createClient } from "../../../lib/supabase/client";
-import { approveDeposit, rejectDeposit } from "../actions";
 import "./deposits.css";
 
 type DepositTxn = {
@@ -33,7 +32,7 @@ export default function AdminDepositsPage() {
   const loadData = useCallback(async () => {
     setLoading(true);
     
-    // ১. পেমেন্ট মেথড লোড করা (নাম দেখানোর জন্য)
+    // ১. পেমেন্ট মেথড লোড করা
     const { data: methodData } = await supabase.from("payment_methods").select("method_code, method_name");
     if (methodData) {
       const methodMap: Record<string, string> = {};
@@ -41,7 +40,7 @@ export default function AdminDepositsPage() {
       setMethods(methodMap);
     }
 
-    // ২. পেন্ডিং ডিপোজিট লোড করা (প্রোফাইল ডাটা জয়েন করে)
+    // ২. পেন্ডিং ডিপোজিট লোড করা
     const { data: txnData, error } = await supabase
       .from("wallet_transactions")
       .select(`
@@ -63,17 +62,43 @@ export default function AdminDepositsPage() {
     loadData();
   }, [loadData]);
 
-  const handleApprove = async (id: string) => {
-    setActionLoading(id);
+  const handleApprove = async (txn: DepositTxn) => {
+    setActionLoading(txn.id);
     setMessage("");
-    const res = await approveDeposit(id);
-    
-    if (res.success) {
-      setMessage("Deposit approved successfully!");
-      loadData(); // লিস্ট রিফ্রেশ
-    } else {
-      setMessage(`Error: ${res.error}`);
+
+    // ১. ট্রানজেকশন আপডেট (approved)
+    const { error: updateError } = await supabase
+      .from("wallet_transactions")
+      .update({ status: "approved" })
+      .eq("id", txn.id);
+
+    if (updateError) {
+      setMessage(`Error: ${updateError.message}`);
+      setActionLoading(null);
+      return;
     }
+
+    // ২. ইউজারের ব্যালেন্স ও টার্নওভার আপডেট
+    const totalCredit = Number(txn.amount) + Number(txn.claimed_bonus_amount || 0);
+    
+    const { data: profile, error: profileError } = await supabase
+      .from("profiles")
+      .select("balance, total_required_turnover")
+      .eq("id", txn.user_id)
+      .single();
+
+    if (!profileError && profile) {
+      await supabase
+        .from("profiles")
+        .update({
+          balance: Number(profile.balance) + totalCredit,
+          total_required_turnover: Number(profile.total_required_turnover) + Number(txn.required_turnover),
+        })
+        .eq("id", txn.user_id);
+    }
+
+    setMessage("Deposit approved successfully!");
+    loadData();
     setActionLoading(null);
   };
 
@@ -81,13 +106,17 @@ export default function AdminDepositsPage() {
     if (!confirm("Are you sure you want to reject this deposit?")) return;
     setActionLoading(id);
     setMessage("");
-    const res = await rejectDeposit(id);
-    
-    if (res.success) {
+
+    const { error } = await supabase
+      .from("wallet_transactions")
+      .update({ status: "rejected" })
+      .eq("id", id);
+
+    if (error) {
+      setMessage(`Error: ${error.message}`);
+    } else {
       setMessage("Deposit rejected.");
       loadData();
-    } else {
-      setMessage(`Error: ${res.error}`);
     }
     setActionLoading(null);
   };
@@ -141,7 +170,7 @@ export default function AdminDepositsPage() {
                 </button>
                 <button 
                   className="btn-approve" 
-                  onClick={() => handleApprove(txn.id)}
+                  onClick={() => handleApprove(txn)}
                   disabled={actionLoading === txn.id}
                 >
                   {actionLoading === txn.id ? "Processing..." : "Approve"}
