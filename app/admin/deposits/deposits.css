@@ -45,11 +45,27 @@
   font-weight: 800;
 }
 
+/* লোগো ও নাম সাজানোর জন্য নতুন স্টাইল */
+.deposit-method-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.deposit-method-logo {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  background: #ffffff;
+  border-radius: 4px;
+  padding: 2px;
+}
+
 .deposit-method {
-  display: block;
-  font-size: 12px;
+  font-size: 13px;
   color: #9ca9a3;
-  margin-top: 4px;
+  font-weight: 600;
   text-transform: uppercase;
 }
 
