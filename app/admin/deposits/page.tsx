@@ -20,6 +20,15 @@ type DepositTxn = {
   } | null;
 };
 
+// --- লোগো ম্যাপিং ---
+const methodImages: Record<string, string> = {
+  bkash: "bkash.png",
+  nagad: "nagad.png",
+  rocket: "rocket.png",
+  usdt: "usdt.png",
+};
+const paymentImageBase = process.env.NODE_ENV === "production" ? "/NextJs" : "";
+
 export default function AdminDepositsPage() {
   const [deposits, setDeposits] = useState<DepositTxn[]>([]);
   const [methods, setMethods] = useState<Record<string, string>>({});
@@ -64,7 +73,7 @@ export default function AdminDepositsPage() {
 
         if (profileError) console.error("Profile fetch error:", profileError);
 
-        // ৫. ইউজারদের ডাটা একটি Map-এ সেভ করা (সহজে খোঁজার জন্য)
+        // ৫. ইউজারদের ডাটা একটি Map-এ সেভ করা
         const profileMap: Record<string, { full_name: string, mobile: string }> = {};
         profileData?.forEach(p => {
           profileMap[p.id] = { full_name: p.full_name, mobile: p.mobile };
@@ -129,7 +138,7 @@ export default function AdminDepositsPage() {
       }
 
       setMessage("Deposit approved successfully!");
-      loadData(); // রিফ্রেশ
+      loadData();
     } catch (err: any) {
       setMessage(`Error: ${err.message}`);
     } finally {
@@ -178,7 +187,22 @@ export default function AdminDepositsPage() {
               <div className="deposit-header">
                 <div>
                   <strong className="deposit-amount">৳ {txn.amount}</strong>
-                  <span className="deposit-method">{methods[txn.method_code] || txn.method_code}</span>
+                  
+                  {/* লোগো ও মেথডের নাম */}
+                  <div className="deposit-method-wrap">
+                    {methodImages[txn.method_code] && (
+                      <img
+                        src={`${paymentImageBase}/images/payment/${methodImages[txn.method_code]}`}
+                        alt={txn.method_code}
+                        className="deposit-method-logo"
+                        onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                      />
+                    )}
+                    <span className="deposit-method">
+                      {methods[txn.method_code] || txn.method_code.toUpperCase()}
+                    </span>
+                  </div>
+
                 </div>
                 <div className="deposit-date">
                   {new Date(txn.created_at).toLocaleString()}
