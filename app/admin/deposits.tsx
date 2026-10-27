@@ -1,0 +1,156 @@
+/* app/admin/deposits/page.tsx */
+"use client";
+
+import { useCallback, useEffect, useState } from "react";
+import { createClient } from "../../../lib/supabase/client";
+import { approveDeposit, rejectDeposit } from "../actions";
+import "./deposits.css";
+
+type DepositTxn = {
+  id: string;
+  user_id: string;
+  method_code: string;
+  amount: number;
+  claimed_bonus_amount: number;
+  required_turnover: number;
+  transaction_reference: string;
+  created_at: string;
+  profiles: {
+    full_name: string;
+    mobile: string;
+  } | null;
+};
+
+export default function AdminDepositsPage() {
+  const [deposits, setDeposits] = useState<DepositTxn[]>([]);
+  const [methods, setMethods] = useState<Record<string, string>>({});
+  const [loading, setLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [message, setMessage] = useState("");
+
+  const supabase = createClient();
+
+  const loadData = useCallback(async () => {
+    setLoading(true);
+    
+    // ১. পেমেন্ট মেথড লোড করা (নাম দেখানোর জন্য)
+    const { data: methodData } = await supabase.from("payment_methods").select("method_code, method_name");
+    if (methodData) {
+      const methodMap: Record<string, string> = {};
+      methodData.forEach(m => methodMap[m.method_code] = m.method_name);
+      setMethods(methodMap);
+    }
+
+    // ২. পেন্ডিং ডিপোজিট লোড করা (প্রোফাইল ডাটা জয়েন করে)
+    const { data: txnData, error } = await supabase
+      .from("wallet_transactions")
+      .select(`
+        id, user_id, method_code, amount, claimed_bonus_amount, required_turnover, transaction_reference, created_at,
+        profiles ( full_name, mobile )
+      `)
+      .eq("transaction_type", "deposit")
+      .eq("status", "pending")
+      .order("created_at", { ascending: false });
+
+    if (!error && txnData) {
+      setDeposits(txnData as unknown as DepositTxn[]);
+    }
+    
+    setLoading(false);
+  }, [supabase]);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
+
+  const handleApprove = async (id: string) => {
+    setActionLoading(id);
+    setMessage("");
+    const res = await approveDeposit(id);
+    
+    if (res.success) {
+      setMessage("Deposit approved successfully!");
+      loadData(); // লিস্ট রিফ্রেশ
+    } else {
+      setMessage(`Error: ${res.error}`);
+    }
+    setActionLoading(null);
+  };
+
+  const handleReject = async (id: string) => {
+    if (!confirm("Are you sure you want to reject this deposit?")) return;
+    setActionLoading(id);
+    setMessage("");
+    const res = await rejectDeposit(id);
+    
+    if (res.success) {
+      setMessage("Deposit rejected.");
+      loadData();
+    } else {
+      setMessage(`Error: ${res.error}`);
+    }
+    setActionLoading(null);
+  };
+
+  return (
+    <div>
+      <h1 className="admin-page-title">Pending Deposits</h1>
+      
+      {message && <div className="admin-alert">{message}</div>}
+
+      {loading ? (
+        <div className="admin-loading">
+          <i className="fa-solid fa-circle-notch fa-spin" /> Loading deposits...
+        </div>
+      ) : deposits.length === 0 ? (
+        <div className="admin-empty">No pending deposits found.</div>
+      ) : (
+        <div className="deposit-list">
+          {deposits.map((txn) => (
+            <div className="deposit-card" key={txn.id}>
+              <div className="deposit-header">
+                <div>
+                  <strong className="deposit-amount">৳ {txn.amount}</strong>
+                  <span className="deposit-method">{methods[txn.method_code] || txn.method_code}</span>
+                </div>
+                <div className="deposit-date">
+                  {new Date(txn.created_at).toLocaleString()}
+                </div>
+              </div>
+
+              <div className="deposit-user-info">
+                <p><strong>User:</strong> {txn.profiles?.full_name || "Unknown"}</p>
+                <p><strong>Mobile:</strong> {txn.profiles?.mobile || "N/A"}</p>
+                <p><strong>TrxID:</strong> <span className="trx-text">{txn.transaction_reference}</span></p>
+              </div>
+
+              {txn.claimed_bonus_amount > 0 && (
+                <div className="deposit-bonus">
+                  <span>Bonus: ৳ {txn.claimed_bonus_amount}</span>
+                  <span>Req. Turnover: ৳ {txn.required_turnover}</span>
+                </div>
+              )}
+
+              <div className="deposit-actions">
+                <button 
+                  className="btn-reject" 
+                  onClick={() => handleReject(txn.id)}
+                  disabled={actionLoading === txn.id}
+                >
+                  Reject
+                </button>
+                <button 
+                  className="btn-approve" 
+                  onClick={() => handleApprove(txn.id)}
+                  disabled={actionLoading === txn.id}
+                >
+                  {actionLoading === txn.id ? "Processing..." : "Approve"}
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
