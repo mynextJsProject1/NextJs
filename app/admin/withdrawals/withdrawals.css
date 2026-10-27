@@ -38,38 +38,53 @@
   margin-bottom: 12px;
 }
 
-.withdraw-label {
-  display: block;
-  font-size: 11px;
-  color: #9ca9a3;
-  text-transform: uppercase;
-  margin-bottom: 2px;
-}
-
-.withdraw-amount-wrap {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 8px;
-}
-
 .withdraw-amount {
-  font-size: 22px;
+  display: block;
+  font-size: 20px;
   color: #00e701;
   font-weight: 800;
 }
 
-.copy-btn-sm {
+/* Player Wallet স্টাইল */
+.withdraw-wallet-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid #26352e;
+  margin-top: 6px;
+  margin-bottom: 10px;
+}
+
+.withdraw-wallet-info .label {
+  font-size: 12px;
+  color: #9ca9a3;
+}
+
+.withdraw-wallet-info .value {
+  font-family: monospace;
+  font-size: 14px;
+  color: #00e701;
+  font-weight: 600;
+  word-break: break-all;
+}
+
+.copy-btn {
   background: transparent;
   border: none;
   color: #9ca9a3;
+  font-size: 15px;
   cursor: pointer;
-  font-size: 14px;
   padding: 4px;
   transition: color 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.copy-btn-sm:hover {
+.copy-btn:hover {
   color: #00e701;
 }
 
@@ -111,50 +126,6 @@
 
 .withdraw-user-info p {
   margin: 0;
-}
-
-.withdraw-destination {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: rgba(255, 255, 255, 0.05);
-  padding: 10px 12px;
-  border-radius: 8px;
-  border: 1px solid #26352e;
-  margin-top: 4px;
-}
-
-.withdraw-destination .label {
-  color: #9ca9a3;
-  font-size: 12px;
-  display: block;
-  margin-bottom: 4px;
-}
-
-.withdraw-destination .value {
-  font-family: monospace;
-  font-size: 15px;
-  color: #00e701;
-  word-break: break-all;
-  font-weight: 600;
-}
-
-.copy-btn {
-  background: rgba(0, 231, 1, 0.1);
-  border: 1px solid rgba(0, 231, 1, 0.2);
-  color: #00e701;
-  font-size: 14px;
-  cursor: pointer;
-  padding: 8px;
-  border-radius: 6px;
-  transition: background 0.2s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.copy-btn:hover {
-  background: rgba(0, 231, 1, 0.2);
 }
 
 .withdraw-stats {
