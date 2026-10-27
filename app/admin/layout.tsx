@@ -23,7 +23,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const router = useRouter();
 
   const handleLogout = () => {
-    // আপনার লগআউট লজিক এখানে বসাবেন
     router.push("/login");
   };
 
