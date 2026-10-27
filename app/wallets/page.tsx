@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { CSSProperties, FormEvent } from "react";
+import type { FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "../../lib/supabase/client";
 import Header from "../../components/Header";
@@ -19,7 +19,7 @@ type PaymentMethod = {
   payment_number: string | null;
   usdt_address: string | null;
   usdt_network: string | null;
-  usdt_qr_url: string | null; // নতুন কলাম
+  usdt_qr_url: string | null;
 };
 
 type ModalMode = "deposit" | "withdrawal";
@@ -238,19 +238,17 @@ export default function WalletPage() {
         return;
       }
 
-      // TrxID ভ্যালিডেশন (কমপক্ষে ৮ অক্ষর, বড় হাতের ইংরেজি ও সংখ্যা)
       if (type === "deposit" && methodCode !== "usdt") {
         if (!referenceText) {
           setMessage("Transaction ID (TrxID) লিখুন।");
           return;
         }
         if (!/^[A-Z0-9]{8,}$/.test(referenceText)) {
-          setMessage("TrxID কমপক্ষে ৮ অক্ষরের হতে হবে এবং বড় হাতের ইংরেজি অক্ষর/সংখ্যা হতে হবে (যেমন: 8N7A2B9C)।");
+          setMessage("TrxID কমপক্ষে ৮ অক্ষরের হতে হবে এবং বড় হাতের ইংরেজি অক্ষর/সংখ্যা হতে হবে (যেমন: 8N7A2B9C)।");
           return;
         }
       }
 
-      // Withdrawal ভ্যালিডেশন (মোবাইল নাম্বার ১১ ডিজিট এবং মিনিমাম ১০০ টাকা)
       if (type === "withdrawal") {
         if (!destinationText) {
           setMessage("যে নম্বর বা ঠিকানায় টাকা নিতে চান, সেটি লিখুন।");
@@ -351,7 +349,6 @@ export default function WalletPage() {
 
       <main className="stake-main wallet-main">
         
-        {/* Center Screen Loading Animation */}
         {loading ? (
           <div className="wallet-full-loading">
             <i className="fa-solid fa-circle-notch fa-spin"></i>
@@ -433,6 +430,14 @@ export default function WalletPage() {
                       onClick={() => openModal(method, mode)}
                       aria-pressed={isSelected}
                     >
+                      {/* Badges */}
+                      {method.method_code === "bkash" && (
+                        <span className="wallet-badge badge-primary">Primary deposit</span>
+                      )}
+                      {(method.method_code === "nagad" || method.method_code === "rocket") && (
+                        <span className="wallet-badge badge-fast">Fast deposit</span>
+                      )}
+
                       <div className="wallet-method-logo-box">
                         {methodImages[method.method_code] ? (
                           <img src={`${paymentImageBase}/images/payment/${methodImages[method.method_code]}`} alt={`${method.method_name} logo`} loading="lazy" />
@@ -442,6 +447,11 @@ export default function WalletPage() {
                       </div>
                       <div className="wallet-method-bottom">
                         <strong>{method.method_name.toUpperCase()}</strong>
+                        {/* SVG Verified Icon */}
+                        <svg className="verified-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" fill="#00e701"/>
+                          <path d="M8 12L11 15L16 9" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
                       </div>
                       {isSelected && (
                         <div className="wallet-selected-check">
@@ -608,7 +618,6 @@ export default function WalletPage() {
                   </div>
                 )}
 
-                {/* হিন্ট টেক্সট */}
                 {mode === "deposit" && selectedMethod.method_code !== "usdt" && (
                   <p className="wallet-hint-text">
                     You can watch the transaction ID in the wallet app payment video to know how to do this payment.
