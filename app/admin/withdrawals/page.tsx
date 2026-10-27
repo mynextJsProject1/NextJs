@@ -135,8 +135,6 @@ export default function AdminWithdrawalsPage() {
     setMessage("");
 
     try {
-      // এখানে যেহেতু ইউজারের সাবমিট করার সময়ই ব্যালেন্স কাটা হয়ে গেছে (wallets পেজ আপডেট অনুযায়ী),
-      // তাই অ্যাডমিন অ্যাপ্রুভ করলে শুধু স্ট্যাটাস চেঞ্জ হবে।
       const { error } = await supabase
         .from("wallet_transactions")
         .update({ status: "approved" })
@@ -166,7 +164,7 @@ export default function AdminWithdrawalsPage() {
 
       if (updateError) throw updateError;
 
-      // ২. ব্যালেন্স ফেরত দেওয়া (যেহেতু সাবমিট করার সময় কাটা হয়েছিল)
+      // ২. ব্যালেন্স ফেরত দেওয়া (Reject হলে)
       if (txn.profiles) {
         const { error: profileError } = await supabase
           .from("profiles")
@@ -204,11 +202,13 @@ export default function AdminWithdrawalsPage() {
               
               <div className="withdraw-header">
                 <div>
-                  {/* প্লেয়ার ওয়ালেট এবং কপি বাটন */}
-                  <span className="withdraw-label">Player Wallet</span>
-                  <div className="withdraw-amount-wrap">
-                    <strong className="withdraw-amount">৳ {txn.amount}</strong>
-                    <button className="copy-btn-sm" onClick={() => copyToClipboard(txn.amount.toString())}>
+                  <strong className="withdraw-amount">৳ {txn.amount}</strong>
+                  
+                  {/* Player Wallet (Destination) সরাসরি অ্যামাউন্টের নিচে আনা হয়েছে */}
+                  <div className="withdraw-wallet-info">
+                    <span className="label">Player Wallet:</span>
+                    <span className="value">{txn.destination_details}</span>
+                    <button className="copy-btn" onClick={() => copyToClipboard(txn.destination_details)}>
                       <i className="fa-regular fa-copy"></i>
                     </button>
                   </div>
@@ -234,17 +234,8 @@ export default function AdminWithdrawalsPage() {
 
               <div className="withdraw-user-info">
                 <p><strong>User:</strong> {txn.profiles?.full_name || "Unknown"}</p>
-                <p><strong>Mobile (Registered Number):</strong> {txn.profiles?.mobile || "N/A"}</p>
-                
-                <div className="withdraw-destination">
-                  <div>
-                    <span className="label">Destination (to Player Wallet):</span>
-                    <span className="value">{txn.destination_details}</span>
-                  </div>
-                  <button className="copy-btn" onClick={() => copyToClipboard(txn.destination_details)}>
-                    <i className="fa-regular fa-copy"></i>
-                  </button>
-                </div>
+                {/* Mobile পরিবর্তন করে Register Number করা হয়েছে */}
+                <p><strong>Register Number:</strong> {txn.profiles?.mobile || "N/A"}</p>
               </div>
 
               <div className="withdraw-stats">
