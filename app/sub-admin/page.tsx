@@ -2,90 +2,60 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { createClient } from "../../lib/supabase/client";
 import "./sub-admin.css";
 
 export default function SubAdminDashboardPage() {
-  const [stats, setStats] = useState({
-    pendingBets: 0,
-    liveMatches: 0,
-    totalUsers: 0,
-  });
+  const [stats, setStats] = useState({ football: 0, cricket: 0, nba: 0 });
   const [loading, setLoading] = useState(true);
   const supabase = createClient();
+  const router = useRouter();
 
   const loadStats = useCallback(async () => {
     setLoading(true);
-    try {
-      // ১. পেন্ডিং বাজি কাউন্ট
-      const { count: betsCount } = await supabase
-        .from("user_bets")
-        .select("*", { count: "exact", head: true })
-        .eq("status", "pending");
-
-      // ২. লাইভ ম্যাচ কাউন্ট
-      const { count: matchesCount } = await supabase
-        .from("live_matches")
-        .select("*", { count: "exact", head: true })
-        .eq("match_status", "live");
-
-      // ৩. মোট ইউজার কাউন্ট
-      const { count: usersCount } = await supabase
-        .from("profiles")
-        .select("*", { count: "exact", head: true })
-        .eq("role", "user");
-
-      setStats({
-        pendingBets: betsCount || 0,
-        liveMatches: matchesCount || 0,
-        totalUsers: usersCount || 0,
+    const { data } = await supabase.from("live_matches").select("sport_type").eq("match_status", "live");
+    if (data) {
+      const counts = { football: 0, cricket: 0, nba: 0 };
+      data.forEach(m => {
+        if (m.sport_type === "football") counts.football++;
+        else if (m.sport_type === "cricket") counts.cricket++;
+        else if (m.sport_type === "nba") counts.nba++;
       });
-    } catch (err) {
-      console.error("Error loading stats:", err);
-    } finally {
-      setLoading(false);
+      setStats(counts);
     }
+    setLoading(false);
   }, [supabase]);
 
-  useEffect(() => {
-    loadStats();
-  }, [loadStats]);
+  useEffect(() => { loadStats(); }, [loadStats]);
 
   return (
     <div>
-      <h1 className="sa-title">Sub-Admin Dashboard</h1>
+      <h1 className="sa-title">Live Sports Dashboard</h1>
+      <p style={{ color: "#9ca9a3", marginBottom: "24px" }}>Select a sport to manage live matches quickly.</p>
       
-      {loading ? (
-        <p style={{ color: "var(--sa-muted)" }}>Loading dashboard stats...</p>
-      ) : (
-        <>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "16px", marginBottom: "24px" }}>
-            
-            <div style={{ background: "var(--sa-panel)", border: "1px solid var(--sa-border)", borderRadius: "12px", padding: "20px" }}>
-              <h3 style={{ margin: "0 0 8px", color: "var(--sa-muted)", fontSize: "13px" }}>Pending Bets</h3>
-              <strong style={{ fontSize: "28px", color: "#f58220" }}>{stats.pendingBets}</strong>
-            </div>
-
-            <div style={{ background: "var(--sa-panel)", border: "1px solid var(--sa-border)", borderRadius: "12px", padding: "20px" }}>
-              <h3 style={{ margin: "0 0 8px", color: "var(--sa-muted)", fontSize: "13px" }}>Live Matches</h3>
-              <strong style={{ fontSize: "28px", color: "var(--sa-green)" }}>{stats.liveMatches}</strong>
-            </div>
-
-            <div style={{ background: "var(--sa-panel)", border: "1px solid var(--sa-border)", borderRadius: "12px", padding: "20px" }}>
-              <h3 style={{ margin: "0 0 8px", color: "var(--sa-muted)", fontSize: "13px" }}>Total Players</h3>
-              <strong style={{ fontSize: "28px", color: "#fff" }}>{stats.totalUsers}</strong>
-            </div>
-
+      {loading ? <p>Loading...</p> : (
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", gap: "20px" }}>
+          
+          <div onClick={() => router.push("/sub-admin/matches?sport=football")} style={{ background: "#111d19", border: "1px solid #26352e", borderRadius: "12px", padding: "24px", cursor: "pointer", transition: "0.2s" }} className="hover-card">
+            <i className="fa-solid fa-futbol" style={{ fontSize: "32px", color: "#00e701", marginBottom: "16px" }} />
+            <h2 style={{ color: "#fff", margin: "0 0 8px" }}>Football Live</h2>
+            <strong style={{ fontSize: "24px", color: "#f58220" }}>{stats.football} Matches</strong>
           </div>
 
-          <div style={{ background: "var(--sa-panel)", border: "1px solid var(--sa-border)", borderRadius: "12px", padding: "20px" }}>
-            <h3 style={{ margin: "0 0 8px", color: "var(--sa-text)" }}>Welcome to Sub-Admin Panel</h3>
-            <p style={{ margin: 0, color: "var(--sa-muted)", fontSize: "14px", lineHeight: "1.6" }}>
-              From here, you can control match odds, lock/unlock betting, and settle user bets. 
-              Use the sidebar to navigate to <strong>Match Control</strong> or <strong>Bet Settlement</strong>.
-            </p>
+          <div onClick={() => router.push("/sub-admin/matches?sport=cricket")} style={{ background: "#111d19", border: "1px solid #26352e", borderRadius: "12px", padding: "24px", cursor: "pointer", transition: "0.2s" }} className="hover-card">
+            <i className="fa-solid fa-baseball" style={{ fontSize: "32px", color: "#00e701", marginBottom: "16px" }} />
+            <h2 style={{ color: "#fff", margin: "0 0 8px" }}>Cricket Live</h2>
+            <strong style={{ fontSize: "24px", color: "#f58220" }}>{stats.cricket} Matches</strong>
           </div>
-        </>
+
+          <div onClick={() => router.push("/sub-admin/matches?sport=nba")} style={{ background: "#111d19", border: "1px solid #26352e", borderRadius: "12px", padding: "24px", cursor: "pointer", transition: "0.2s" }} className="hover-card">
+            <i className="fa-solid fa-basketball" style={{ fontSize: "32px", color: "#00e701", marginBottom: "16px" }} />
+            <h2 style={{ color: "#fff", margin: "0 0 8px" }}>NBA Live</h2>
+            <strong style={{ fontSize: "24px", color: "#f58220" }}>{stats.nba} Matches</strong>
+          </div>
+
+        </div>
       )}
     </div>
   );
