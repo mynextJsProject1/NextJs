@@ -9,6 +9,8 @@ import Sidebar from "../../components/Sidebar";
 import Footer from "../../components/Footer";
 import "./sports.css";
 
+type ExtraMarket = { name: string; odds: number };
+
 type Match = {
   id: string;
   sport_type: string;
@@ -23,6 +25,7 @@ type Match = {
   odds_b: number;
   toss_odds_a: number | null;
   toss_odds_b: number | null;
+  extra_markets: ExtraMarket[] | null;
   start_time: string;
   is_betting_open: boolean;
 };
@@ -54,6 +57,9 @@ export default function SportsPage() {
   const [betAmount, setBetAmount] = useState("");
   const [placingBet, setPlacingBet] = useState(false);
   const [betMessage, setBetMessage] = useState({ type: "", text: "" });
+
+  // Extra Markets দেখানোর জন্য State
+  const [expandedMarkets, setExpandedMarkets] = useState<string[]>([]);
 
   const loadData = useCallback(async () => {
     try {
@@ -119,9 +125,7 @@ export default function SportsPage() {
     const minsElapsed = (now - startTime) / 60000;
 
     if (match.match_status === "live") {
-      // ফুটবল: ৯০ মিনিট + ১৫ মিনিট হাফটাইম = ১০৫। শেষ ১০ মিনিট আগে (৯৫ মিনিট) লক।
       if (match.sport_type === "football" && minsElapsed >= 95) return true;
-      // অন্যান্য খেলার জন্য ১০ মিনিট পর লক
       if (match.sport_type !== "football" && minsElapsed > 10) return true; 
     }
     return false;
@@ -132,6 +136,14 @@ export default function SportsPage() {
     setBetSlip({ match, prediction, odds });
     setBetAmount("");
     setBetMessage({ type: "", text: "" });
+  };
+
+  const toggleExtraMarkets = (matchId: string) => {
+    if (expandedMarkets.includes(matchId)) {
+      setExpandedMarkets(expandedMarkets.filter(id => id !== matchId));
+    } else {
+      setExpandedMarkets([...expandedMarkets, matchId]);
+    }
   };
 
   const handlePlaceBet = async () => {
@@ -202,6 +214,8 @@ export default function SportsPage() {
     const displayStatus = isTimeToLive ? "live" : match.match_status;
     const isLive = displayStatus === "live";
     const isLocked = isBettingLocked(match);
+    const hasExtraMarkets = match.extra_markets && match.extra_markets.length > 0;
+    const isExpanded = expandedMarkets.includes(match.id);
     
     return (
       <div className="sports-match-card" key={match.id}>
@@ -226,6 +240,7 @@ export default function SportsPage() {
           </div>
         </div>
 
+        {/* Main Odds */}
         <div className="match-odds">
           <button className={`odd-btn ${isLocked ? 'locked' : ''}`} onClick={() => handleOddsClick(match, "team_a", match.odds_a)} disabled={isLocked}>
             <span>1</span>
@@ -248,6 +263,7 @@ export default function SportsPage() {
           </button>
         </div>
 
+        {/* Toss Odds (If Exists) */}
         {(match.toss_odds_a || match.toss_odds_b) && (
           <div className="match-odds" style={{ marginTop: "8px" }}>
             <div style={{ width: "100%", fontSize: "10px", color: "#9ca9a3", marginBottom: "4px" }}>TOSS</div>
@@ -265,6 +281,35 @@ export default function SportsPage() {
                 {isLocked && <i className="fa-solid fa-lock lock-icon"></i>}
               </button>
             )}
+          </div>
+        )}
+
+        {/* Extra Markets Toggle Button */}
+        {hasExtraMarkets && (
+          <button 
+            onClick={() => toggleExtraMarkets(match.id)}
+            style={{ width: "100%", marginTop: "10px", background: "rgba(255,255,255,0.05)", border: "1px solid #26352e", color: "#00e701", padding: "8px", borderRadius: "6px", fontSize: "12px", fontWeight: "bold", cursor: "pointer" }}
+          >
+            {isExpanded ? "- Hide More Markets" : "+ View More Markets"}
+          </button>
+        )}
+
+        {/* Extra Markets List */}
+        {hasExtraMarkets && isExpanded && (
+          <div style={{ marginTop: "10px", display: "flex", flexDirection: "column", gap: "6px" }}>
+            {match.extra_markets!.map((market, idx) => (
+              <button 
+                key={idx} 
+                className={`odd-btn ${isLocked ? 'locked' : ''}`} 
+                onClick={() => handleOddsClick(match, market.name, market.odds)} 
+                disabled={isLocked}
+                style={{ padding: "10px 12px" }}
+              >
+                <span style={{ color: "#fff" }}>{market.name}</span>
+                <strong>{market.odds}</strong>
+                {isLocked && <i className="fa-solid fa-lock lock-icon"></i>}
+              </button>
+            ))}
           </div>
         )}
       </div>
@@ -319,7 +364,8 @@ export default function SportsPage() {
                   {betSlip.prediction === "team_a" ? betSlip.match.team_a : 
                    betSlip.prediction === "team_b" ? betSlip.match.team_b : 
                    betSlip.prediction === "toss_a" ? `Toss: ${betSlip.match.team_a}` :
-                   betSlip.prediction === "toss_b" ? `Toss: ${betSlip.match.team_b}` : "Draw"}
+                   betSlip.prediction === "toss_b" ? `Toss: ${betSlip.match.team_b}` : 
+                   betSlip.prediction === "draw" ? "Draw" : betSlip.prediction} 
                 </strong></span>
                 <span className="slip-odds">@{betSlip.odds}</span>
               </div>
