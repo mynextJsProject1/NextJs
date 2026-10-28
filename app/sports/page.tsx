@@ -44,6 +44,7 @@ export default function SportsPage() {
   const [activeTab, setActiveTab] = useState<MatchTab>("live");
   const [loading, setLoading] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [currentTime, setCurrentTime] = useState(new Date());
 
   // ব্যালেন্স ও কমিশন
   const [balance, setBalance] = useState(0);
@@ -98,6 +99,12 @@ export default function SportsPage() {
 
     return () => { supabase.removeChannel(channel); };
   }, [supabase, loadData, category]);
+
+  // প্রতি ৩০ সেকেন্ডে টাইম চেক করবে (অটো-লাইভের জন্য)
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 30000);
+    return () => clearInterval(timer);
+  }, []);
 
   const navigate = (page: string) => {
     const routes: Record<string, string> = { home: "/", casino: "/casino/", lottery: "/lottery/", sports: "/sports/", chat: "/", wallet: "/wallets/" };
@@ -177,15 +184,22 @@ export default function SportsPage() {
     }
   };
 
+  // ম্যাচ ফিল্টার (অটো-লাইভ লজিকসহ)
   const filteredMatches = matches.filter((m) => {
-    if (activeTab === "live") return m.match_status === "live";
-    if (activeTab === "upcoming") return m.match_status === "upcoming";
-    if (activeTab === "finished") return m.match_status === "finished";
+    // ম্যানুয়ালি আপকামিং দেওয়া আছে, কিন্তু সময় পার হয়ে গেছে = লাইভ
+    const isTimeToLive = m.match_status === "upcoming" && new Date(m.start_time) <= currentTime;
+    const displayStatus = isTimeToLive ? "live" : m.match_status;
+
+    if (activeTab === "live") return displayStatus === "live";
+    if (activeTab === "upcoming") return displayStatus === "upcoming";
+    if (activeTab === "finished") return displayStatus === "finished";
     return true;
   });
 
   const renderMatchCard = (match: Match) => {
-    const isLive = match.match_status === "live";
+    const isTimeToLive = match.match_status === "upcoming" && new Date(match.start_time) <= currentTime;
+    const displayStatus = isTimeToLive ? "live" : match.match_status;
+    const isLive = displayStatus === "live";
     const isLocked = isBettingLocked(match);
     
     return (
@@ -240,12 +254,11 @@ export default function SportsPage() {
 
       <main className="stake-main sports-main">
         <h1 className="sports-title">Sports Betting</h1>
-        {/* বাড়তি ব্যালেন্স রিমুভ করা হয়েছে */}
 
         <div className="sports-tabs">
-          <button className={category === "football" ? "active" : ""} onClick={() => setCategory("football")}>Football</button>
-          <button className={category === "nba" ? "active" : ""} onClick={() => setCategory("nba")}>NBA</button>
-          <button className={category === "cricket" ? "active" : ""} onClick={() => setCategory("cricket")}>Cricket</button>
+          <button className={category === "football" ? "active" : ""} onClick={() => { setCategory("football"); setActiveTab("live"); }}>Football</button>
+          <button className={category === "nba" ? "active" : ""} onClick={() => { setCategory("nba"); setActiveTab("live"); }}>NBA</button>
+          <button className={category === "cricket" ? "active" : ""} onClick={() => { setCategory("cricket"); setActiveTab("live"); }}>Cricket</button>
         </div>
 
         <div className="match-status-tabs">
