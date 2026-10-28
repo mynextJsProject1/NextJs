@@ -107,9 +107,8 @@ export default function SportsPage() {
   // ১০ মিনিট পর লক চেক
   const isBettingLocked = (match: Match) => {
     if (match.match_status === "finished") return true;
-    if (!match.is_betting_open) return true; // অ্যাডমিন ম্যানুয়ালি বন্ধ করেছে
+    if (!match.is_betting_open) return true; 
     
-    // ম্যাচ শুরুর ১০ মিনিট পর চেক
     if (match.match_status === "live") {
       const startTime = new Date(match.start_time).getTime();
       const now = new Date().getTime();
@@ -143,11 +142,9 @@ export default function SportsPage() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not logged in");
 
-      // ১. কমিশন হিসাব
       const commission = (amount * commissionPct) / 100;
       const newBalance = balance - amount;
 
-      // ২. ব্যালেন্স আপডেট
       const { error: profileError } = await supabase
         .from("profiles")
         .update({ balance: newBalance })
@@ -155,7 +152,6 @@ export default function SportsPage() {
       
       if (profileError) throw profileError;
 
-      // ৩. বাজি সেভ
       const { error: betError } = await supabase
         .from("user_bets")
         .insert({
@@ -181,7 +177,6 @@ export default function SportsPage() {
     }
   };
 
-  // ফিল্টার
   const filteredMatches = matches.filter((m) => {
     if (activeTab === "live") return m.match_status === "live";
     if (activeTab === "upcoming") return m.match_status === "upcoming";
@@ -245,7 +240,7 @@ export default function SportsPage() {
 
       <main className="stake-main sports-main">
         <h1 className="sports-title">Sports Betting</h1>
-        <p style={{ color: "#b1bad3", fontSize: "13px", marginBottom: "10px" }}>Balance: ৳ {balance.toFixed(2)}</p>
+        {/* বাড়তি ব্যালেন্স রিমুভ করা হয়েছে */}
 
         <div className="sports-tabs">
           <button className={category === "football" ? "active" : ""} onClick={() => setCategory("football")}>Football</button>
