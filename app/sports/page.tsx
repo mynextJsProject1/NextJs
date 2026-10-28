@@ -23,9 +23,17 @@ type Match = {
   odds_b: number;
   start_time: string;
   last_updated: string;
+  is_betting_open: boolean;
 };
 
 type SportCategory = "football" | "nba" | "cricket";
+type MatchTab = "live" | "upcoming" | "finished";
+
+type BetSlipData = {
+  match: Match;
+  prediction: string;
+  odds: number;
+};
 
 export default function SportsPage() {
   const router = useRouter();
@@ -33,17 +41,39 @@ export default function SportsPage() {
 
   const [matches, setMatches] = useState<Match[]>([]);
   const [category, setCategory] = useState<SportCategory>("football");
+  const [activeTab, setActiveTab] = useState<MatchTab>("live");
   const [loading, setLoading] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  // ডাটা লোড করার ফাংশন
-  const loadMatches = useCallback(async () => {
+  // ব্যালেন্স ও কমিশন
+  const [balance, setBalance] = useState(0);
+  const [commissionPct, setCommissionPct] = useState(10);
+
+  // Bet Slip State
+  const [betSlip, setBetSlip] = useState<BetSlipData | null>(null);
+  const [betAmount, setBetAmount] = useState("");
+  const [placingBet, setPlacingBet] = useState(false);
+  const [betMessage, setBetMessage] = useState({ type: "", text: "" });
+
+  const loadData = useCallback(async () => {
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("balance, bet_commission_percentage")
+          .eq("id", user.id)
+          .single();
+        if (profile) {
+          setBalance(Number(profile.balance));
+          setCommissionPct(Number(profile.bet_commission_percentage || 10));
+        }
+      }
+
       const { data, error } = await supabase
         .from("live_matches")
         .select("*")
         .eq("sport_type", category)
-        .in("match_status", ["live", "upcoming"]) // শুধু লাইভ এবং আপকামিং ম্যাচ দেখাবে
         .order("start_time", { ascending: true });
 
       if (error) throw error;
@@ -57,39 +87,111 @@ export default function SportsPage() {
 
   useEffect(() => {
     setLoading(true);
-    loadMatches();
+    loadData();
 
-    // Supabase Realtime সাবস্ক্রিপশন (লাইভ আপডেটের জন্য)
     const channel = supabase
       .channel("live_matches_changes")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "live_matches" },
-        (payload) => {
-          // কোনো ডাটা আপডেট হলে সাথে সাথে রি-লোড করবে
-          loadMatches();
-        }
-      )
+      .on("postgres_changes", { event: "*", schema: "public", table: "live_matches" }, () => {
+        loadData();
+      })
       .subscribe();
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [supabase, loadMatches, category]);
+    return () => { supabase.removeChannel(channel); };
+  }, [supabase, loadData, category]);
 
   const navigate = (page: string) => {
-    const routes: Record<string, string> = {
-      home: "/", casino: "/casino/", lottery: "/lottery/", sports: "/sports/", chat: "/", wallet: "/wallets/"
-    };
+    const routes: Record<string, string> = { home: "/", casino: "/casino/", lottery: "/lottery/", sports: "/sports/", chat: "/", wallet: "/wallets/" };
     router.push(routes[page] ?? "/");
   };
 
-  // লাইভ এবং আপকামিং ম্যাচ আলাদা করা
-  const liveMatches = matches.filter((m) => m.match_status === "live");
-  const upcomingMatches = matches.filter((m) => m.match_status === "upcoming");
+  // ১০ মিনিট পর লক চেক
+  const isBettingLocked = (match: Match) => {
+    if (match.match_status === "finished") return true;
+    if (!match.is_betting_open) return true; // অ্যাডমিন ম্যানুয়ালি বন্ধ করেছে
+    
+    // ম্যাচ শুরুর ১০ মিনিট পর চেক
+    if (match.match_status === "live") {
+      const startTime = new Date(match.start_time).getTime();
+      const now = new Date().getTime();
+      if (now > startTime + 10 * 60000) return true;
+    }
+    return false;
+  };
+
+  const handleOddsClick = (match: Match, prediction: string, odds: number) => {
+    if (isBettingLocked(match)) return;
+    setBetSlip({ match, prediction, odds });
+    setBetAmount("");
+    setBetMessage({ type: "", text: "" });
+  };
+
+  const handlePlaceBet = async () => {
+    if (!betSlip || !betAmount || Number(betAmount) <= 0) {
+      setBetMessage({ type: "error", text: "Please enter a valid amount." });
+      return;
+    }
+    const amount = Number(betAmount);
+    if (amount > balance) {
+      setBetMessage({ type: "error", text: "Insufficient balance." });
+      return;
+    }
+
+    setPlacingBet(true);
+    setBetMessage({ type: "", text: "" });
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not logged in");
+
+      // ১. কমিশন হিসাব
+      const commission = (amount * commissionPct) / 100;
+      const newBalance = balance - amount;
+
+      // ২. ব্যালেন্স আপডেট
+      const { error: profileError } = await supabase
+        .from("profiles")
+        .update({ balance: newBalance })
+        .eq("id", user.id);
+      
+      if (profileError) throw profileError;
+
+      // ৩. বাজি সেভ
+      const { error: betError } = await supabase
+        .from("user_bets")
+        .insert({
+          user_id: user.id,
+          match_id: betSlip.match.id,
+          bet_amount: amount,
+          odds: betSlip.odds,
+          prediction: betSlip.prediction,
+          status: "pending",
+          commission_amount: commission
+        });
+
+      if (betError) throw betError;
+
+      setBalance(newBalance);
+      setBetMessage({ type: "success", text: "Bet placed successfully!" });
+      setTimeout(() => setBetSlip(null), 2000);
+
+    } catch (err: any) {
+      setBetMessage({ type: "error", text: err.message || "Failed to place bet" });
+    } finally {
+      setPlacingBet(false);
+    }
+  };
+
+  // ফিল্টার
+  const filteredMatches = matches.filter((m) => {
+    if (activeTab === "live") return m.match_status === "live";
+    if (activeTab === "upcoming") return m.match_status === "upcoming";
+    if (activeTab === "finished") return m.match_status === "finished";
+    return true;
+  });
 
   const renderMatchCard = (match: Match) => {
     const isLive = match.match_status === "live";
+    const isLocked = isBettingLocked(match);
     
     return (
       <div className="sports-match-card" key={match.id}>
@@ -111,21 +213,25 @@ export default function SportsPage() {
           </div>
         </div>
 
-        {/* অডস বাটন */}
         <div className="match-odds">
-          <button className="odd-btn">
+          <button className={`odd-btn ${isLocked ? 'locked' : ''}`} onClick={() => handleOddsClick(match, "team_a", match.odds_a)} disabled={isLocked}>
             <span>1</span>
             <strong>{match.odds_a}</strong>
+            {isLocked && <i className="fa-solid fa-lock lock-icon"></i>}
           </button>
+          
           {match.sport_type === "football" && match.odds_draw && (
-            <button className="odd-btn">
+            <button className={`odd-btn ${isLocked ? 'locked' : ''}`} onClick={() => handleOddsClick(match, "draw", match.odds_draw!)} disabled={isLocked}>
               <span>X</span>
               <strong>{match.odds_draw}</strong>
+              {isLocked && <i className="fa-solid fa-lock lock-icon"></i>}
             </button>
           )}
-          <button className="odd-btn">
+          
+          <button className={`odd-btn ${isLocked ? 'locked' : ''}`} onClick={() => handleOddsClick(match, "team_b", match.odds_b)} disabled={isLocked}>
             <span>2</span>
             <strong>{match.odds_b}</strong>
+            {isLocked && <i className="fa-solid fa-lock lock-icon"></i>}
           </button>
         </div>
       </div>
@@ -139,67 +245,81 @@ export default function SportsPage() {
 
       <main className="stake-main sports-main">
         <h1 className="sports-title">Sports Betting</h1>
+        <p style={{ color: "#b1bad3", fontSize: "13px", marginBottom: "10px" }}>Balance: ৳ {balance.toFixed(2)}</p>
 
-        {/* স্পোর্টস ক্যাটাগরি ট্যাব */}
         <div className="sports-tabs">
-          <button
-            className={category === "football" ? "active" : ""}
-            onClick={() => setCategory("football")}
-          >
-            <i className="fa-solid fa-futbol" /> Football
-          </button>
-          <button
-            className={category === "nba" ? "active" : ""}
-            onClick={() => setCategory("nba")}
-          >
-            <i className="fa-solid fa-basketball" /> NBA
-          </button>
-          <button
-            className={category === "cricket" ? "active" : ""}
-            onClick={() => setCategory("cricket")}
-          >
-            <i className="fa-solid fa-baseball" /> Cricket
-          </button>
+          <button className={category === "football" ? "active" : ""} onClick={() => setCategory("football")}>Football</button>
+          <button className={category === "nba" ? "active" : ""} onClick={() => setCategory("nba")}>NBA</button>
+          <button className={category === "cricket" ? "active" : ""} onClick={() => setCategory("cricket")}>Cricket</button>
+        </div>
+
+        <div className="match-status-tabs">
+          <button className={activeTab === "live" ? "active" : ""} onClick={() => setActiveTab("live")}>Live</button>
+          <button className={activeTab === "upcoming" ? "active" : ""} onClick={() => setActiveTab("upcoming")}>Upcoming</button>
+          <button className={activeTab === "finished" ? "active" : ""} onClick={() => setActiveTab("finished")}>Finished</button>
         </div>
 
         {loading ? (
-          <div className="sports-loading">
-            <i className="fa-solid fa-circle-notch fa-spin" />
-            <span>Loading matches...</span>
-          </div>
-        ) : matches.length === 0 ? (
-          <div className="sports-empty">
-            <i className="fa-solid fa-calendar-xmark" />
-            <p>No matches available right now. Please check back later.</p>
-          </div>
+          <div className="sports-loading"><i className="fa-solid fa-circle-notch fa-spin" /><span>Loading...</span></div>
+        ) : filteredMatches.length === 0 ? (
+          <div className="sports-empty"><i className="fa-solid fa-calendar-xmark" /><p>No {activeTab} matches available.</p></div>
         ) : (
-          <>
-            {/* লাইভ ম্যাচ সেকশন */}
-            {liveMatches.length > 0 && (
-              <div className="match-section">
-                <h2 className="section-title">
-                  <span className="live-dot"></span> Live Matches
-                </h2>
-                <div className="match-list">
-                  {liveMatches.map(renderMatchCard)}
-                </div>
-              </div>
-            )}
-
-            {/* আপকামিং ম্যাচ সেকশন */}
-            {upcomingMatches.length > 0 && (
-              <div className="match-section">
-                <h2 className="section-title">Upcoming Matches</h2>
-                <div className="match-list">
-                  {upcomingMatches.map(renderMatchCard)}
-                </div>
-              </div>
-            )}
-          </>
+          <div className="match-list">
+            {filteredMatches.map(renderMatchCard)}
+          </div>
         )}
       </main>
 
       <Footer activePage="sports" onNavigate={navigate} />
+
+      {/* Bet Slip Modal */}
+      {betSlip && (
+        <div className="bet-slip-overlay">
+          <div className="bet-slip">
+            <div className="slip-header">
+              <h3>Bet Slip</h3>
+              <button onClick={() => setBetSlip(null)}><i className="fa-solid fa-xmark"></i></button>
+            </div>
+            
+            <div className="slip-match-info">
+              <p className="slip-teams">{betSlip.match.team_a} vs {betSlip.match.team_b}</p>
+              <div className="slip-prediction">
+                <span>Prediction: <strong>{betSlip.prediction === "team_a" ? betSlip.match.team_a : betSlip.prediction === "team_b" ? betSlip.match.team_b : "Draw"}</strong></span>
+                <span className="slip-odds">@{betSlip.odds}</span>
+              </div>
+            </div>
+
+            <div className="slip-input-wrap">
+              <label>Bet Amount (৳)</label>
+              <input 
+                type="number" 
+                value={betAmount} 
+                onChange={(e) => setBetAmount(e.target.value)} 
+                placeholder="Enter amount"
+                min="1"
+              />
+              <div className="slip-quick-amounts">
+                {[100, 500, 1000, 5000].map(amt => (
+                  <button key={amt} onClick={() => setBetAmount(amt.toString())}>৳{amt}</button>
+                ))}
+              </div>
+            </div>
+
+            <div className="slip-summary">
+              <div><span>Commission ({commissionPct}%):</span> <span>৳ {((Number(betAmount) || 0) * commissionPct / 100).toFixed(2)}</span></div>
+              <div><span>Potential Payout:</span> <span className="text-green">৳ {((Number(betAmount) || 0) * betSlip.odds).toFixed(2)}</span></div>
+            </div>
+
+            {betMessage.text && (
+              <div className={`slip-message ${betMessage.type}`}>{betMessage.text}</div>
+            )}
+
+            <button className="slip-place-btn" onClick={handlePlaceBet} disabled={placingBet}>
+              {placingBet ? "Processing..." : "Place Bet"}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
