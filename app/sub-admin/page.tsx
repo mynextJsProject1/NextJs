@@ -37,19 +37,20 @@ export default function SubAdminDashboardPage() {
       {loading ? <p>Loading...</p> : (
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", gap: "20px" }}>
           
-          <div onClick={() => router.push("/sub-admin/matches?sport=football")} style={{ background: "#111d19", border: "1px solid #26352e", borderRadius: "12px", padding: "24px", cursor: "pointer", transition: "0.2s" }} className="hover-card">
+          {/* এখানে URL-এ status=live যুক্ত করা হয়েছে */}
+          <div onClick={() => router.push("/sub-admin/matches?sport=football&status=live")} style={{ background: "#111d19", border: "1px solid #26352e", borderRadius: "12px", padding: "24px", cursor: "pointer", transition: "0.2s" }}>
             <i className="fa-solid fa-futbol" style={{ fontSize: "32px", color: "#00e701", marginBottom: "16px" }} />
             <h2 style={{ color: "#fff", margin: "0 0 8px" }}>Football Live</h2>
             <strong style={{ fontSize: "24px", color: "#f58220" }}>{stats.football} Matches</strong>
           </div>
 
-          <div onClick={() => router.push("/sub-admin/matches?sport=cricket")} style={{ background: "#111d19", border: "1px solid #26352e", borderRadius: "12px", padding: "24px", cursor: "pointer", transition: "0.2s" }} className="hover-card">
+          <div onClick={() => router.push("/sub-admin/matches?sport=cricket&status=live")} style={{ background: "#111d19", border: "1px solid #26352e", borderRadius: "12px", padding: "24px", cursor: "pointer", transition: "0.2s" }}>
             <i className="fa-solid fa-baseball" style={{ fontSize: "32px", color: "#00e701", marginBottom: "16px" }} />
             <h2 style={{ color: "#fff", margin: "0 0 8px" }}>Cricket Live</h2>
             <strong style={{ fontSize: "24px", color: "#f58220" }}>{stats.cricket} Matches</strong>
           </div>
 
-          <div onClick={() => router.push("/sub-admin/matches?sport=nba")} style={{ background: "#111d19", border: "1px solid #26352e", borderRadius: "12px", padding: "24px", cursor: "pointer", transition: "0.2s" }} className="hover-card">
+          <div onClick={() => router.push("/sub-admin/matches?sport=nba&status=live")} style={{ background: "#111d19", border: "1px solid #26352e", borderRadius: "12px", padding: "24px", cursor: "pointer", transition: "0.2s" }}>
             <i className="fa-solid fa-basketball" style={{ fontSize: "32px", color: "#00e701", marginBottom: "16px" }} />
             <h2 style={{ color: "#fff", margin: "0 0 8px" }}>NBA Live</h2>
             <strong style={{ fontSize: "24px", color: "#f58220" }}>{stats.nba} Matches</strong>
