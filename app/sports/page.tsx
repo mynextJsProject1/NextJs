@@ -20,6 +20,7 @@ type Match = {
   live_score_a: string;
   live_score_b: string;
   match_status: string;
+  match_time: string | null; // <-- নতুন যোগ করা হলো
   odds_a: number;
   odds_draw: number | null;
   odds_b: number;
@@ -59,8 +60,6 @@ export default function SportsPage() {
   const [betMessage, setBetMessage] = useState({ type: "", text: "" });
 
   const [expandedMarkets, setExpandedMarkets] = useState<string[]>([]);
-  
-  // নতুন স্টেট: মডাল কন্ট্রোলের জন্য
   const [isLiveModalOpen, setIsLiveModalOpen] = useState(false);
 
   const loadData = useCallback(async () => {
@@ -223,12 +222,18 @@ export default function SportsPage() {
       <div className="sports-match-card" key={match.id}>
         <div className="match-header">
           <span className="match-league">{match.league_name}</span>
-          <span className={`match-status ${displayStatus}`}>
-            {isLive ? <><span className="live-dot blink"></span> LIVE</> : 
-             displayStatus === "delayed" ? "DELAYED" :
-             displayStatus === "cancelled" ? "CANCELLED" :
-             new Date(match.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-          </span>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            {/* এখানে ম্যাচের টাইম দেখানো হচ্ছে */}
+            {isLive && match.match_time && (
+              <span className="match-time-badge">{match.match_time}</span>
+            )}
+            <span className={`match-status ${displayStatus}`}>
+              {isLive ? <><span className="live-dot blink"></span> LIVE</> : 
+               displayStatus === "delayed" ? "DELAYED" :
+               displayStatus === "cancelled" ? "CANCELLED" :
+               new Date(match.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+            </span>
+          </div>
         </div>
 
         <div className="match-teams">
@@ -325,7 +330,7 @@ export default function SportsPage() {
       <main className="stake-main sports-main">
         <h1 className="sports-title">Sports Betting</h1>
 
-        {/* নতুন টপ বার */}
+        {/* Top Bar */}
         <div className="sports-top-bar">
           <button 
             onClick={() => setIsLiveModalOpen(true)} 
