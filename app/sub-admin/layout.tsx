@@ -8,6 +8,7 @@ import { createClient } from "../../lib/supabase/client";
 import "./sub-admin.css";
 
 const menuItems = [
+  { name: "Live Dashboard", path: "/sub-admin", icon: "fa-chart-pie" },
   { name: "Match Control", path: "/sub-admin/matches", icon: "fa-futbol" },
   { name: "Bet Settlement", path: "/sub-admin/bets", icon: "fa-ticket" },
 ];
@@ -35,7 +36,7 @@ export default function SubAdminLayout({ children }: { children: React.ReactNode
         .single();
 
       if (profile?.role !== "sub_admin" && profile?.role !== "admin") {
-        router.replace("/"); // সাব-অ্যাডমিন না হলে হোমে পাঠিয়ে দেবে
+        router.replace("/"); 
         return;
       }
 
