@@ -14,6 +14,7 @@ type Match = {
   live_score_a: string;
   live_score_b: string;
   match_status: string;
+  match_time: string | null; // নতুন: ম্যাচের টাইম
   odds_a: number;
   odds_draw: number | null;
   odds_b: number;
@@ -39,6 +40,7 @@ export default function SubAdminLiveDashboardPage() {
   const [teamA, setTeamA] = useState("");
   const [teamB, setTeamB] = useState("");
   const [startTime, setStartTime] = useState("");
+  const [matchTime, setMatchTime] = useState(""); // নতুন স্টেট
   const [oddsA, setOddsA] = useState("1.80");
   const [oddsDraw, setOddsDraw] = useState("3.50");
   const [oddsB, setOddsB] = useState("2.10");
@@ -101,6 +103,7 @@ export default function SubAdminLiveDashboardPage() {
   const resetForm = () => {
     setEditingId(null);
     setLeagueName(""); setTeamA(""); setTeamB(""); setStartTime("");
+    setMatchTime(""); // রিসেট
     setOddsA("1.80"); setOddsDraw("3.50"); setOddsB("2.10");
     setTossOddsA(""); setTossOddsB("");
     setExtraMarkets([]);
@@ -115,6 +118,7 @@ export default function SubAdminLiveDashboardPage() {
     const d = new Date(match.start_time);
     const localTime = new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
     setStartTime(localTime);
+    setMatchTime(match.match_time || ""); // টাইম লোড
     setOddsA(match.odds_a.toString()); 
     setOddsDraw(match.odds_draw ? match.odds_draw.toString() : ""); 
     setOddsB(match.odds_b.toString());
@@ -145,6 +149,7 @@ export default function SubAdminLiveDashboardPage() {
         league_name: leagueName,
         team_a: teamA,
         team_b: teamB,
+        match_time: matchTime, // নতুন: টাইম সেভ
         odds_a: Number(oddsA),
         odds_draw: sport === "football" && oddsDraw ? Number(oddsDraw) : null,
         odds_b: Number(oddsB),
@@ -215,9 +220,15 @@ export default function SubAdminLiveDashboardPage() {
             <input type="text" placeholder="Team B" value={teamB} onChange={(e) => setTeamB(e.target.value)} required style={{ flex: 1, minWidth: 0, boxSizing: "border-box", background: "#07110f", color: "#fff", border: "1px solid #26352e", padding: "10px", borderRadius: "6px" }} />
           </div>
 
-          <div>
-            <label style={{ color: "#9ca9a3", fontSize: "12px" }}>Start Time</label>
-            <input type="datetime-local" value={startTime} onChange={(e) => setStartTime(e.target.value)} required style={{ width: "100%", boxSizing: "border-box", background: "#07110f", color: "#fff", border: "1px solid #26352e", padding: "10px", borderRadius: "6px", marginTop: "4px" }} />
+          <div style={{ display: "flex", gap: "10px", width: "100%" }}>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <label style={{ color: "#9ca9a3", fontSize: "12px" }}>Start Time</label>
+              <input type="datetime-local" value={startTime} onChange={(e) => setStartTime(e.target.value)} required style={{ width: "100%", boxSizing: "border-box", background: "#07110f", color: "#fff", border: "1px solid #26352e", padding: "10px", borderRadius: "6px", marginTop: "4px" }} />
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <label style={{ color: "#9ca9a3", fontSize: "12px" }}>Match Time</label>
+              <input type="text" value={matchTime} onChange={(e) => setMatchTime(e.target.value)} placeholder="e.g. 45', HT" style={{ width: "100%", boxSizing: "border-box", background: "#07110f", color: "#ff4d4d", border: "1px solid #26352e", padding: "10px", borderRadius: "6px", marginTop: "4px", fontWeight: "bold" }} />
+            </div>
           </div>
 
           <div style={{ display: "flex", gap: "10px", width: "100%" }}>
@@ -327,15 +338,19 @@ export default function SubAdminLiveDashboardPage() {
                 </div>
               </div>
 
-              {/* Score Update Area */}
-              <div style={{ display: "flex", gap: "10px", marginBottom: "16px", background: "rgba(255,255,255,0.02)", padding: "12px", borderRadius: "8px", border: "1px solid #26352e", width: "100%", boxSizing: "border-box" }}>
-                <div style={{ flex: 1, minWidth: 0 }}>
+              {/* Score Update Area (Match Time সহ) */}
+              <div style={{ display: "flex", gap: "10px", marginBottom: "16px", background: "rgba(255,255,255,0.02)", padding: "12px", borderRadius: "8px", border: "1px solid #26352e", width: "100%", boxSizing: "border-box", flexWrap: "wrap" }}>
+                <div style={{ flex: 1, minWidth: "30%" }}>
                   <label style={{ fontSize: "12px", color: "#9ca9a3", display: "block", marginBottom: "4px" }}>{m.team_a} Score</label>
                   <input type="text" defaultValue={m.live_score_a} onBlur={(e) => updateField(m.id, "live_score_a", e.target.value)} style={{ width: "100%", boxSizing: "border-box", background: "#07110f", color: "#00e701", border: "1px solid #26352e", padding: "10px", borderRadius: "6px", fontWeight: "bold", textAlign: "center", fontSize: "16px" }} />
                 </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ flex: 1, minWidth: "30%" }}>
                   <label style={{ fontSize: "12px", color: "#9ca9a3", display: "block", marginBottom: "4px" }}>{m.team_b} Score</label>
                   <input type="text" defaultValue={m.live_score_b} onBlur={(e) => updateField(m.id, "live_score_b", e.target.value)} style={{ width: "100%", boxSizing: "border-box", background: "#07110f", color: "#00e701", border: "1px solid #26352e", padding: "10px", borderRadius: "6px", fontWeight: "bold", textAlign: "center", fontSize: "16px" }} />
+                </div>
+                <div style={{ flex: 1, minWidth: "30%" }}>
+                  <label style={{ fontSize: "12px", color: "#9ca9a3", display: "block", marginBottom: "4px" }}>Match Time</label>
+                  <input type="text" defaultValue={m.match_time || ""} onBlur={(e) => updateField(m.id, "match_time", e.target.value)} placeholder="e.g. 45'" style={{ width: "100%", boxSizing: "border-box", background: "#07110f", color: "#ff4d4d", border: "1px solid #26352e", padding: "10px", borderRadius: "6px", fontWeight: "bold", textAlign: "center", fontSize: "16px" }} />
                 </div>
               </div>
 
