@@ -275,3 +275,124 @@
 .slip-place-btn { width: 100%; padding: 14px; background: var(--sports-accent); color: #000; border: none; border-radius: 8px; font-weight: 800; font-size: 1rem; cursor: pointer; transition: 0.2s; }
 .slip-place-btn:hover:not(:disabled) { background: #00c701; }
 .slip-place-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+
+/* নতুন টপ বার */
+.sports-page .sports-top-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 1rem;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.sports-page .sports-top-bar::-webkit-scrollbar {
+  display: none;
+}
+
+.sports-page .sports-tab-btn {
+  padding: 8px 16px;
+  background: var(--sports-card);
+  border: 1px solid var(--sports-border);
+  border-radius: 8px;
+  color: var(--sports-muted);
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: 0.2s;
+}
+
+.sports-page .sports-tab-btn.active {
+  background: var(--sports-accent);
+  color: #000;
+  border-color: var(--sports-accent);
+}
+
+/* Live বাটনের আলাদা কালার */
+.sports-page .sports-tab-btn.live-btn {
+  color: #ff4d4d;
+  border-color: rgba(255, 77, 77, 0.3);
+}
+
+.sports-page .sports-tab-btn.live-btn.active {
+  background: #ff4d4d;
+  color: #fff;
+  border-color: #ff4d4d;
+}
+
+/* History বাটন (ডানদিকে) */
+.sports-page .history-btn {
+  margin-left: auto;
+  background: var(--sports-card);
+  border: 1px solid var(--sports-border);
+  padding: 8px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: 0.2s;
+}
+
+.sports-page .history-btn:hover {
+  background: var(--sports-border);
+}
+
+/* মডাল স্টাইল */
+.sports-page .sports-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(4px);
+}
+
+.sports-page .sports-modal {
+  background: var(--sports-card);
+  border: 1px solid var(--sports-border);
+  border-radius: 12px;
+  padding: 20px;
+  width: 90%;
+  max-width: 300px;
+  animation: popIn 0.2s ease;
+}
+
+.sports-page .sports-modal-title {
+  margin: 0 0 16px;
+  color: var(--sports-text);
+  font-size: 1.1rem;
+  text-align: center;
+}
+
+.sports-page .sports-modal-options {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sports-page .modal-option {
+  padding: 12px;
+  background: #0f212e;
+  border: 1px solid var(--sports-border);
+  border-radius: 8px;
+  color: var(--sports-text);
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.sports-page .modal-option.active {
+  background: var(--sports-accent);
+  color: #000;
+  border-color: var(--sports-accent);
+}
+
+@keyframes popIn {
+  from { transform: scale(0.9); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
