@@ -6,6 +6,8 @@ import { useSearchParams } from "next/navigation";
 import { createClient } from "../../../lib/supabase/client";
 import "../sub-admin.css";
 
+type ExtraMarket = { name: string; odds: string };
+
 export default function SubAdminMatchesPage() {
   const searchParams = useSearchParams();
   const initialSport = searchParams.get("sport") || "football";
@@ -15,6 +17,7 @@ export default function SubAdminMatchesPage() {
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
   
+  // Form State
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   
@@ -27,14 +30,15 @@ export default function SubAdminMatchesPage() {
   const [oddsB, setOddsB] = useState("2.10");
   const [tossOddsA, setTossOddsA] = useState("");
   const [tossOddsB, setTossOddsB] = useState("");
+  const [extraMarkets, setExtraMarkets] = useState<ExtraMarket[]>([]);
+  
   const [formLoading, setFormLoading] = useState(false);
 
   const supabase = createClient();
 
   const loadData = useCallback(async () => {
     setLoading(true);
-    // শুধু লাইভ এবং আপকামিং ম্যাচ লোড করবে
-    const { data } = await supabase.from("live_matches").select("*").eq("sport_type", sport).neq("match_status", "finished").order("start_time");
+    const { data } = await supabase.from("live_matches").select("*").eq("sport_type", sport).order("start_time", { ascending: false });
     if (data) setMatches(data);
     setLoading(false);
   }, [supabase, sport]);
@@ -46,6 +50,7 @@ export default function SubAdminMatchesPage() {
     setLeagueName(""); setTeamA(""); setTeamB(""); setStartTime("");
     setOddsA("1.80"); setOddsDraw("3.50"); setOddsB("2.10");
     setTossOddsA(""); setTossOddsB("");
+    setExtraMarkets([]);
     setShowForm(false);
   };
 
@@ -62,6 +67,14 @@ export default function SubAdminMatchesPage() {
     setOddsB(match.odds_b.toString());
     setTossOddsA(match.toss_odds_a ? match.toss_odds_a.toString() : "");
     setTossOddsB(match.toss_odds_b ? match.toss_odds_b.toString() : "");
+    
+    // Extra Markets লোড করা
+    if (match.extra_markets && Array.isArray(match.extra_markets)) {
+      setExtraMarkets(match.extra_markets.map((m: any) => ({ name: m.name, odds: m.odds.toString() })));
+    } else {
+      setExtraMarkets([]);
+    }
+    
     setShowForm(true);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -72,6 +85,11 @@ export default function SubAdminMatchesPage() {
     setMessage("");
 
     try {
+      // Extra Markets ফরম্যাটিং
+      const formattedExtraMarkets = extraMarkets
+        .filter(em => em.name.trim() !== "" && em.odds !== "")
+        .map(em => ({ name: em.name, odds: Number(em.odds) }));
+
       const matchData = {
         sport_type: sport,
         league_name: leagueName,
@@ -82,6 +100,7 @@ export default function SubAdminMatchesPage() {
         odds_b: Number(oddsB),
         toss_odds_a: tossOddsA ? Number(tossOddsA) : null,
         toss_odds_b: tossOddsB ? Number(tossOddsB) : null,
+        extra_markets: formattedExtraMarkets,
         start_time: new Date(startTime).toISOString(),
         last_updated: new Date().toISOString()
       };
@@ -115,6 +134,11 @@ export default function SubAdminMatchesPage() {
     }
   };
 
+  const toggleHide = async (id: string, current: boolean) => {
+    await supabase.from("live_matches").update({ is_hidden: !current }).eq("id", id);
+    loadData();
+  };
+
   const updateField = async (id: string, field: string, value: any) => {
     await supabase.from("live_matches").update({ [field]: value }).eq("id", id);
     setMessage("Updated!");
@@ -132,7 +156,7 @@ export default function SubAdminMatchesPage() {
 
   return (
     <div>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px", flexWrap: "wrap", gap: "10px" }}>
         <h1 className="sa-title" style={{ margin: 0 }}>Manage {sport.toUpperCase()}</h1>
         <div style={{ display: "flex", gap: "10px" }}>
           <select value={sport} onChange={(e) => setSport(e.target.value)} style={{ background: "#07110f", color: "#fff", padding: "8px 16px", borderRadius: "8px", border: "1px solid #26352e" }}>
@@ -185,6 +209,39 @@ export default function SubAdminMatchesPage() {
             </div>
           </div>
 
+          {/* Toss Odds */}
+          <div style={{ display: "flex", gap: "10px", borderTop: "1px dashed #26352e", paddingTop: "10px" }}>
+            <div style={{ flex: 1 }}>
+              <label style={{ color: "#9ca9a3", fontSize: "12px" }}>Toss: {teamA || "Team A"} Odds</label>
+              <input type="number" step="0.01" value={tossOddsA} onChange={(e) => setTossOddsA(e.target.value)} placeholder="Optional" style={{ width: "100%", background: "#07110f", color: "#fff", border: "1px solid #26352e", padding: "10px", borderRadius: "6px" }} />
+            </div>
+            <div style={{ flex: 1 }}>
+              <label style={{ color: "#9ca9a3", fontSize: "12px" }}>Toss: {teamB || "Team B"} Odds</label>
+              <input type="number" step="0.01" value={tossOddsB} onChange={(e) => setTossOddsB(e.target.value)} placeholder="Optional" style={{ width: "100%", background: "#07110f", color: "#fff", border: "1px solid #26352e", padding: "10px", borderRadius: "6px" }} />
+            </div>
+          </div>
+
+          {/* Extra Markets */}
+          <div style={{ borderTop: "1px dashed #26352e", paddingTop: "10px" }}>
+            <label style={{ color: "#00e701", fontSize: "13px", fontWeight: "bold", display: "block", marginBottom: "8px" }}>Extra Markets (Optional)</label>
+            {extraMarkets.map((em, index) => (
+              <div key={index} style={{ display: "flex", gap: "10px", marginBottom: "8px" }}>
+                <input type="text" placeholder="e.g. Over 2.5" value={em.name} onChange={(e) => {
+                  const newArr = [...extraMarkets]; newArr[index].name = e.target.value; setExtraMarkets(newArr);
+                }} style={{ flex: 2, background: "#07110f", color: "#fff", border: "1px solid #26352e", padding: "8px", borderRadius: "6px" }} />
+                <input type="number" step="0.01" placeholder="Odds" value={em.odds} onChange={(e) => {
+                  const newArr = [...extraMarkets]; newArr[index].odds = e.target.value; setExtraMarkets(newArr);
+                }} style={{ flex: 1, background: "#07110f", color: "#fff", border: "1px solid #26352e", padding: "8px", borderRadius: "6px" }} />
+                <button type="button" onClick={() => {
+                  const newArr = extraMarkets.filter((_, i) => i !== index); setExtraMarkets(newArr);
+                }} style={{ background: "rgba(255,77,77,0.2)", color: "#ff4d4d", border: "none", padding: "0 12px", borderRadius: "6px", cursor: "pointer" }}><i className="fa-solid fa-trash"></i></button>
+              </div>
+            ))}
+            <button type="button" onClick={() => setExtraMarkets([...extraMarkets, { name: "", odds: "" }])} style={{ background: "rgba(255,255,255,0.1)", color: "#fff", border: "none", padding: "8px 12px", borderRadius: "6px", fontSize: "12px", cursor: "pointer", width: "100%" }}>
+              + Add Extra Market
+            </button>
+          </div>
+
           <button type="submit" disabled={formLoading} style={{ background: "#00e701", color: "#000", border: "none", padding: "12px", borderRadius: "6px", fontWeight: "bold", marginTop: "8px", cursor: "pointer" }}>
             {formLoading ? "Saving..." : "Save Match"}
           </button>
@@ -194,13 +251,19 @@ export default function SubAdminMatchesPage() {
       {loading ? <p>Loading...</p> : (
         <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
           {matches.map(m => (
-            <div key={m.id} style={{ background: "#111d19", border: "1px solid #26352e", borderRadius: "12px", padding: "16px" }}>
+            <div key={m.id} style={{ background: m.is_hidden ? "rgba(255,255,255,0.02)" : "#111d19", border: "1px solid #26352e", borderRadius: "12px", padding: "16px", opacity: m.is_hidden ? 0.6 : 1 }}>
+              
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "12px" }}>
                 <div>
                   <strong style={{ color: "#fff", display: "block" }}>{m.team_a} vs {m.team_b}</strong>
                   <span style={{ fontSize: "12px", color: "#9ca9a3" }}>{m.league_name} ({m.match_status.toUpperCase()})</span>
                 </div>
-                <button onClick={() => handleEditClick(m)} style={{ background: "rgba(255,255,255,0.1)", border: "none", color: "#fff", padding: "4px 8px", borderRadius: "4px", fontSize: "11px", cursor: "pointer", height: "fit-content" }}>Edit</button>
+                <div style={{ display: "flex", gap: "6px" }}>
+                  <button onClick={() => handleEditClick(m)} style={{ background: "rgba(255,255,255,0.1)", border: "none", color: "#fff", padding: "4px 8px", borderRadius: "4px", fontSize: "11px", cursor: "pointer" }}>Edit</button>
+                  <button onClick={() => toggleHide(m.id, m.is_hidden)} style={{ background: m.is_hidden ? "rgba(0,231,1,0.2)" : "rgba(255,255,255,0.1)", border: "none", color: m.is_hidden ? "#00e701" : "#fff", padding: "4px 8px", borderRadius: "4px", fontSize: "11px", cursor: "pointer" }}>
+                    {m.is_hidden ? "Unhide" : "Hide"}
+                  </button>
+                </div>
               </div>
 
               <div style={{ marginBottom: "12px", display: "flex", alignItems: "center", gap: "10px" }}>
@@ -230,7 +293,7 @@ export default function SubAdminMatchesPage() {
                   <label style={{ fontSize: "11px", color: "#9ca9a3" }}>A Odds</label>
                   <input type="number" step="0.01" defaultValue={m.odds_a} onBlur={(e) => updateField(m.id, "odds_a", Number(e.target.value))} style={{ width: "100%", background: "#07110f", color: "#fff", border: "1px solid #26352e", padding: "8px", borderRadius: "6px" }} />
                 </div>
-                {sport === "football" && (
+                {m.sport_type === "football" && (
                   <div style={{ flex: 1 }}>
                     <label style={{ fontSize: "11px", color: "#9ca9a3" }}>Draw</label>
                     <input type="number" step="0.01" defaultValue={m.odds_draw} onBlur={(e) => updateField(m.id, "odds_draw", Number(e.target.value))} style={{ width: "100%", background: "#07110f", color: "#fff", border: "1px solid #26352e", padding: "8px", borderRadius: "6px" }} />
