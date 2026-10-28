@@ -10,6 +10,16 @@
   min-height: 100vh;
   background: var(--sa-bg);
   color: var(--sa-text);
+  
+  /* স্ক্রল সমস্যা সমাধানের জন্য নতুন যোগ করা হয়েছে */
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden; 
+}
+
+/* সব এলিমেন্ট যাতে বর্ডারের বাইরে না যায় */
+.sub-admin-layout * {
+  box-sizing: border-box;
 }
 
 .sa-topbar {
@@ -36,7 +46,16 @@
 }
 .sa-link:hover, .sa-link.active { background: var(--sa-panel); color: var(--sa-green); }
 
-.sa-main { flex: 1; padding: 80px 16px 30px; margin-left: 0; }
+.sa-main { 
+  flex: 1; 
+  padding: 80px 16px 30px; 
+  margin-left: 0; 
+  
+  /* নতুন যোগ করা হয়েছে */
+  max-width: 100%;
+  overflow-x: hidden; 
+}
+
 @media (min-width: 768px) {
   .sa-sidebar { transform: translateX(0); position: sticky; top: 60px; height: calc(100vh - 60px); }
   .sa-main { margin-left: 0; padding: 80px 24px 30px; }
