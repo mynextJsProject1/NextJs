@@ -35,25 +35,25 @@ export default function SubAdminDashboardPage() {
       <p style={{ color: "#9ca9a3", marginBottom: "24px" }}>Select a sport to manage live matches quickly.</p>
       
       {loading ? <p>Loading...</p> : (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", gap: "20px" }}>
+        /* এখানে গ্রিড ৩ কলাম করা হয়েছে */
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "10px" }}>
           
-          {/* এখানে URL-এ status=live যুক্ত করা হয়েছে */}
-          <div onClick={() => router.push("/sub-admin/matches?sport=football&status=live")} style={{ background: "#111d19", border: "1px solid #26352e", borderRadius: "12px", padding: "24px", cursor: "pointer", transition: "0.2s" }}>
-            <i className="fa-solid fa-futbol" style={{ fontSize: "32px", color: "#00e701", marginBottom: "16px" }} />
-            <h2 style={{ color: "#fff", margin: "0 0 8px" }}>Football Live</h2>
-            <strong style={{ fontSize: "24px", color: "#f58220" }}>{stats.football} Matches</strong>
+          <div onClick={() => router.push("/sub-admin/matches?sport=football&status=live")} style={{ background: "#111d19", border: "1px solid #26352e", borderRadius: "12px", padding: "16px 10px", cursor: "pointer", textAlign: "center", transition: "0.2s" }}>
+            <i className="fa-solid fa-futbol" style={{ fontSize: "24px", color: "#00e701", marginBottom: "10px" }} />
+            <h2 style={{ color: "#fff", margin: "0 0 6px", fontSize: "14px" }}>Football</h2>
+            <strong style={{ fontSize: "18px", color: "#f58220" }}>{stats.football} Live</strong>
           </div>
 
-          <div onClick={() => router.push("/sub-admin/matches?sport=cricket&status=live")} style={{ background: "#111d19", border: "1px solid #26352e", borderRadius: "12px", padding: "24px", cursor: "pointer", transition: "0.2s" }}>
-            <i className="fa-solid fa-baseball" style={{ fontSize: "32px", color: "#00e701", marginBottom: "16px" }} />
-            <h2 style={{ color: "#fff", margin: "0 0 8px" }}>Cricket Live</h2>
-            <strong style={{ fontSize: "24px", color: "#f58220" }}>{stats.cricket} Matches</strong>
+          <div onClick={() => router.push("/sub-admin/matches?sport=cricket&status=live")} style={{ background: "#111d19", border: "1px solid #26352e", borderRadius: "12px", padding: "16px 10px", cursor: "pointer", textAlign: "center", transition: "0.2s" }}>
+            <i className="fa-solid fa-baseball" style={{ fontSize: "24px", color: "#00e701", marginBottom: "10px" }} />
+            <h2 style={{ color: "#fff", margin: "0 0 6px", fontSize: "14px" }}>Cricket</h2>
+            <strong style={{ fontSize: "18px", color: "#f58220" }}>{stats.cricket} Live</strong>
           </div>
 
-          <div onClick={() => router.push("/sub-admin/matches?sport=nba&status=live")} style={{ background: "#111d19", border: "1px solid #26352e", borderRadius: "12px", padding: "24px", cursor: "pointer", transition: "0.2s" }}>
-            <i className="fa-solid fa-basketball" style={{ fontSize: "32px", color: "#00e701", marginBottom: "16px" }} />
-            <h2 style={{ color: "#fff", margin: "0 0 8px" }}>NBA Live</h2>
-            <strong style={{ fontSize: "24px", color: "#f58220" }}>{stats.nba} Matches</strong>
+          <div onClick={() => router.push("/sub-admin/matches?sport=nba&status=live")} style={{ background: "#111d19", border: "1px solid #26352e", borderRadius: "12px", padding: "16px 10px", cursor: "pointer", textAlign: "center", transition: "0.2s" }}>
+            <i className="fa-solid fa-basketball" style={{ fontSize: "24px", color: "#00e701", marginBottom: "10px" }} />
+            <h2 style={{ color: "#fff", margin: "0 0 6px", fontSize: "14px" }}>NBA</h2>
+            <strong style={{ fontSize: "18px", color: "#f58220" }}>{stats.nba} Live</strong>
           </div>
 
         </div>
