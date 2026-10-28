@@ -3,7 +3,6 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link"; // নতুন যোগ করা হয়েছে
 import { createClient } from "../../lib/supabase/client";
 import Header from "../../components/Header";
 import Sidebar from "../../components/Sidebar";
@@ -21,7 +20,6 @@ type Match = {
   live_score_a: string;
   live_score_b: string;
   match_status: string;
-  match_time: string | null; // নতুন যোগ করা হয়েছে
   odds_a: number;
   odds_draw: number | null;
   odds_b: number;
@@ -61,6 +59,9 @@ export default function SportsPage() {
   const [betMessage, setBetMessage] = useState({ type: "", text: "" });
 
   const [expandedMarkets, setExpandedMarkets] = useState<string[]>([]);
+  
+  // নতুন স্টেট: মডাল কন্ট্রোলের জন্য
+  const [isLiveModalOpen, setIsLiveModalOpen] = useState(false);
 
   const loadData = useCallback(async () => {
     try {
@@ -223,16 +224,7 @@ export default function SportsPage() {
         <div className="match-header">
           <span className="match-league">{match.league_name}</span>
           <span className={`match-status ${displayStatus}`}>
-            {isLive ? (
-              <>
-                <span className="live-dot blink"></span> LIVE
-                {match.match_time && (
-                  <span style={{ marginLeft: "6px", color: "#f58220", fontSize: "0.75rem", fontWeight: "bold" }}>
-                    {match.match_time}
-                  </span>
-                )}
-              </>
-            ) : 
+            {isLive ? <><span className="live-dot blink"></span> LIVE</> : 
              displayStatus === "delayed" ? "DELAYED" :
              displayStatus === "cancelled" ? "CANCELLED" :
              new Date(match.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -333,27 +325,40 @@ export default function SportsPage() {
       <main className="stake-main sports-main">
         <h1 className="sports-title">Sports Betting</h1>
 
-        {/* নতুন আপডেট: ট্যাব এবং My Bets বাটন */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', background: '#1a2c38', padding: '4px', borderRadius: '8px', border: '1px solid #2f4553' }}>
-            <div style={{ display: 'flex', gap: '4px', overflowX: 'auto', scrollbarWidth: 'none', flex: 1, WebkitOverflowScrolling: 'touch' }}>
-                <button className={activeTab === 'live' ? 'active' : ''} onClick={() => setActiveTab('live')} style={{ whiteSpace: 'nowrap', padding: '8px 12px', background: activeTab === 'live' ? '#00e701' : 'transparent', color: activeTab === 'live' ? '#000' : '#fff', border: 'none', borderRadius: '6px', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer' }}>Live</button>
-                <button className={activeTab === 'upcoming' ? 'active' : ''} onClick={() => setActiveTab('upcoming')} style={{ whiteSpace: 'nowrap', padding: '8px 12px', background: activeTab === 'upcoming' ? '#00e701' : 'transparent', color: activeTab === 'upcoming' ? '#000' : '#fff', border: 'none', borderRadius: '6px', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer' }}>Upcoming</button>
-                <button className={activeTab === 'finished' ? 'active' : ''} onClick={() => setActiveTab('finished')} style={{ whiteSpace: 'nowrap', padding: '8px 12px', background: activeTab === 'finished' ? '#00e701' : 'transparent', color: activeTab === 'finished' ? '#000' : '#fff', border: 'none', borderRadius: '6px', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer' }}>Finished</button>
-                
-                <div style={{ width: '1px', background: '#2f4553', margin: '4px' }}></div>
-                
-                <button className={category === 'football' ? 'active' : ''} onClick={() => setCategory('football')} style={{ whiteSpace: 'nowrap', padding: '8px 12px', background: category === 'football' ? '#00e701' : 'transparent', color: category === 'football' ? '#000' : '#fff', border: 'none', borderRadius: '6px', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer' }}>Football</button>
-                <button className={category === 'nba' ? 'active' : ''} onClick={() => setCategory('nba')} style={{ whiteSpace: 'nowrap', padding: '8px 12px', background: category === 'nba' ? '#00e701' : 'transparent', color: category === 'nba' ? '#000' : '#fff', border: 'none', borderRadius: '6px', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer' }}>NBA</button>
-                <button className={category === 'cricket' ? 'active' : ''} onClick={() => setCategory('cricket')} style={{ whiteSpace: 'nowrap', padding: '8px 12px', background: category === 'cricket' ? '#00e701' : 'transparent', color: category === 'cricket' ? '#000' : '#fff', border: 'none', borderRadius: '6px', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer' }}>Cricket</button>
-            </div>
-            <Link href="/my-bets" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '10px', background: '#0f212e', borderRadius: '6px', marginLeft: '8px', flexShrink: 0, textDecoration: 'none' }} title="My Bets">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/>
-                  <path d="M13 5v2"/>
-                  <path d="M13 17v2"/>
-                  <path d="M13 11v2"/>
-                </svg>
-            </Link>
+        {/* নতুন টপ বার */}
+        <div className="sports-top-bar">
+          <button 
+            onClick={() => setIsLiveModalOpen(true)} 
+            className={`sports-tab-btn live-btn ${activeTab === 'live' ? 'active' : ''}`}
+          >
+            Live
+          </button>
+          <button 
+            onClick={() => setCategory("football")} 
+            className={`sports-tab-btn ${category === "football" ? "active" : ""}`}
+          >
+            Football
+          </button>
+          <button 
+            onClick={() => setCategory("nba")} 
+            className={`sports-tab-btn ${category === "nba" ? "active" : ""}`}
+          >
+            NBA
+          </button>
+          <button 
+            onClick={() => setCategory("cricket")} 
+            className={`sports-tab-btn ${category === "cricket" ? "active" : ""}`}
+          >
+            Cricket
+          </button>
+          
+          {/* History Icon */}
+          <button onClick={() => router.push("/my-bets")} className="history-btn" aria-label="My Bets">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+          </button>
         </div>
 
         {loading ? (
@@ -369,7 +374,35 @@ export default function SportsPage() {
 
       <Footer activePage="sports" onNavigate={navigate} />
 
-      {/* Bet Slip Modal */}
+      {/* Live/Upcoming/Finished Modal */}
+      {isLiveModalOpen && (
+        <div className="sports-modal-overlay" onClick={() => setIsLiveModalOpen(false)}>
+          <div className="sports-modal" onClick={(e) => e.stopPropagation()}>
+            <h3 className="sports-modal-title">Select Match Status</h3>
+            <div className="sports-modal-options">
+              <button 
+                onClick={() => { setActiveTab("live"); setIsLiveModalOpen(false); }} 
+                className={`modal-option ${activeTab === "live" ? "active" : ""}`}
+              >
+                Live Match
+              </button>
+              <button 
+                onClick={() => { setActiveTab("upcoming"); setIsLiveModalOpen(false); }} 
+                className={`modal-option ${activeTab === "upcoming" ? "active" : ""}`}
+              >
+                Upcoming Match
+              </button>
+              <button 
+                onClick={() => { setActiveTab("finished"); setIsLiveModalOpen(false); }} 
+                className={`modal-option ${activeTab === "finished" ? "active" : ""}`}
+              >
+                Finished Match
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {betSlip && (
         <div className="bet-slip-overlay">
           <div className="bet-slip">
