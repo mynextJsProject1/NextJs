@@ -1,0 +1,45 @@
+/* app/sub-admin/sub-admin.css */
+.sub-admin-layout {
+  --sa-bg: #07110f;
+  --sa-panel: #111d19;
+  --sa-border: #26352e;
+  --sa-text: #f5f7f6;
+  --sa-muted: #9ca9a3;
+  --sa-green: #00e701;
+  display: flex;
+  min-height: 100vh;
+  background: var(--sa-bg);
+  color: var(--sa-text);
+}
+
+.sa-topbar {
+  position: fixed; top: 0; left: 0; right: 0; height: 60px;
+  background: #0b1712; border-bottom: 1px solid var(--sa-border);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 16px; z-index: 100;
+}
+
+.sa-menu-btn { background: transparent; border: none; color: var(--sa-text); font-size: 20px; cursor: pointer; padding: 8px; }
+.sa-topbar-title { font-size: 16px; font-weight: 800; color: var(--sa-green); }
+
+.sa-sidebar {
+  position: fixed; top: 60px; left: 0; bottom: 0; width: 260px;
+  background: #0b1712; border-right: 1px solid var(--sa-border);
+  padding: 16px 8px; transform: translateX(-100%); transition: 0.3s; z-index: 90;
+}
+.sa-sidebar.open { transform: translateX(0); }
+
+.sa-link {
+  display: flex; align-items: center; gap: 12px; padding: 12px 14px;
+  margin-bottom: 4px; border-radius: 8px; color: var(--sa-muted);
+  text-decoration: none; font-size: 14px; font-weight: 600; transition: 0.2s;
+}
+.sa-link:hover, .sa-link.active { background: var(--sa-panel); color: var(--sa-green); }
+
+.sa-main { flex: 1; padding: 80px 16px 30px; margin-left: 0; }
+@media (min-width: 768px) {
+  .sa-sidebar { transform: translateX(0); position: sticky; top: 60px; height: calc(100vh - 60px); }
+  .sa-main { margin-left: 0; padding: 80px 24px 30px; }
+}
+
+.sa-title { font-size: 20px; font-weight: 800; margin-bottom: 20px; color: var(--sa-text); }
