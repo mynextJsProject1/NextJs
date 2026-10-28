@@ -18,6 +18,7 @@ export default function SubAdminSettlementPage() {
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState<string | null>(null);
   const [message, setMessage] = useState("");
+  const [errorLog, setErrorLog] = useState(""); // ডিবাগ এররের জন্য
   const [selectedPredictions, setSelectedPredictions] = useState<Record<string, string>>({});
   
   const supabase = createClient();
@@ -25,6 +26,7 @@ export default function SubAdminSettlementPage() {
   const loadData = useCallback(async () => {
     setLoading(true);
     setMessage("");
+    setErrorLog("");
     
     // পেন্ডিং বাজিগুলো লোড করা হচ্ছে
     const { data, error } = await supabase
@@ -33,7 +35,18 @@ export default function SubAdminSettlementPage() {
       .eq("status", "pending")
       .order("created_at", { ascending: false });
 
-    if (!error && data) {
+    if (error) {
+      console.error("Supabase Error:", error);
+      setErrorLog(`Database Error: ${error.message} (Code: ${error.code})`);
+      setLoading(false);
+      return;
+    }
+
+    if (data) {
+      if (data.length === 0) {
+        setErrorLog("No pending bets found in the database (user_bets table is empty for status='pending').");
+      }
+      
       // ম্যাচ অনুযায়ী গ্রুপ করা
       const grouped: Record<string, GroupedMatch> = {};
       data.forEach((bet) => {
@@ -49,7 +62,7 @@ export default function SubAdminSettlementPage() {
         grouped[bet.match_id].bets.push(bet);
       });
 
-      // প্রতিটি ম্যাচে কী কী প্রেডিকশন (team_a, team_b, draw, toss) আছে তা বের করা
+      // প্রতিটি ম্যাচে কী কী প্রেডিকশন আছে তা বের করা
       Object.values(grouped).forEach((match) => {
         const uniquePreds = [...new Set(match.bets.map((b) => b.prediction))];
         match.predictions = uniquePreds;
@@ -79,7 +92,6 @@ export default function SubAdminSettlementPage() {
     setProcessing(matchId);
     const winningPrediction = action === "refund" ? "" : selectedPredictions[matchId];
 
-    // ডাটাবেসের settle_match_bets ফাংশন কল করা
     const { error } = await supabase.rpc("settle_match_bets", {
       p_match_id: matchId,
       p_winning_prediction: winningPrediction,
@@ -96,14 +108,13 @@ export default function SubAdminSettlementPage() {
     setTimeout(() => setMessage(""), 4000);
   };
 
-  // প্রেডিকশন নাম সুন্দরভাবে দেখানোর জন্য
   const formatPredictionName = (pred: string, match: GroupedMatch) => {
     if (pred === "team_a") return match.team_a;
     if (pred === "team_b") return match.team_b;
     if (pred === "draw") return "Draw";
     if (pred === "toss_a") return `Toss: ${match.team_a}`;
     if (pred === "toss_b") return `Toss: ${match.team_b}`;
-    return pred; // Extra Markets এর নাম সরাসরি দেখাবে
+    return pred;
   };
 
   return (
@@ -121,6 +132,14 @@ export default function SubAdminSettlementPage() {
         <div style={{ background: "#111d19", padding: "30px", borderRadius: "12px", textAlign: "center", color: "#9ca9a3" }}>
           <i className="fa-solid fa-check-circle" style={{ fontSize: "30px", marginBottom: "10px", display: "block", color: "#00e701" }}></i>
           No pending bets found. All caught up!
+          
+          {/* ডিবাগ এরর এখানে দেখাবে */}
+          {errorLog && (
+            <div style={{ marginTop: "20px", background: "rgba(255,77,77,0.1)", color: "#ff4d4d", padding: "15px", borderRadius: "8px", fontSize: "12px", textAlign: "left", wordBreak: "break-all" }}>
+              <strong>Debug Info:</strong> <br/>
+              {errorLog}
+            </div>
+          )}
         </div>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
