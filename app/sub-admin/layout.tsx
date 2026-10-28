@@ -8,9 +8,9 @@ import { createClient } from "../../lib/supabase/client";
 import "./sub-admin.css";
 
 const menuItems = [
-  { name: "Live Dashboard", path: "/sub-admin", icon: "fa-chart-pie" },
-  { name: "Match Control", path: "/sub-admin/matches", icon: "fa-futbol" },
-  { name: "Bet Settlement", path: "/sub-admin/bets", icon: "fa-ticket" },
+  { name: "Live Dashboard", path: "/sub-admin/dashboard", icon: "fa-chart-line" },
+  { name: "Match Control", path: "/sub-admin/match-control", icon: "fa-futbol" }, 
+  { name: "Match Settlement", path: "/sub-admin/settlement", icon: "fa-ticket" },
 ];
 
 export default function SubAdminLayout({ children }: { children: React.ReactNode }) {
