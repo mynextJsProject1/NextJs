@@ -1,3 +1,4 @@
+/* app/turnover/page.tsx */
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -72,6 +73,33 @@ export default function TurnoverPage() {
   useEffect(() => {
     void loadTurnoverData();
   }, [loadTurnoverData]);
+
+  // --- নতুন: লাইভ আপডেটের জন্য Realtime লিসেনার ---
+  useEffect(() => {
+    if (!supabase) return;
+
+    const channel = supabase
+      .channel("turnover_live_updates")
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "profiles" },
+        () => {
+          void loadTurnoverData(); // বাজি ধরলে profile আপডেট হবে, তখন রি-লোড হবে
+        }
+      )
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "wallet_transactions" },
+        () => {
+          void loadTurnoverData(); // ডিপোজিটের completed_turnover আপডেট হলে রি-লোড হবে
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [supabase, loadTurnoverData]);
 
   const navigate = (page: string) => {
     const routes: Record<string, string> = {
