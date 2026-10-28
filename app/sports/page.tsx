@@ -21,8 +21,9 @@ type Match = {
   odds_a: number;
   odds_draw: number | null;
   odds_b: number;
+  toss_odds_a: number | null;
+  toss_odds_b: number | null;
   start_time: string;
-  last_updated: string;
   is_betting_open: boolean;
 };
 
@@ -46,11 +47,9 @@ export default function SportsPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
 
-  // ব্যালেন্স ও কমিশন
   const [balance, setBalance] = useState(0);
   const [commissionPct, setCommissionPct] = useState(10);
 
-  // Bet Slip State
   const [betSlip, setBetSlip] = useState<BetSlipData | null>(null);
   const [betAmount, setBetAmount] = useState("");
   const [placingBet, setPlacingBet] = useState(false);
@@ -71,10 +70,12 @@ export default function SportsPage() {
         }
       }
 
+      // is_hidden = false ম্যাচগুলোই শুধু দেখাবে
       const { data, error } = await supabase
         .from("live_matches")
         .select("*")
         .eq("sport_type", category)
+        .eq("is_hidden", false) 
         .order("start_time", { ascending: true });
 
       if (error) throw error;
@@ -100,7 +101,6 @@ export default function SportsPage() {
     return () => { supabase.removeChannel(channel); };
   }, [supabase, loadData, category]);
 
-  // প্রতি ৩০ সেকেন্ডে টাইম চেক করবে (অটো-লাইভের জন্য)
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 30000);
     return () => clearInterval(timer);
@@ -111,9 +111,8 @@ export default function SportsPage() {
     router.push(routes[page] ?? "/");
   };
 
-  // ১০ মিনিট পর লক চেক
   const isBettingLocked = (match: Match) => {
-    if (match.match_status === "finished") return true;
+    if (match.match_status === "finished" || match.match_status === "cancelled") return true;
     if (!match.is_betting_open) return true; 
     
     if (match.match_status === "live") {
@@ -184,14 +183,12 @@ export default function SportsPage() {
     }
   };
 
-  // ম্যাচ ফিল্টার (অটো-লাইভ লজিকসহ)
   const filteredMatches = matches.filter((m) => {
-    // ম্যানুয়ালি আপকামিং দেওয়া আছে, কিন্তু সময় পার হয়ে গেছে = লাইভ
     const isTimeToLive = m.match_status === "upcoming" && new Date(m.start_time) <= currentTime;
     const displayStatus = isTimeToLive ? "live" : m.match_status;
 
     if (activeTab === "live") return displayStatus === "live";
-    if (activeTab === "upcoming") return displayStatus === "upcoming";
+    if (activeTab === "upcoming") return displayStatus === "upcoming" || displayStatus === "delayed" || displayStatus === "cancelled";
     if (activeTab === "finished") return displayStatus === "finished";
     return true;
   });
@@ -206,8 +203,11 @@ export default function SportsPage() {
       <div className="sports-match-card" key={match.id}>
         <div className="match-header">
           <span className="match-league">{match.league_name}</span>
-          <span className={`match-status ${isLive ? "live" : "upcoming"}`}>
-            {isLive ? <><span className="live-dot"></span> LIVE</> : new Date(match.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+          <span className={`match-status ${displayStatus}`}>
+            {isLive ? <><span className="live-dot"></span> LIVE</> : 
+             displayStatus === "delayed" ? "DELAYED" :
+             displayStatus === "cancelled" ? "CANCELLED" :
+             new Date(match.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
           </span>
         </div>
 
@@ -222,6 +222,7 @@ export default function SportsPage() {
           </div>
         </div>
 
+        {/* Main Odds */}
         <div className="match-odds">
           <button className={`odd-btn ${isLocked ? 'locked' : ''}`} onClick={() => handleOddsClick(match, "team_a", match.odds_a)} disabled={isLocked}>
             <span>1</span>
@@ -243,6 +244,27 @@ export default function SportsPage() {
             {isLocked && <i className="fa-solid fa-lock lock-icon"></i>}
           </button>
         </div>
+
+        {/* Toss Odds (If Exists) */}
+        {(match.toss_odds_a || match.toss_odds_b) && (
+          <div className="match-odds" style={{ marginTop: "8px" }}>
+            <div style={{ width: "100%", fontSize: "10px", color: "#9ca9a3", marginBottom: "4px" }}>TOSS</div>
+            {match.toss_odds_a && (
+              <button className={`odd-btn ${isLocked ? 'locked' : ''}`} onClick={() => handleOddsClick(match, "toss_a", match.toss_odds_a!)} disabled={isLocked}>
+                <span>{match.team_a.substring(0, 3).toUpperCase()}</span>
+                <strong>{match.toss_odds_a}</strong>
+                {isLocked && <i className="fa-solid fa-lock lock-icon"></i>}
+              </button>
+            )}
+            {match.toss_odds_b && (
+              <button className={`odd-btn ${isLocked ? 'locked' : ''}`} onClick={() => handleOddsClick(match, "toss_b", match.toss_odds_b!)} disabled={isLocked}>
+                <span>{match.team_b.substring(0, 3).toUpperCase()}</span>
+                <strong>{match.toss_odds_b}</strong>
+                {isLocked && <i className="fa-solid fa-lock lock-icon"></i>}
+              </button>
+            )}
+          </div>
+        )}
       </div>
     );
   };
@@ -292,7 +314,12 @@ export default function SportsPage() {
             <div className="slip-match-info">
               <p className="slip-teams">{betSlip.match.team_a} vs {betSlip.match.team_b}</p>
               <div className="slip-prediction">
-                <span>Prediction: <strong>{betSlip.prediction === "team_a" ? betSlip.match.team_a : betSlip.prediction === "team_b" ? betSlip.match.team_b : "Draw"}</strong></span>
+                <span>Prediction: <strong>
+                  {betSlip.prediction === "team_a" ? betSlip.match.team_a : 
+                   betSlip.prediction === "team_b" ? betSlip.match.team_b : 
+                   betSlip.prediction === "toss_a" ? `Toss: ${betSlip.match.team_a}` :
+                   betSlip.prediction === "toss_b" ? `Toss: ${betSlip.match.team_b}` : "Draw"}
+                </strong></span>
                 <span className="slip-odds">@{betSlip.odds}</span>
               </div>
             </div>
