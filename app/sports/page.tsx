@@ -58,7 +58,6 @@ export default function SportsPage() {
   const [placingBet, setPlacingBet] = useState(false);
   const [betMessage, setBetMessage] = useState({ type: "", text: "" });
 
-  // Extra Markets দেখানোর জন্য State
   const [expandedMarkets, setExpandedMarkets] = useState<string[]>([]);
 
   const loadData = useCallback(async () => {
@@ -222,7 +221,7 @@ export default function SportsPage() {
         <div className="match-header">
           <span className="match-league">{match.league_name}</span>
           <span className={`match-status ${displayStatus}`}>
-            {isLive ? <><span className="live-dot"></span> LIVE</> : 
+            {isLive ? <><span className="live-dot blink"></span> LIVE</> : 
              displayStatus === "delayed" ? "DELAYED" :
              displayStatus === "cancelled" ? "CANCELLED" :
              new Date(match.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -263,20 +262,19 @@ export default function SportsPage() {
           </button>
         </div>
 
-        {/* Toss Odds (If Exists) */}
+        {/* Toss Odds (Side by Side) */}
         {(match.toss_odds_a || match.toss_odds_b) && (
           <div className="match-odds" style={{ marginTop: "8px" }}>
-            <div style={{ width: "100%", fontSize: "10px", color: "#9ca9a3", marginBottom: "4px" }}>TOSS</div>
             {match.toss_odds_a && (
               <button className={`odd-btn ${isLocked ? 'locked' : ''}`} onClick={() => handleOddsClick(match, "toss_a", match.toss_odds_a!)} disabled={isLocked}>
-                <span>{match.team_a.substring(0, 3).toUpperCase()}</span>
+                <span>Toss: {match.team_a.substring(0, 3).toUpperCase()}</span>
                 <strong>{match.toss_odds_a}</strong>
                 {isLocked && <i className="fa-solid fa-lock lock-icon"></i>}
               </button>
             )}
             {match.toss_odds_b && (
               <button className={`odd-btn ${isLocked ? 'locked' : ''}`} onClick={() => handleOddsClick(match, "toss_b", match.toss_odds_b!)} disabled={isLocked}>
-                <span>{match.team_b.substring(0, 3).toUpperCase()}</span>
+                <span>Toss: {match.team_b.substring(0, 3).toUpperCase()}</span>
                 <strong>{match.toss_odds_b}</strong>
                 {isLocked && <i className="fa-solid fa-lock lock-icon"></i>}
               </button>
@@ -294,18 +292,18 @@ export default function SportsPage() {
           </button>
         )}
 
-        {/* Extra Markets List */}
+        {/* Extra Markets List (Grid Layout) */}
         {hasExtraMarkets && isExpanded && (
-          <div style={{ marginTop: "10px", display: "flex", flexDirection: "column", gap: "6px" }}>
+          <div className="match-odds" style={{ marginTop: "10px", flexWrap: "wrap" }}>
             {match.extra_markets!.map((market, idx) => (
               <button 
                 key={idx} 
                 className={`odd-btn ${isLocked ? 'locked' : ''}`} 
                 onClick={() => handleOddsClick(match, market.name, market.odds)} 
                 disabled={isLocked}
-                style={{ padding: "10px 12px" }}
+                style={{ minWidth: "45%", flex: 1 }}
               >
-                <span style={{ color: "#fff" }}>{market.name}</span>
+                <span>{market.name}</span>
                 <strong>{market.odds}</strong>
                 {isLocked && <i className="fa-solid fa-lock lock-icon"></i>}
               </button>
