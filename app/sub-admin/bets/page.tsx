@@ -25,13 +25,13 @@ export default function SubAdminBetsPage() {
 
   useEffect(() => { loadData(); }, [loadData]);
 
-  const settleBet = async (id: string, status: "won" | "lost") => {
+  const settleBet = async (id: string, status: "won" | "lost" | "refund") => {
     setProcessing(id);
     const { error } = await supabase.rpc("settle_bet", { p_bet_id: id, p_status: status });
     if (error) {
       setMessage("Error: " + error.message);
     } else {
-      setMessage("Bet settled successfully!");
+      setMessage(`Bet settled as ${status}!`);
       loadData();
     }
     setProcessing(null);
@@ -58,6 +58,7 @@ export default function SubAdminBetsPage() {
 
               <div style={{ display: "flex", gap: "10px" }}>
                 <button onClick={() => settleBet(b.id, "lost")} disabled={processing === b.id} style={{ flex: 1, padding: "10px", borderRadius: "6px", border: "1px solid rgba(255,77,77,0.3)", background: "rgba(255,77,77,0.1)", color: "#ff4d4d", fontWeight: "bold", cursor: "pointer" }}>Lost</button>
+                <button onClick={() => settleBet(b.id, "refund")} disabled={processing === b.id} style={{ flex: 1, padding: "10px", borderRadius: "6px", border: "1px solid rgba(255,193,7,0.3)", background: "rgba(255,193,7,0.1)", color: "#ffc107", fontWeight: "bold", cursor: "pointer" }}>Refund/Draw</button>
                 <button onClick={() => settleBet(b.id, "won")} disabled={processing === b.id} style={{ flex: 1, padding: "10px", borderRadius: "6px", border: "none", background: "#00e701", color: "#000", fontWeight: "bold", cursor: "pointer" }}>Won</button>
               </div>
             </div>
