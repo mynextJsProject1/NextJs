@@ -70,7 +70,6 @@ export default function SportsPage() {
         }
       }
 
-      // is_hidden = false ম্যাচগুলোই শুধু দেখাবে
       const { data, error } = await supabase
         .from("live_matches")
         .select("*")
@@ -115,10 +114,15 @@ export default function SportsPage() {
     if (match.match_status === "finished" || match.match_status === "cancelled") return true;
     if (!match.is_betting_open) return true; 
     
+    const startTime = new Date(match.start_time).getTime();
+    const now = new Date().getTime();
+    const minsElapsed = (now - startTime) / 60000;
+
     if (match.match_status === "live") {
-      const startTime = new Date(match.start_time).getTime();
-      const now = new Date().getTime();
-      if (now > startTime + 10 * 60000) return true;
+      // ফুটবল: ৯০ মিনিট + ১৫ মিনিট হাফটাইম = ১০৫। শেষ ১০ মিনিট আগে (৯৫ মিনিট) লক।
+      if (match.sport_type === "football" && minsElapsed >= 95) return true;
+      // অন্যান্য খেলার জন্য ১০ মিনিট পর লক
+      if (match.sport_type !== "football" && minsElapsed > 10) return true; 
     }
     return false;
   };
@@ -222,7 +226,6 @@ export default function SportsPage() {
           </div>
         </div>
 
-        {/* Main Odds */}
         <div className="match-odds">
           <button className={`odd-btn ${isLocked ? 'locked' : ''}`} onClick={() => handleOddsClick(match, "team_a", match.odds_a)} disabled={isLocked}>
             <span>1</span>
@@ -245,7 +248,6 @@ export default function SportsPage() {
           </button>
         </div>
 
-        {/* Toss Odds (If Exists) */}
         {(match.toss_odds_a || match.toss_odds_b) && (
           <div className="match-odds" style={{ marginTop: "8px" }}>
             <div style={{ width: "100%", fontSize: "10px", color: "#9ca9a3", marginBottom: "4px" }}>TOSS</div>
@@ -302,7 +304,6 @@ export default function SportsPage() {
 
       <Footer activePage="sports" onNavigate={navigate} />
 
-      {/* Bet Slip Modal */}
       {betSlip && (
         <div className="bet-slip-overlay">
           <div className="bet-slip">
