@@ -27,6 +27,7 @@ export default function SubAdminMatchControlPage() {
   const [teamA, setTeamA] = useState("");
   const [teamB, setTeamB] = useState("");
   const [startTime, setStartTime] = useState("");
+  const [matchTime, setMatchTime] = useState(""); // নতুন: ম্যাচের টাইম
   const [oddsA, setOddsA] = useState("1.80");
   const [oddsDraw, setOddsDraw] = useState("3.50");
   const [oddsB, setOddsB] = useState("2.10");
@@ -57,6 +58,7 @@ export default function SubAdminMatchControlPage() {
   const resetForm = () => {
     setEditingId(null);
     setLeagueName(""); setTeamA(""); setTeamB(""); setStartTime("");
+    setMatchTime(""); // নতুন রিসেট
     setOddsA("1.80"); setOddsDraw("3.50"); setOddsB("2.10");
     setTossOddsA(""); setTossOddsB("");
     setExtraMarkets([]);
@@ -71,6 +73,7 @@ export default function SubAdminMatchControlPage() {
     const d = new Date(match.start_time);
     const localTime = new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
     setStartTime(localTime);
+    setMatchTime(match.match_time || ""); // নতুন: টাইম লোড করা
     setOddsA(match.odds_a.toString()); 
     setOddsDraw(match.odds_draw ? match.odds_draw.toString() : ""); 
     setOddsB(match.odds_b.toString());
@@ -102,6 +105,7 @@ export default function SubAdminMatchControlPage() {
         league_name: leagueName,
         team_a: teamA,
         team_b: teamB,
+        match_time: matchTime, // নতুন: টাইম সেভ করা
         odds_a: Number(oddsA),
         odds_draw: sport === "football" && oddsDraw ? Number(oddsDraw) : null,
         odds_b: Number(oddsB),
@@ -193,55 +197,61 @@ export default function SubAdminMatchControlPage() {
 
       {/* Add/Edit Form */}
       {showForm && (
-        <form onSubmit={handleSaveMatch} style={{ background: "#111d19", border: "1px solid #26352e", borderRadius: "12px", padding: "16px", marginBottom: "24px", display: "flex", flexDirection: "column", gap: "12px" }}>
+        <form onSubmit={handleSaveMatch} style={{ background: "#111d19", border: "1px solid #26352e", borderRadius: "12px", padding: "16px", marginBottom: "24px", display: "flex", flexDirection: "column", gap: "12px", width: "100%", boxSizing: "border-box" }}>
           <h3 style={{ margin: "0 0 10px", color: "#fff" }}>{editingId ? "Edit Match" : "Create New Match"}</h3>
           
-          <input type="text" placeholder="League Name" value={leagueName} onChange={(e) => setLeagueName(e.target.value)} required style={{ background: "#07110f", color: "#fff", border: "1px solid #26352e", padding: "10px", borderRadius: "6px" }} />
+          <input type="text" placeholder="League Name" value={leagueName} onChange={(e) => setLeagueName(e.target.value)} required style={{ width: "100%", boxSizing: "border-box", background: "#07110f", color: "#fff", border: "1px solid #26352e", padding: "10px", borderRadius: "6px" }} />
           
-          <div style={{ display: "flex", gap: "10px" }}>
-            <input type="text" placeholder="Team A" value={teamA} onChange={(e) => setTeamA(e.target.value)} required style={{ flex: 1, background: "#07110f", color: "#fff", border: "1px solid #26352e", padding: "10px", borderRadius: "6px" }} />
-            <input type="text" placeholder="Team B" value={teamB} onChange={(e) => setTeamB(e.target.value)} required style={{ flex: 1, background: "#07110f", color: "#fff", border: "1px solid #26352e", padding: "10px", borderRadius: "6px" }} />
+          <div style={{ display: "flex", gap: "10px", width: "100%" }}>
+            <input type="text" placeholder="Team A" value={teamA} onChange={(e) => setTeamA(e.target.value)} required style={{ flex: 1, minWidth: 0, boxSizing: "border-box", background: "#07110f", color: "#fff", border: "1px solid #26352e", padding: "10px", borderRadius: "6px" }} />
+            <input type="text" placeholder="Team B" value={teamB} onChange={(e) => setTeamB(e.target.value)} required style={{ flex: 1, minWidth: 0, boxSizing: "border-box", background: "#07110f", color: "#fff", border: "1px solid #26352e", padding: "10px", borderRadius: "6px" }} />
           </div>
 
-          <div>
-            <label style={{ color: "#9ca9a3", fontSize: "12px" }}>Start Time</label>
-            <input type="datetime-local" value={startTime} onChange={(e) => setStartTime(e.target.value)} required style={{ width: "100%", background: "#07110f", color: "#fff", border: "1px solid #26352e", padding: "10px", borderRadius: "6px", marginTop: "4px" }} />
+          <div style={{ display: "flex", gap: "10px", width: "100%" }}>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <label style={{ color: "#9ca9a3", fontSize: "12px" }}>Start Time</label>
+              <input type="datetime-local" value={startTime} onChange={(e) => setStartTime(e.target.value)} required style={{ width: "100%", boxSizing: "border-box", background: "#07110f", color: "#fff", border: "1px solid #26352e", padding: "10px", borderRadius: "6px", marginTop: "4px" }} />
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <label style={{ color: "#9ca9a3", fontSize: "12px" }}>Match Time (e.g. 45', HT)</label>
+              <input type="text" value={matchTime} onChange={(e) => setMatchTime(e.target.value)} placeholder="Optional" style={{ width: "100%", boxSizing: "border-box", background: "#07110f", color: "#ff4d4d", border: "1px solid #26352e", padding: "10px", borderRadius: "6px", marginTop: "4px", fontWeight: "bold" }} />
+            </div>
           </div>
 
-          <div style={{ display: "flex", gap: "10px" }}>
-            <div style={{ flex: 1 }}>
+          <div style={{ display: "flex", gap: "10px", width: "100%" }}>
+            <div style={{ flex: 1, minWidth: 0 }}>
               <label style={{ color: "#9ca9a3", fontSize: "12px" }}>A Odds</label>
-              <input type="number" step="0.01" value={oddsA} onChange={(e) => setOddsA(e.target.value)} required style={{ width: "100%", background: "#07110f", color: "#fff", border: "1px solid #26352e", padding: "10px", borderRadius: "6px" }} />
+              <input type="number" step="0.01" value={oddsA} onChange={(e) => setOddsA(e.target.value)} required style={{ width: "100%", boxSizing: "border-box", background: "#07110f", color: "#fff", border: "1px solid #26352e", padding: "10px", borderRadius: "6px" }} />
             </div>
             {sport === "football" && (
-              <div style={{ flex: 1 }}>
+              <div style={{ flex: 1, minWidth: 0 }}>
                 <label style={{ color: "#9ca9a3", fontSize: "12px" }}>Draw</label>
-                <input type="number" step="0.01" value={oddsDraw} onChange={(e) => setOddsDraw(e.target.value)} style={{ width: "100%", background: "#07110f", color: "#fff", border: "1px solid #26352e", padding: "10px", borderRadius: "6px" }} />
+                <input type="number" step="0.01" value={oddsDraw} onChange={(e) => setOddsDraw(e.target.value)} style={{ width: "100%", boxSizing: "border-box", background: "#07110f", color: "#fff", border: "1px solid #26352e", padding: "10px", borderRadius: "6px" }} />
               </div>
             )}
-            <div style={{ flex: 1 }}>
+            <div style={{ flex: 1, minWidth: 0 }}>
               <label style={{ color: "#9ca9a3", fontSize: "12px" }}>B Odds</label>
-              <input type="number" step="0.01" value={oddsB} onChange={(e) => setOddsB(e.target.value)} required style={{ width: "100%", background: "#07110f", color: "#fff", border: "1px solid #26352e", padding: "10px", borderRadius: "6px" }} />
+              <input type="number" step="0.01" value={oddsB} onChange={(e) => setOddsB(e.target.value)} required style={{ width: "100%", boxSizing: "border-box", background: "#07110f", color: "#fff", border: "1px solid #26352e", padding: "10px", borderRadius: "6px" }} />
             </div>
           </div>
 
-          <div style={{ display: "flex", gap: "10px", borderTop: "1px dashed #26352e", paddingTop: "10px" }}>
-            <div style={{ flex: 1 }}>
+          <div style={{ display: "flex", gap: "10px", borderTop: "1px dashed #26352e", paddingTop: "10px", width: "100%" }}>
+            <div style={{ flex: 1, minWidth: 0 }}>
               <label style={{ color: "#9ca9a3", fontSize: "12px" }}>Toss: {teamA || "Team A"} Odds</label>
-              <input type="number" step="0.01" value={tossOddsA} onChange={(e) => setTossOddsA(e.target.value)} placeholder="Optional" style={{ width: "100%", background: "#07110f", color: "#fff", border: "1px solid #26352e", padding: "10px", borderRadius: "6px" }} />
+              <input type="number" step="0.01" value={tossOddsA} onChange={(e) => setTossOddsA(e.target.value)} placeholder="Optional" style={{ width: "100%", boxSizing: "border-box", background: "#07110f", color: "#fff", border: "1px solid #26352e", padding: "10px", borderRadius: "6px" }} />
             </div>
-            <div style={{ flex: 1 }}>
+            <div style={{ flex: 1, minWidth: 0 }}>
               <label style={{ color: "#9ca9a3", fontSize: "12px" }}>Toss: {teamB || "Team B"} Odds</label>
-              <input type="number" step="0.01" value={tossOddsB} onChange={(e) => setTossOddsB(e.target.value)} placeholder="Optional" style={{ width: "100%", background: "#07110f", color: "#fff", border: "1px solid #26352e", padding: "10px", borderRadius: "6px" }} />
+              <input type="number" step="0.01" value={tossOddsB} onChange={(e) => setTossOddsB(e.target.value)} placeholder="Optional" style={{ width: "100%", boxSizing: "border-box", background: "#07110f", color: "#fff", border: "1px solid #26352e", padding: "10px", borderRadius: "6px" }} />
             </div>
           </div>
 
           {/* Extra Markets */}
-          <div style={{ borderTop: "1px dashed #26352e", paddingTop: "10px" }}>
+          <div style={{ borderTop: "1px dashed #26352e", paddingTop: "10px", width: "100%" }}>
             <label style={{ color: "#00e701", fontSize: "13px", fontWeight: "bold", display: "block", marginBottom: "8px" }}>Extra Markets (Optional)</label>
             {extraMarkets.map((em, index) => (
-              <div key={index} style={{ display: "flex", gap: "10px", marginBottom: "8px" }}>
-                <div style={{ flex: 2 }}>
+              <div key={index} style={{ display: "flex", gap: "10px", marginBottom: "8px", width: "100%" }}>
+                <div style={{ flex: 2, minWidth: 0 }}>
                   <input 
                     type="text" 
                     placeholder="Market Name (e.g. Over 2.5)" 
@@ -249,10 +259,10 @@ export default function SubAdminMatchControlPage() {
                     onChange={(e) => {
                       const newArr = [...extraMarkets]; newArr[index].name = e.target.value; setExtraMarkets(newArr);
                     }} 
-                    style={{ width: "100%", background: "#07110f", color: "#fff", border: "1px solid #26352e", padding: "8px", borderRadius: "6px" }} 
+                    style={{ width: "100%", boxSizing: "border-box", background: "#07110f", color: "#fff", border: "1px solid #26352e", padding: "8px", borderRadius: "6px" }} 
                   />
                 </div>
-                <div style={{ flex: 1 }}>
+                <div style={{ flex: 1, minWidth: 0 }}>
                   <input 
                     type="number" 
                     step="0.01" 
@@ -261,7 +271,7 @@ export default function SubAdminMatchControlPage() {
                     onChange={(e) => {
                       const newArr = [...extraMarkets]; newArr[index].odds = e.target.value; setExtraMarkets(newArr);
                     }} 
-                    style={{ width: "100%", background: "#07110f", color: "#fff", border: "1px solid #26352e", padding: "8px", borderRadius: "6px" }} 
+                    style={{ width: "100%", boxSizing: "border-box", background: "#07110f", color: "#fff", border: "1px solid #26352e", padding: "8px", borderRadius: "6px" }} 
                   />
                 </div>
                 <button 
@@ -278,22 +288,22 @@ export default function SubAdminMatchControlPage() {
             <button 
               type="button" 
               onClick={() => setExtraMarkets([...extraMarkets, { name: "", odds: "" }])} 
-              style={{ background: "rgba(255,255,255,0.1)", color: "#fff", border: "none", padding: "8px 12px", borderRadius: "6px", fontSize: "12px", cursor: "pointer", width: "100%" }}
+              style={{ background: "rgba(255,255,255,0.1)", color: "#fff", border: "none", padding: "8px 12px", borderRadius: "6px", fontSize: "12px", cursor: "pointer", width: "100%", boxSizing: "border-box" }}
             >
               + Add Extra Market
             </button>
           </div>
 
-          <button type="submit" disabled={formLoading} style={{ background: "#00e701", color: "#000", border: "none", padding: "12px", borderRadius: "6px", fontWeight: "bold", marginTop: "8px", cursor: "pointer" }}>
+          <button type="submit" disabled={formLoading} style={{ background: "#00e701", color: "#000", border: "none", padding: "12px", borderRadius: "6px", fontWeight: "bold", marginTop: "8px", cursor: "pointer", width: "100%", boxSizing: "border-box" }}>
             {formLoading ? "Saving..." : "Save Match"}
           </button>
         </form>
       )}
       
       {loading ? <p>Loading...</p> : matches.length === 0 ? <p style={{ color: "#9ca9a3" }}>No matches found.</p> : (
-        <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: "16px", width: "100%" }}>
           {matches.map(m => (
-            <div key={m.id} style={{ background: m.is_hidden ? "rgba(255,255,255,0.02)" : "#111d19", border: "1px solid #26352e", borderRadius: "12px", padding: "16px", opacity: m.is_hidden ? 0.6 : 1 }}>
+            <div key={m.id} style={{ background: m.is_hidden ? "rgba(255,255,255,0.02)" : "#111d19", border: "1px solid #26352e", borderRadius: "12px", padding: "16px", opacity: m.is_hidden ? 0.6 : 1, width: "100%", boxSizing: "border-box" }}>
               
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "12px" }}>
                 <div>
@@ -319,39 +329,44 @@ export default function SubAdminMatchControlPage() {
                 </select>
               </div>
 
-              <div style={{ display: "flex", gap: "10px", marginBottom: "12px", background: "rgba(255,255,255,0.02)", padding: "10px", borderRadius: "8px" }}>
-                <div style={{ flex: 1 }}>
+              {/* কুইক আপডেট এরিয়া */}
+              <div style={{ display: "flex", gap: "10px", marginBottom: "12px", background: "rgba(255,255,255,0.02)", padding: "10px", borderRadius: "8px", width: "100%", boxSizing: "border-box", flexWrap: "wrap" }}>
+                <div style={{ flex: 1, minWidth: "30%" }}>
                   <label style={{ fontSize: "11px", color: "#9ca9a3" }}>Score A</label>
-                  <input type="text" defaultValue={m.live_score_a} onBlur={(e) => updateField(m.id, "live_score_a", e.target.value)} style={{ width: "100%", background: "#07110f", color: "#00e701", border: "1px solid #26352e", padding: "8px", borderRadius: "6px", fontWeight: "bold", textAlign: "center" }} />
+                  <input type="text" defaultValue={m.live_score_a} onBlur={(e) => updateField(m.id, "live_score_a", e.target.value)} style={{ width: "100%", boxSizing: "border-box", background: "#07110f", color: "#00e701", border: "1px solid #26352e", padding: "8px", borderRadius: "6px", fontWeight: "bold", textAlign: "center" }} />
                 </div>
-                <div style={{ flex: 1 }}>
+                <div style={{ flex: 1, minWidth: "30%" }}>
                   <label style={{ fontSize: "11px", color: "#9ca9a3" }}>Score B</label>
-                  <input type="text" defaultValue={m.live_score_b} onBlur={(e) => updateField(m.id, "live_score_b", e.target.value)} style={{ width: "100%", background: "#07110f", color: "#00e701", border: "1px solid #26352e", padding: "8px", borderRadius: "6px", fontWeight: "bold", textAlign: "center" }} />
+                  <input type="text" defaultValue={m.live_score_b} onBlur={(e) => updateField(m.id, "live_score_b", e.target.value)} style={{ width: "100%", boxSizing: "border-box", background: "#07110f", color: "#00e701", border: "1px solid #26352e", padding: "8px", borderRadius: "6px", fontWeight: "bold", textAlign: "center" }} />
+                </div>
+                <div style={{ flex: 1, minWidth: "30%" }}>
+                  <label style={{ fontSize: "11px", color: "#9ca9a3" }}>Match Time</label>
+                  <input type="text" defaultValue={m.match_time || ""} onBlur={(e) => updateField(m.id, "match_time", e.target.value)} placeholder="e.g. 45'" style={{ width: "100%", boxSizing: "border-box", background: "#07110f", color: "#ff4d4d", border: "1px solid #26352e", padding: "8px", borderRadius: "6px", fontWeight: "bold", textAlign: "center" }} />
                 </div>
               </div>
 
-              <div style={{ display: "flex", gap: "10px", marginBottom: "12px" }}>
-                <div style={{ flex: 1 }}>
+              <div style={{ display: "flex", gap: "10px", marginBottom: "12px", width: "100%", boxSizing: "border-box" }}>
+                <div style={{ flex: 1, minWidth: 0 }}>
                   <label style={{ fontSize: "11px", color: "#9ca9a3" }}>A Odds</label>
-                  <input type="number" step="0.01" defaultValue={m.odds_a} onBlur={(e) => updateField(m.id, "odds_a", Number(e.target.value))} style={{ width: "100%", background: "#07110f", color: "#fff", border: "1px solid #26352e", padding: "8px", borderRadius: "6px" }} />
+                  <input type="number" step="0.01" defaultValue={m.odds_a} onBlur={(e) => updateField(m.id, "odds_a", Number(e.target.value))} style={{ width: "100%", boxSizing: "border-box", background: "#07110f", color: "#fff", border: "1px solid #26352e", padding: "8px", borderRadius: "6px" }} />
                 </div>
                 {m.sport_type === "football" && (
-                  <div style={{ flex: 1 }}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
                     <label style={{ fontSize: "11px", color: "#9ca9a3" }}>Draw</label>
-                    <input type="number" step="0.01" defaultValue={m.odds_draw} onBlur={(e) => updateField(m.id, "odds_draw", Number(e.target.value))} style={{ width: "100%", background: "#07110f", color: "#fff", border: "1px solid #26352e", padding: "8px", borderRadius: "6px" }} />
+                    <input type="number" step="0.01" defaultValue={m.odds_draw} onBlur={(e) => updateField(m.id, "odds_draw", Number(e.target.value))} style={{ width: "100%", boxSizing: "border-box", background: "#07110f", color: "#fff", border: "1px solid #26352e", padding: "8px", borderRadius: "6px" }} />
                   </div>
                 )}
-                <div style={{ flex: 1 }}>
+                <div style={{ flex: 1, minWidth: 0 }}>
                   <label style={{ fontSize: "11px", color: "#9ca9a3" }}>B Odds</label>
-                  <input type="number" step="0.01" defaultValue={m.odds_b} onBlur={(e) => updateField(m.id, "odds_b", Number(e.target.value))} style={{ width: "100%", background: "#07110f", color: "#fff", border: "1px solid #26352e", padding: "8px", borderRadius: "6px" }} />
+                  <input type="number" step="0.01" defaultValue={m.odds_b} onBlur={(e) => updateField(m.id, "odds_b", Number(e.target.value))} style={{ width: "100%", boxSizing: "border-box", background: "#07110f", color: "#fff", border: "1px solid #26352e", padding: "8px", borderRadius: "6px" }} />
                 </div>
               </div>
 
-              <div style={{ display: "flex", gap: "10px" }}>
-                <button onClick={() => updateField(m.id, "is_betting_open", !m.is_betting_open)} style={{ flex: 1, padding: "10px", borderRadius: "6px", border: "none", background: m.is_betting_open ? "rgba(255,77,77,0.15)" : "rgba(0,231,1,0.15)", color: m.is_betting_open ? "#ff4d4d" : "#00e701", fontWeight: "bold", cursor: "pointer" }}>
+              <div style={{ display: "flex", gap: "10px", width: "100%" }}>
+                <button onClick={() => updateField(m.id, "is_betting_open", !m.is_betting_open)} style={{ flex: 1, padding: "10px", borderRadius: "6px", border: "none", background: m.is_betting_open ? "rgba(255,77,77,0.15)" : "rgba(0,231,1,0.15)", color: m.is_betting_open ? "#ff4d4d" : "#00e701", fontWeight: "bold", cursor: "pointer", boxSizing: "border-box" }}>
                   {m.is_betting_open ? "Lock Betting" : "Unlock Betting"}
                 </button>
-                <button onClick={() => updateStatus(m.id, "finished")} style={{ flex: 1, padding: "10px", borderRadius: "6px", border: "1px solid rgba(255, 193, 7, 0.3)", background: "rgba(255, 193, 7, 0.1)", color: "#ffc107", fontWeight: "bold", cursor: "pointer" }}>
+                <button onClick={() => updateStatus(m.id, "finished")} style={{ flex: 1, padding: "10px", borderRadius: "6px", border: "1px solid rgba(255, 193, 7, 0.3)", background: "rgba(255, 193, 7, 0.1)", color: "#ffc107", fontWeight: "bold", cursor: "pointer", boxSizing: "border-box" }}>
                   Finish Match
                 </button>
               </div>
