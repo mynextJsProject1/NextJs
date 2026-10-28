@@ -20,7 +20,7 @@ type Match = {
   live_score_a: string;
   live_score_b: string;
   match_status: string;
-  match_time: string | null; // <-- নতুন যোগ করা হলো
+  match_time: string | null;
   odds_a: number;
   odds_draw: number | null;
   odds_b: number;
@@ -107,6 +107,7 @@ export default function SportsPage() {
     return () => { supabase.removeChannel(channel); };
   }, [supabase, loadData, category]);
 
+  // প্রতি ৩০ সেকেন্ডে বর্তমান সময় আপডেট হবে (অটো টাইমারের জন্য)
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 30000);
     return () => clearInterval(timer);
@@ -130,6 +131,41 @@ export default function SportsPage() {
       if (match.sport_type !== "football" && minsElapsed > 10) return true; 
     }
     return false;
+  };
+
+  // --- নতুন অটো-টাইমার লজিক ---
+  const calculateMatchTime = (match: Match) => {
+    // ১. যদি ডাটাবেসে ম্যানুয়ালি বা ESPN থেকে টাইম দেওয়া থাকে, তবে সেটাই দেখাবে
+    if (match.match_time && match.match_time.trim() !== "") {
+      return match.match_time;
+    }
+
+    // ২. যদি টাইম ফাঁকা থাকে, তবে start_time থেকে অটোমেটিক হিসাব করবে
+    if (match.match_status !== "live") return "";
+    
+    const start = new Date(match.start_time).getTime();
+    const now = currentTime.getTime();
+    if (now < start) return "";
+
+    const mins = Math.floor((now - start) / 60000);
+
+    if (match.sport_type === "football") {
+      if (mins <= 45) return `${mins}'`;
+      if (mins <= 60) return `HT`;
+      if (mins <= 105) return `${mins - 15}'`; // হাফটাইম ১৫ মিনিট বাদ
+      return `90'+`;
+    } else if (match.sport_type === "nba") {
+      if (mins <= 35) return `Q1`;
+      if (mins <= 75) return `Q2`;
+      if (mins <= 115) return `Q3`;
+      if (mins <= 150) return `Q4`;
+      return `OT`;
+    } else if (match.sport_type === "cricket") {
+      const h = Math.floor(mins / 60);
+      const m = mins % 60;
+      return h > 0 ? `${h}h ${m}m` : `${m}m`;
+    }
+    return `${mins}'`;
   };
 
   const handleOddsClick = (match: Match, prediction: string, odds: number) => {
@@ -217,6 +253,7 @@ export default function SportsPage() {
     const isLocked = isBettingLocked(match);
     const hasExtraMarkets = match.extra_markets && match.extra_markets.length > 0;
     const isExpanded = expandedMarkets.includes(match.id);
+    const autoTime = calculateMatchTime(match);
     
     return (
       <div className="sports-match-card" key={match.id}>
@@ -224,8 +261,8 @@ export default function SportsPage() {
           <span className="match-league">{match.league_name}</span>
           <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
             {/* এখানে ম্যাচের টাইম দেখানো হচ্ছে */}
-            {isLive && match.match_time && (
-              <span className="match-time-badge">{match.match_time}</span>
+            {isLive && autoTime && (
+              <span className="match-time-badge">{autoTime}</span>
             )}
             <span className={`match-status ${displayStatus}`}>
               {isLive ? <><span className="live-dot blink"></span> LIVE</> : 
