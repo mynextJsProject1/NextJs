@@ -11,9 +11,11 @@ type ExtraMarket = { name: string; odds: string };
 export default function SubAdminMatchesPage() {
   const searchParams = useSearchParams();
   const initialSport = searchParams.get("sport") || "football";
+  const initialStatus = searchParams.get("status") || ""; // ড্যাশবোর্ড থেকে status আসবে
   
   const [matches, setMatches] = useState<any[]>([]);
   const [sport, setSport] = useState(initialSport);
+  const [filterStatus, setFilterStatus] = useState(initialStatus); // live নাকি all
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
   
@@ -38,10 +40,19 @@ export default function SubAdminMatchesPage() {
 
   const loadData = useCallback(async () => {
     setLoading(true);
-    const { data } = await supabase.from("live_matches").select("*").eq("sport_type", sport).order("start_time", { ascending: false });
+    
+    // কুয়েরি তৈরি করা
+    let query = supabase.from("live_matches").select("*").eq("sport_type", sport).order("start_time", { ascending: false });
+    
+    // যদি ড্যাশবোর্ড থেকে live সিলেক্ট করা থাকে, তবে শুধু live ম্যাচ আসবে
+    if (filterStatus === "live") {
+      query = query.eq("match_status", "live");
+    }
+
+    const { data } = await query;
     if (data) setMatches(data);
     setLoading(false);
-  }, [supabase, sport]);
+  }, [supabase, sport, filterStatus]);
 
   useEffect(() => { loadData(); }, [loadData]);
 
@@ -68,7 +79,6 @@ export default function SubAdminMatchesPage() {
     setTossOddsA(match.toss_odds_a ? match.toss_odds_a.toString() : "");
     setTossOddsB(match.toss_odds_b ? match.toss_odds_b.toString() : "");
     
-    // Extra Markets লোড করা
     if (match.extra_markets && Array.isArray(match.extra_markets)) {
       setExtraMarkets(match.extra_markets.map((m: any) => ({ name: m.name, odds: m.odds.toString() })));
     } else {
@@ -85,7 +95,6 @@ export default function SubAdminMatchesPage() {
     setMessage("");
 
     try {
-      // Extra Markets ফরম্যাটিং
       const formattedExtraMarkets = extraMarkets
         .filter(em => em.name.trim() !== "" && em.odds !== "")
         .map(em => ({ name: em.name, odds: Number(em.odds) }));
@@ -157,7 +166,16 @@ export default function SubAdminMatchesPage() {
   return (
     <div>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px", flexWrap: "wrap", gap: "10px" }}>
-        <h1 className="sa-title" style={{ margin: 0 }}>Manage {sport.toUpperCase()}</h1>
+        <div>
+          <h1 className="sa-title" style={{ margin: 0 }}>
+            Manage {sport.toUpperCase()} {filterStatus === "live" && "(Live Only)"}
+          </h1>
+          {filterStatus === "live" && (
+            <button onClick={() => setFilterStatus("")} style={{ background: "transparent", border: "none", color: "#00e701", fontSize: "12px", cursor: "pointer", marginTop: "4px", padding: 0 }}>
+              ← Show All Matches
+            </button>
+          )}
+        </div>
         <div style={{ display: "flex", gap: "10px" }}>
           <select value={sport} onChange={(e) => setSport(e.target.value)} style={{ background: "#07110f", color: "#fff", padding: "8px 16px", borderRadius: "8px", border: "1px solid #26352e" }}>
             <option value="football">Football</option>
@@ -175,7 +193,6 @@ export default function SubAdminMatchesPage() {
 
       {message && <div style={{ background: "rgba(0,231,1,0.1)", color: "#00e701", padding: "10px", borderRadius: "6px", marginBottom: "16px" }}>{message}</div>}
 
-      {/* Add/Edit Form */}
       {showForm && (
         <form onSubmit={handleSaveMatch} style={{ background: "#111d19", border: "1px solid #26352e", borderRadius: "12px", padding: "16px", marginBottom: "24px", display: "flex", flexDirection: "column", gap: "12px" }}>
           <h3 style={{ margin: "0 0 10px", color: "#fff" }}>{editingId ? "Edit Match" : "Create New Match"}</h3>
@@ -209,7 +226,6 @@ export default function SubAdminMatchesPage() {
             </div>
           </div>
 
-          {/* Toss Odds */}
           <div style={{ display: "flex", gap: "10px", borderTop: "1px dashed #26352e", paddingTop: "10px" }}>
             <div style={{ flex: 1 }}>
               <label style={{ color: "#9ca9a3", fontSize: "12px" }}>Toss: {teamA || "Team A"} Odds</label>
@@ -221,23 +237,50 @@ export default function SubAdminMatchesPage() {
             </div>
           </div>
 
-          {/* Extra Markets */}
+          {/* Extra Markets with Clear Labels */}
           <div style={{ borderTop: "1px dashed #26352e", paddingTop: "10px" }}>
             <label style={{ color: "#00e701", fontSize: "13px", fontWeight: "bold", display: "block", marginBottom: "8px" }}>Extra Markets (Optional)</label>
             {extraMarkets.map((em, index) => (
               <div key={index} style={{ display: "flex", gap: "10px", marginBottom: "8px" }}>
-                <input type="text" placeholder="e.g. Over 2.5" value={em.name} onChange={(e) => {
-                  const newArr = [...extraMarkets]; newArr[index].name = e.target.value; setExtraMarkets(newArr);
-                }} style={{ flex: 2, background: "#07110f", color: "#fff", border: "1px solid #26352e", padding: "8px", borderRadius: "6px" }} />
-                <input type="number" step="0.01" placeholder="Odds" value={em.odds} onChange={(e) => {
-                  const newArr = [...extraMarkets]; newArr[index].odds = e.target.value; setExtraMarkets(newArr);
-                }} style={{ flex: 1, background: "#07110f", color: "#fff", border: "1px solid #26352e", padding: "8px", borderRadius: "6px" }} />
-                <button type="button" onClick={() => {
-                  const newArr = extraMarkets.filter((_, i) => i !== index); setExtraMarkets(newArr);
-                }} style={{ background: "rgba(255,77,77,0.2)", color: "#ff4d4d", border: "none", padding: "0 12px", borderRadius: "6px", cursor: "pointer" }}><i className="fa-solid fa-trash"></i></button>
+                <div style={{ flex: 2 }}>
+                  <input 
+                    type="text" 
+                    placeholder="Market Name (e.g. Over 2.5)" 
+                    value={em.name} 
+                    onChange={(e) => {
+                      const newArr = [...extraMarkets]; newArr[index].name = e.target.value; setExtraMarkets(newArr);
+                    }} 
+                    style={{ width: "100%", background: "#07110f", color: "#fff", border: "1px solid #26352e", padding: "8px", borderRadius: "6px" }} 
+                  />
+                </div>
+                <div style={{ flex: 1 }}>
+                  <input 
+                    type="number" 
+                    step="0.01" 
+                    placeholder="Odds" 
+                    value={em.odds} 
+                    onChange={(e) => {
+                      const newArr = [...extraMarkets]; newArr[index].odds = e.target.value; setExtraMarkets(newArr);
+                    }} 
+                    style={{ width: "100%", background: "#07110f", color: "#fff", border: "1px solid #26352e", padding: "8px", borderRadius: "6px" }} 
+                  />
+                </div>
+                <button 
+                  type="button" 
+                  onClick={() => {
+                    const newArr = extraMarkets.filter((_, i) => i !== index); setExtraMarkets(newArr);
+                  }} 
+                  style={{ background: "rgba(255,77,77,0.2)", color: "#ff4d4d", border: "none", padding: "0 12px", borderRadius: "6px", cursor: "pointer" }}
+                >
+                  <i className="fa-solid fa-trash"></i>
+                </button>
               </div>
             ))}
-            <button type="button" onClick={() => setExtraMarkets([...extraMarkets, { name: "", odds: "" }])} style={{ background: "rgba(255,255,255,0.1)", color: "#fff", border: "none", padding: "8px 12px", borderRadius: "6px", fontSize: "12px", cursor: "pointer", width: "100%" }}>
+            <button 
+              type="button" 
+              onClick={() => setExtraMarkets([...extraMarkets, { name: "", odds: "" }])} 
+              style={{ background: "rgba(255,255,255,0.1)", color: "#fff", border: "none", padding: "8px 12px", borderRadius: "6px", fontSize: "12px", cursor: "pointer", width: "100%" }}
+            >
               + Add Extra Market
             </button>
           </div>
@@ -248,7 +291,7 @@ export default function SubAdminMatchesPage() {
         </form>
       )}
       
-      {loading ? <p>Loading...</p> : (
+      {loading ? <p>Loading...</p> : matches.length === 0 ? <p style={{ color: "#9ca9a3" }}>No matches found.</p> : (
         <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
           {matches.map(m => (
             <div key={m.id} style={{ background: m.is_hidden ? "rgba(255,255,255,0.02)" : "#111d19", border: "1px solid #26352e", borderRadius: "12px", padding: "16px", opacity: m.is_hidden ? 0.6 : 1 }}>
