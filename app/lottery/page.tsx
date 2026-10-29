@@ -80,10 +80,10 @@ export default function LotteryHomePage() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { router.replace("/signup/"); return; }
 
-      // ১. ব্যালেন্স এবং KYC চেক
-      const { data: profile } = await supabase.from("profiles").select("balance, mobile, full_name").eq("id", user.id).single();
+      // ✅ ১. এখানে balance এর জায়গায় lottery_balance নেওয়া হচ্ছে
+      const { data: profile } = await supabase.from("profiles").select("lottery_balance, mobile, full_name").eq("id", user.id).single();
       if (profile) {
-        setBalance(Number(profile.balance));
+        setBalance(Number(profile.lottery_balance || 0)); 
         setKycData(prev => ({ ...prev, mobile: profile.mobile || "", full_name: profile.full_name || "" }));
       }
 
