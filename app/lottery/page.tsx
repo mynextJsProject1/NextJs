@@ -174,7 +174,6 @@ export default function LotteryPage() {
     setBuying(true);
     setMessage({ type: "", text: "" });
 
-    // ডাটাবেসের আপডেট করা ফাংশন কল
     const { data, error } = await supabase.rpc("buy_lottery_tickets_bulk", {
       p_draw_id: draw.id,
       p_ticket_numbers: selectedNumbers
@@ -197,25 +196,38 @@ export default function LotteryPage() {
   const handleSaveKyc = async (e: React.FormEvent) => {
     e.preventDefault();
     setSavingKyc(true);
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+    setMessage({ type: "", text: "" }); // এরর ক্লিয়ার করা
 
-    const { error } = await supabase.from("lottery_user_details").upsert({
-      user_id: user.id,
-      mobile: kycData.mobile,
-      full_name: kycData.full_name,
-      father_name: kycData.father_name,
-      mother_name: kycData.mother_name,
-      full_address: kycData.full_address
-    });
+    try {
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      if (authError || !user) {
+        throw new Error("Please log in again.");
+      }
 
-    if (!error) {
+      const { error } = await supabase.from("lottery_user_details").upsert({
+        user_id: user.id,
+        mobile: kycData.mobile,
+        full_name: kycData.full_name,
+        father_name: kycData.father_name,
+        mother_name: kycData.mother_name,
+        full_address: kycData.full_address
+      }, { onConflict: 'user_id' });
+
+      if (error) throw error;
+
       setHasKyc(true);
       setShowKycForm(false);
-    } else {
-      setMessage({ type: "error", text: error.message });
+      
+      // KYC সেভ হওয়ার পর সরাসরি চেকআউট ওপেন হবে
+      if (selectedNumbers.length > 0) {
+        setShowCheckout(true);
+      }
+    } catch (err: any) {
+      console.error(err);
+      setMessage({ type: "error", text: err.message || "Failed to save KYC data." });
+    } finally {
+      setSavingKyc(false);
     }
-    setSavingKyc(false);
   };
 
   const isSold = (num: string) => soldTickets.some(t => t.ticket_number === num);
@@ -251,7 +263,9 @@ export default function LotteryPage() {
                   ))}
                 </div>
 
-                {message.text && <div className={`lottery-alert ${message.text.includes("success") ? "success" : "error"}`}>{message.text}</div>}
+                {message.text && message.type === "success" && (
+                  <div className="lottery-alert success">{message.text}</div>
+                )}
 
                 {!draw ? (
                   <div className="lottery-empty"><i className="fa-solid fa-ticket"></i><p>No upcoming draw for ৳{selectedPrice}.</p></div>
@@ -262,7 +276,6 @@ export default function LotteryPage() {
                       <span><i className="fa-solid fa-wallet"></i> Balance: <strong>৳{balance.toFixed(2)}</strong></span>
                     </div>
 
-                    {/* ১০ কলামের ছোট গ্রিড */}
                     <div className="number-grid">
                       {Array.from({ length: draw.total_tickets }, (_, i) => (i + 1).toString()).map(num => {
                         const sold = isSold(num);
@@ -310,7 +323,6 @@ export default function LotteryPage() {
                 )}
               </>
             ) : (
-              /* My Tickets Tab */
               <div className="my-tickets-wrapper">
                 <div className="total-worth-card">
                   <div><span>Total Worth</span><strong>৳ {totalWorth.toLocaleString()}</strong></div>
@@ -374,6 +386,14 @@ export default function LotteryPage() {
           <div className="lottery-modal">
             <h3>KYC Verification</h3>
             <p style={{ fontSize: "12px", color: "#9ca9a3", marginBottom: "16px" }}>Please fill up these details before buying a ticket.</p>
+            
+            {/* ✅ এরর মেসেজ এখন মডালের ভেতরে দেখাবে */}
+            {message.text && message.type === "error" && (
+              <div style={{ background: "rgba(255,77,77,0.1)", color: "#ff4d4d", padding: "10px", borderRadius: "8px", marginBottom: "16px", fontSize: "12px", border: "1px solid rgba(255,77,77,0.3)" }}>
+                {message.text}
+              </div>
+            )}
+
             <form onSubmit={handleSaveKyc} className="kyc-form">
               <input type="text" placeholder="Mobile Number" value={kycData.mobile} onChange={e => setKycData({...kycData, mobile: e.target.value})} required />
               <input type="text" placeholder="Full Name" value={kycData.full_name} onChange={e => setKycData({...kycData, full_name: e.target.value})} required />
