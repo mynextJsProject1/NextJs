@@ -129,7 +129,7 @@ export default function AdminBonusTransfersPage() {
     }
   };
 
-  // ২৪ ঘণ্টা পার হয়েছে কি না চেক
+  // ২৪ ঘণ্টা পার হয়েছে কি না চেক (শুধু ব্যাজ দেখানোর জন্য)
   const is24HoursPassed = (requestedAt: string) => {
     const requestTime = new Date(requestedAt).getTime();
     const now = new Date().getTime();
@@ -177,8 +177,7 @@ export default function AdminBonusTransfersPage() {
                   <button 
                     className="btn-approve" 
                     onClick={() => handleApprove(req)}
-                    disabled={actionLoading === req.id || !isReady}
-                    style={{ opacity: isReady ? 1 : 0.5 }}
+                    disabled={actionLoading === req.id} // <-- এখানে ডিজেবল সরিয়ে দেওয়া হয়েছে
                   >
                     {actionLoading === req.id ? "Processing..." : "Approve"}
                   </button>
