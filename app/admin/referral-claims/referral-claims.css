@@ -1,0 +1,94 @@
+.claims-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.claim-card {
+  background: #111d19;
+  border: 1px solid #26352e;
+  border-radius: 12px;
+  padding: 16px;
+}
+.claim-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  border-bottom: 1px dashed #26352e;
+  padding-bottom: 8px;
+}
+.claim-date {
+  font-size: 11px;
+  color: #9ca9a3;
+}
+.badge-pending {
+  font-size: 10px;
+  font-weight: 800;
+  background: rgba(245,130,32,0.15);
+  color: #f58220;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+.claim-users {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  background: #07110f;
+  padding: 12px;
+  border-radius: 8px;
+}
+.user-box {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+}
+.user-box:last-child {
+  text-align: right;
+}
+.user-role {
+  font-size: 10px;
+  color: #9ca9a3;
+  text-transform: uppercase;
+}
+.user-box strong {
+  font-size: 14px;
+  color: #fff;
+}
+.user-id {
+  font-size: 11px;
+  color: #00e701;
+}
+.claim-users i {
+  color: #26352e;
+  margin: 0 10px;
+}
+.claim-amounts {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  font-size: 13px;
+}
+.claim-amounts div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.claim-amounts span { color: #9ca9a3; }
+.claim-amounts strong { color: #fff; }
+.text-green { color: #00e701 !important; }
+.claim-actions {
+  display: flex;
+  gap: 10px;
+}
+.claim-actions button {
+  flex: 1;
+  padding: 10px;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  border: none;
+}
+.btn-reject { background: rgba(255,77,77,0.1); color: #ff4d4d; border: 1px solid rgba(255,77,77,0.3) !important; }
+.btn-approve { background: #00e701; color: #000; }
