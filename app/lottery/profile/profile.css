@@ -58,3 +58,8 @@
 .text-green { color: #00e701; }
 .text-gold { color: #ffd700; }
 .text-purple { color: #9d4edd; }
+
+.lot-loading { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 60vh; color: #ffd700; }
+.lot-alert { padding: 12px; border-radius: 8px; margin-bottom: 16px; font-size: 0.85rem; }
+.lot-alert.success { background: rgba(0,231,1,0.1); color: #00e701; border: 1px solid rgba(0,231,1,0.3); }
+.lot-alert.error { background: rgba(255,77,77,0.1); color: #ff4d4d; border: 1px solid rgba(255,77,77,0.3); }
