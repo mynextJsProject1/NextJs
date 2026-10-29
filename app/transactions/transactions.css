@@ -1,0 +1,179 @@
+/* app/transactions/transactions.css */
+.transactions-page {
+  --txn-bg: #0f212e;
+  --txn-card: #1a2c38;
+  --txn-border: #2f4553;
+  --txn-text: #ffffff;
+  --txn-muted: #b1bad3;
+  --txn-accent: #00e701;
+}
+
+.transactions-page .transactions-main {
+  padding: 1rem 0.8rem 3rem;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.transactions-page .transactions-title {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: var(--txn-text);
+  margin-bottom: 1rem;
+}
+
+/* Tabs */
+.transactions-page .txn-tabs {
+  display: flex;
+  background: var(--txn-card);
+  border: 1px solid var(--txn-border);
+  border-radius: 8px;
+  padding: 4px;
+  margin-bottom: 1.5rem;
+  overflow-x: auto;
+}
+
+.transactions-page .txn-tabs button {
+  flex: 1;
+  padding: 8px 12px;
+  background: transparent;
+  border: none;
+  color: var(--txn-muted);
+  font-weight: 600;
+  font-size: 0.85rem;
+  border-radius: 6px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: 0.2s;
+}
+
+.transactions-page .txn-tabs button.active {
+  background: var(--txn-accent);
+  color: #000;
+}
+
+/* List & Cards */
+.transactions-page .txn-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.transactions-page .txn-card {
+  background: var(--txn-card);
+  border: 1px solid var(--txn-border);
+  border-radius: 10px;
+  padding: 14px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.transactions-page .txn-icon-wrap {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.05);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.transactions-page .text-green { color: var(--txn-accent); }
+.transactions-page .text-red { color: #ff4d4d; }
+
+.transactions-page .txn-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.transactions-page .txn-type { font-size: 0.9rem; color: var(--txn-text); }
+.transactions-page .txn-method { font-size: 0.75rem; color: var(--txn-muted); font-weight: bold; }
+.transactions-page .txn-date { font-size: 0.7rem; color: var(--txn-muted); }
+.transactions-page .txn-ref { font-size: 0.75rem; color: var(--txn-muted); margin-top: 4px; word-break: break-all; }
+
+.transactions-page .txn-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.transactions-page .txn-amount {
+  font-size: 1rem;
+  color: var(--txn-text);
+  font-weight: 700;
+}
+
+/* Badges */
+.transactions-page .badge {
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+.transactions-page .badge.pending { background: rgba(245, 130, 32, 0.15); color: #f58220; }
+.transactions-page .badge.approved { background: rgba(0, 231, 1, 0.15); color: var(--txn-accent); }
+.transactions-page .badge.rejected { background: rgba(255, 77, 77, 0.15); color: #ff4d4d; }
+.transactions-page .badge.won { background: rgba(0, 231, 1, 0.15); color: var(--txn-accent); }
+.transactions-page .badge.lost { background: rgba(255, 77, 77, 0.15); color: #ff4d4d; }
+.transactions-page .badge.refunded { background: rgba(245, 193, 7, 0.15); color: #ffc107; }
+
+/* Bet Card Specific */
+.transactions-page .bet-card {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.transactions-page .bet-header {
+  display: flex;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  padding-bottom: 8px;
+  margin-bottom: 8px;
+}
+
+.transactions-page .bet-match { font-size: 0.9rem; font-weight: 700; color: var(--txn-text); }
+.transactions-page .bet-date { font-size: 0.7rem; color: var(--txn-muted); }
+
+.transactions-page .bet-details {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.transactions-page .bet-details > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.transactions-page .bet-details span { font-size: 0.7rem; color: var(--txn-muted); }
+.transactions-page .bet-details strong { font-size: 0.85rem; color: var(--txn-text); }
+
+.transactions-page .bet-footer {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* Loading & Empty */
+.transactions-page .txn-loading,
+.transactions-page .txn-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 40vh;
+  color: var(--txn-muted);
+  gap: 12px;
+}
+
+.transactions-page .txn-loading i { font-size: 2rem; color: var(--txn-accent); }
+.transactions-page .txn-empty i { font-size: 2.5rem; color: var(--txn-border); }
