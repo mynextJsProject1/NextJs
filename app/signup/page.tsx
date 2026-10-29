@@ -51,6 +51,10 @@ export default function SignupPage() {
 
       const supabaseUrl = url.replace(/\/+$/, "");
 
+      // ✅ নতুন যোগ করা হলো: URL থেকে রেফারেল কোড নেওয়া
+      const urlParams = new URLSearchParams(window.location.search);
+      const refCode = urlParams.get("ref") || "";
+
       const response = await fetch(
         `${supabaseUrl}/functions/v1/super-action`,
         {
@@ -66,6 +70,7 @@ export default function SignupPage() {
             mobile: cleanMobile,
             password,
             confirm_password: confirmPassword,
+            ref: refCode, // ✅ নতুন যোগ করা হলো: রেফারেল কোডটি পাঠানো হচ্ছে
           }),
         }
       );
