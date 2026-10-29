@@ -1,0 +1,69 @@
+.admin-form-card {
+  background: #111d19;
+  border: 1px solid #26352e;
+  border-radius: 12px;
+  padding: 20px;
+  max-width: 500px;
+}
+.admin-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+.admin-field label {
+  font-size: 13px;
+  color: #f5f7f6;
+  font-weight: 600;
+}
+.admin-field input, .admin-field select {
+  background: #07110f;
+  border: 1px solid #26352e;
+  padding: 12px;
+  border-radius: 8px;
+  color: #fff;
+  font-size: 14px;
+  outline: none;
+}
+.admin-field input:focus, .admin-field select:focus {
+  border-color: #00e701;
+}
+.field-help {
+  font-size: 11px;
+  color: #9ca9a3;
+}
+.admin-toggle-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #07110f;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #26352e;
+  margin-bottom: 20px;
+}
+.admin-toggle-row span {
+  font-size: 14px;
+  font-weight: 600;
+  color: #f5f7f6;
+}
+.admin-toggle-btn {
+  padding: 6px 16px;
+  border-radius: 20px;
+  border: none;
+  font-weight: 800;
+  font-size: 12px;
+  cursor: pointer;
+}
+.admin-toggle-btn.on { background: #00e701; color: #000; }
+.admin-toggle-btn.off { background: #26352e; color: #9ca9a3; }
+.admin-submit-btn {
+  width: 100%;
+  background: #00e701;
+  color: #000;
+  padding: 14px;
+  border: none;
+  border-radius: 8px;
+  font-weight: 700;
+  cursor: pointer;
+}
