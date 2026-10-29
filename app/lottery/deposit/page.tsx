@@ -3,7 +3,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { createClient } from "../../../lib/supabase/client";
-import "./deposits.css";
+import "./deposit.css";
 
 type DepositTxn = {
   id: string;
