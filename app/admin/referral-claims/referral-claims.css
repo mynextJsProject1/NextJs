@@ -92,3 +92,23 @@
 }
 .btn-reject { background: rgba(255,77,77,0.1); color: #ff4d4d; border: 1px solid rgba(255,77,77,0.3) !important; }
 .btn-approve { background: #00e701; color: #000; }
+
+/* নতুন যোগ করা হলো */
+.claim-card.suspicious {
+  border-color: rgba(255,77,77,0.5);
+  background: rgba(255,77,77,0.05);
+}
+.badge-suspicious {
+  font-size: 10px;
+  font-weight: 800;
+  background: rgba(255,77,77,0.2);
+  color: #ff4d4d;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+.user-mobile {
+  font-size: 11px;
+  color: #9ca9a3;
+  margin-top: 4px;
+  display: block;
+}
