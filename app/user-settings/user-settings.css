@@ -1,0 +1,119 @@
+/* app/user-settings/user-settings.css */
+.settings-page {
+  --set-bg: #0f212e;
+  --set-card: #1a2c38;
+  --set-border: #2f4553;
+  --set-text: #ffffff;
+  --set-muted: #b1bad3;
+  --set-accent: #00e701;
+}
+
+.settings-page .settings-main {
+  padding: 1rem 0.8rem 3rem;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.settings-page .settings-title {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: var(--set-text);
+  margin-bottom: 1rem;
+}
+
+/* Tabs */
+.settings-page .settings-tabs {
+  display: flex;
+  background: var(--set-card);
+  border: 1px solid var(--set-border);
+  border-radius: 8px;
+  padding: 4px;
+  margin-bottom: 1.5rem;
+  overflow-x: auto;
+}
+
+.settings-page .settings-tabs button {
+  flex: 1;
+  padding: 8px 12px;
+  background: transparent;
+  border: none;
+  color: var(--set-muted);
+  font-weight: 600;
+  font-size: 0.85rem;
+  border-radius: 6px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: 0.2s;
+}
+
+.settings-page .settings-tabs button.active {
+  background: var(--set-accent);
+  color: #000;
+}
+
+/* Card */
+.settings-page .settings-card {
+  background: var(--set-card);
+  border: 1px solid var(--set-border);
+  border-radius: 12px;
+  padding: 16px;
+}
+
+/* Alert / Warning */
+.settings-page .settings-alert {
+  padding: 10px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  margin-bottom: 16px;
+}
+.settings-page .settings-alert.success { background: rgba(0,231,1,0.1); color: var(--set-accent); border: 1px solid rgba(0,231,1,0.3); }
+.settings-page .settings-alert.error { background: rgba(255,77,77,0.1); color: #ff4d4d; border: 1px solid rgba(255,77,77,0.3); }
+
+.settings-page .verify-warning {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(245, 193, 7, 0.1);
+  color: #ffc107;
+  padding: 10px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  margin-bottom: 16px;
+  border: 1px solid rgba(245, 193, 7, 0.2);
+}
+
+/* Info Row */
+.settings-page .info-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  font-size: 0.9rem;
+}
+.settings-page .info-row:last-child { border-bottom: none; }
+.settings-page .info-row span { color: var(--set-muted); }
+.settings-page .info-row strong { color: var(--set-text); }
+
+/* Verify Cards */
+.settings-page .verify-list { display: flex; flex-direction: column; gap: 12px; }
+.settings-page .verify-card { background: var(--set-card); border: 1px solid var(--set-border); border-radius: 12px; padding: 16px; }
+.settings-page .verify-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.settings-page .verify-header h3 { margin: 0; font-size: 0.95rem; color: var(--set-text); }
+.settings-page .verify-desc { font-size: 0.8rem; color: var(--set-muted); margin: 0; }
+.settings-page .verify-form { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
+.settings-page .verify-form input { background: #0f212e; border: 1px solid var(--set-border); padding: 10px; border-radius: 6px; color: #fff; font-size: 0.9rem; outline: none; }
+.settings-page .verify-form input:focus { border-color: var(--set-accent); }
+.settings-page .verify-form button { background: var(--set-accent); color: #000; font-weight: bold; padding: 10px; border: none; border-radius: 6px; cursor: pointer; }
+
+/* Security Form */
+.settings-page .settings-form { display: flex; flex-direction: column; gap: 10px; }
+.settings-page .settings-form label { font-size: 0.8rem; color: var(--set-muted); }
+.settings-page .settings-form input { background: #0f212e; border: 1px solid var(--set-border); padding: 10px; border-radius: 6px; color: #fff; outline: none; }
+.settings-page .settings-form input:focus { border-color: var(--set-accent); }
+.settings-page .settings-form button { background: var(--set-accent); color: #000; font-weight: bold; padding: 12px; border: none; border-radius: 6px; cursor: pointer; margin-top: 8px; }
+
+/* Sessions */
+.settings-page .session-list { display: flex; flex-direction: column; gap: 12px; }
+.settings-page .session-item { display: flex; align-items: flex-start; background: rgba(0,0,0,0.2); padding: 12px; border-radius: 8px; border: 1px solid var(--set-border); }
+
+.settings-page .text-green { color: var(--set-accent) !important; }
