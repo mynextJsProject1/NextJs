@@ -1,0 +1,192 @@
+/* app/redeem/redeem.css */
+.redeem-page {
+  --redeem-bg: #0f212e;
+  --redeem-card: #1a2c38;
+  --redeem-border: #2f4553;
+  --redeem-text: #ffffff;
+  --redeem-muted: #b1bad3;
+  --redeem-accent: #00e701;
+}
+
+.redeem-page .redeem-main {
+  padding: 1rem 0.8rem 3rem;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.redeem-page .redeem-title {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: var(--redeem-text);
+  margin-bottom: 1rem;
+}
+
+/* Alert */
+.redeem-page .redeem-alert {
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  margin-bottom: 16px;
+  line-height: 1.5;
+}
+.redeem-page .redeem-alert.success { background: rgba(0,231,1,0.1); color: var(--redeem-accent); border: 1px solid rgba(0,231,1,0.3); }
+.redeem-page .redeem-alert.error { background: rgba(255,77,77,0.1); color: #ff4d4d; border: 1px solid rgba(255,77,77,0.3); }
+
+/* Loading */
+.redeem-page .redeem-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 40vh;
+  gap: 12px;
+  color: var(--redeem-accent);
+}
+.redeem-page .redeem-loading i { font-size: 2rem; }
+.redeem-page .redeem-loading span { color: var(--redeem-muted); font-size: 0.95rem; }
+
+/* Form Card */
+.redeem-page .redeem-form-card {
+  background: var(--redeem-card);
+  border: 1px solid var(--redeem-border);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 1.5rem;
+}
+
+.redeem-page .redeem-desc {
+  font-size: 0.85rem;
+  color: var(--redeem-muted);
+  margin-bottom: 16px;
+  line-height: 1.6;
+}
+.redeem-page .redeem-desc strong { color: var(--redeem-text); }
+
+.redeem-page .redeem-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.redeem-page .redeem-form input {
+  width: 100%;
+  background: #0f212e;
+  border: 1px solid var(--redeem-border);
+  padding: 14px;
+  border-radius: 8px;
+  color: var(--redeem-text);
+  font-size: 1rem;
+  text-transform: uppercase;
+  outline: none;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+.redeem-page .redeem-form input:focus { border-color: var(--redeem-accent); }
+
+.redeem-page .redeem-form button {
+  background: var(--redeem-accent);
+  color: #000;
+  border: none;
+  padding: 14px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: 0.2s;
+}
+.redeem-page .redeem-form button:hover:not(:disabled) { background: #00c701; }
+.redeem-page .redeem-form button:disabled { opacity: 0.6; cursor: not-allowed; }
+
+/* Section Title */
+.redeem-page .redeem-section-title {
+  font-size: 1.1rem;
+  color: var(--redeem-text);
+  margin: 0 0 12px;
+}
+
+/* History List */
+.redeem-page .redeem-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.redeem-page .redeem-item {
+  background: var(--redeem-card);
+  border: 1px solid var(--redeem-border);
+  border-radius: 10px;
+  padding: 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.redeem-page .redeem-item-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.redeem-page .redeem-item-left i {
+  width: 36px;
+  height: 36px;
+  background: rgba(0, 231, 1, 0.1);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--redeem-accent);
+}
+
+.redeem-page .redeem-item-left strong {
+  display: block;
+  font-size: 0.9rem;
+  color: var(--redeem-text);
+  margin-bottom: 2px;
+}
+
+.redeem-page .redeem-item-left span {
+  font-size: 0.75rem;
+  color: var(--redeem-muted);
+}
+
+.redeem-page .redeem-item-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.redeem-page .redeem-amount {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--redeem-accent);
+}
+
+.redeem-page .badge {
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+.redeem-page .badge.approved { background: rgba(0,231,1,0.15); color: var(--redeem-accent); }
+
+/* Empty */
+.redeem-page .redeem-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 30px 16px;
+  background: var(--redeem-card);
+  border: 1px dashed var(--redeem-border);
+  border-radius: 12px;
+  color: var(--redeem-muted);
+  text-align: center;
+  gap: 10px;
+}
+.redeem-page .redeem-empty i {
+  font-size: 2rem;
+  color: var(--redeem-border);
+}
