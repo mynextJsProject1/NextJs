@@ -1,0 +1,88 @@
+/* app/lottery-admin/lottery-admin.css */
+.lottery-admin-layout {
+  --la-bg: #0f0a1a;
+  --la-panel: #1a0f2e;
+  --la-border: #3a1f6b;
+  --la-text: #ffffff;
+  --la-muted: #b1bad3;
+  --la-gold: #ffd700;
+  --la-green: #00e701;
+  --la-red: #ff4d4d;
+  display: flex;
+  min-height: 100vh;
+  background: var(--la-bg);
+  color: var(--la-text);
+}
+
+.la-topbar {
+  position: fixed; top: 0; left: 0; right: 0; height: 60px;
+  background: #140b24; border-bottom: 1px solid var(--la-border);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 16px; z-index: 100;
+}
+
+.la-menu-btn { background: transparent; border: none; color: var(--la-text); font-size: 20px; cursor: pointer; padding: 8px; }
+.la-topbar-title { font-size: 16px; font-weight: 800; color: var(--la-gold); }
+
+.la-sidebar {
+  position: fixed; top: 60px; left: 0; bottom: 0; width: 260px;
+  background: #140b24; border-right: 1px solid var(--la-border);
+  padding: 16px 8px; transform: translateX(-100%); transition: 0.3s; z-index: 90;
+}
+.la-sidebar.open { transform: translateX(0); }
+
+.la-link {
+  display: flex; align-items: center; gap: 12px; padding: 12px 14px;
+  margin-bottom: 4px; border-radius: 8px; color: var(--la-muted);
+  text-decoration: none; font-size: 14px; font-weight: 600; transition: 0.2s;
+}
+.la-link:hover, .la-link.active { background: var(--la-panel); color: var(--la-gold); }
+
+.la-main { flex: 1; padding: 80px 16px 30px; margin-left: 0; }
+@media (min-width: 768px) {
+  .la-sidebar { transform: translateX(0); position: sticky; top: 60px; height: calc(100vh - 60px); }
+  .la-main { margin-left: 0; padding: 80px 24px 30px; }
+}
+
+.la-title { font-size: 20px; font-weight: 800; margin-bottom: 20px; color: var(--la-gold); }
+
+.la-loading, .la-empty {
+  text-align: center; padding: 40px; color: var(--la-muted); font-size: 14px;
+}
+
+.la-alert {
+  background: rgba(0,231,1,0.1); color: var(--la-green);
+  border: 1px solid rgba(0,231,1,0.3); padding: 12px; border-radius: 8px; margin-bottom: 20px; font-size: 14px;
+}
+
+.la-list { display: flex; flex-direction: column; gap: 16px; }
+
+.la-card {
+  background: var(--la-panel); border: 1px solid var(--la-border);
+  border-radius: 12px; padding: 16px;
+}
+
+.la-card-header {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  border-bottom: 1px dashed var(--la-border); padding-bottom: 12px; margin-bottom: 12px;
+}
+
+.la-amount { display: block; font-size: 20px; color: var(--la-gold); font-weight: 800; }
+.la-method { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
+.la-method img { width: 24px; height: 24px; background: #fff; border-radius: 4px; padding: 2px; object-fit: contain; }
+.la-method span { font-size: 13px; color: var(--la-muted); font-weight: 600; text-transform: uppercase; }
+.la-date { font-size: 11px; color: var(--la-muted); }
+
+.la-user-info { display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: #fff; margin-bottom: 16px; }
+.la-user-info p { margin: 0; }
+.la-trx { background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px; font-family: monospace; }
+
+.la-actions { display: flex; gap: 10px; }
+.la-actions button {
+  flex: 1; padding: 10px; border-radius: 6px; font-size: 13px; font-weight: 700; cursor: pointer; transition: 0.2s; border: none;
+}
+.la-btn-approve { background: var(--la-gold); color: #000; }
+.la-btn-approve:hover:not(:disabled) { background: #ffb700; }
+.la-btn-reject { background: rgba(255,77,77,0.1); color: var(--la-red); border: 1px solid rgba(255,77,77,0.3) !important; }
+.la-btn-reject:hover:not(:disabled) { background: rgba(255,77,77,0.2); }
+.la-actions button:disabled { opacity: 0.5; cursor: not-allowed; }
