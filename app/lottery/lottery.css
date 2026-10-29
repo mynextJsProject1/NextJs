@@ -1,0 +1,140 @@
+/* app/lottery/lottery.css */
+.lottery-page {
+  --lot-bg: #0f212e;
+  --lot-card: #1a2c38;
+  --lot-border: #2f4553;
+  --lot-text: #ffffff;
+  --lot-muted: #b1bad3;
+  --lot-gold: #ffd700;
+  --lot-green: #00e701;
+  --lot-red: #ff4d4d;
+}
+
+.lottery-page .lottery-main {
+  padding: 1rem 0.8rem 3rem;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.lottery-page .lottery-loading {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  min-height: 60vh; gap: 16px; color: var(--lot-gold);
+}
+.lottery-page .lottery-loading i { font-size: 3rem; }
+.lottery-page .lottery-loading span { color: var(--lot-muted); font-size: 1rem; }
+
+/* Jackpot Banner */
+.lottery-page .jackpot-banner {
+  background: linear-gradient(135deg, #2a1f08, #111d19);
+  border: 1px solid #5d4a17;
+  border-radius: 16px;
+  padding: 24px 16px;
+  text-align: center;
+  margin-bottom: 1rem;
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+.lottery-page .jackpot-banner::before {
+  content: ""; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, transparent, var(--lot-gold), transparent);
+}
+.lottery-page .jackpot-label {
+  color: var(--lot-gold); font-size: 0.8rem; font-weight: 800; letter-spacing: 2px;
+  text-transform: uppercase; margin-bottom: 8px;
+}
+.lottery-page .jackpot-amount {
+  font-size: 2.5rem; font-weight: 900; color: #fff; margin-bottom: 8px;
+  text-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
+}
+.lottery-page .jackpot-timer {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: rgba(0,0,0,0.4); padding: 6px 12px; border-radius: 20px;
+  color: var(--lot-muted); font-size: 0.8rem;
+}
+.lottery-page .jackpot-timer strong { color: #fff; }
+
+/* Tabs */
+.lottery-page .lottery-tabs {
+  display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; margin-bottom: 1rem;
+}
+.lottery-page .lottery-tabs::-webkit-scrollbar { display: none; }
+.lottery-page .lottery-tabs button {
+  flex: 1; padding: 10px; background: var(--lot-card);
+  border: 1px solid var(--lot-border); border-radius: 8px;
+  color: var(--lot-muted); font-weight: 700; font-size: 0.9rem; cursor: pointer;
+  white-space: nowrap;
+}
+.lottery-page .lottery-tabs button.active {
+  background: var(--lot-gold); color: #000; border-color: var(--lot-gold);
+  box-shadow: 0 0 10px rgba(255,215,0,0.3);
+}
+
+/* Alerts */
+.lottery-page .lottery-alert {
+  padding: 10px; border-radius: 8px; font-size: 0.85rem; margin-bottom: 1rem;
+}
+.lottery-page .lottery-alert.success { background: rgba(0,231,1,0.1); color: var(--lot-green); border: 1px solid rgba(0,231,1,0.3); }
+.lottery-page .lottery-alert.error { background: rgba(255,77,77,0.1); color: var(--lot-red); border: 1px solid rgba(255,77,77,0.3); }
+
+/* Info Row */
+.lottery-page .lottery-info-row {
+  display: flex; justify-content: space-between;
+  background: var(--lot-card); border: 1px solid var(--lot-border);
+  padding: 12px; border-radius: 8px; font-size: 0.85rem; color: var(--lot-muted);
+  margin-bottom: 1rem;
+}
+.lottery-page .lottery-info-row strong { color: var(--lot-text); }
+
+/* Number Grid */
+.lottery-page .number-grid {
+  display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 1rem;
+}
+.lottery-page .num-btn {
+  aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
+  background: var(--lot-card); border: 1px solid var(--lot-border);
+  border-radius: 8px; color: var(--lot-text); font-weight: 700; font-size: 0.9rem;
+  cursor: pointer; transition: 0.2s;
+}
+.lottery-page .num-btn:hover:not(.sold) { border-color: var(--lot-gold); }
+.lottery-page .num-btn.selected {
+  background: var(--lot-gold); color: #000; border-color: var(--lot-gold);
+  box-shadow: 0 0 10px rgba(255,215,0,0.4); transform: scale(1.05);
+}
+.lottery-page .num-btn.sold { background: rgba(255,77,77,0.1); color: #ff4d4d; border-color: rgba(255,77,77,0.2); cursor: not-allowed; opacity: 0.6; }
+.lottery-page .num-btn.mine { background: rgba(0,231,1,0.15); color: var(--lot-green); border-color: rgba(0,231,1,0.4); }
+
+/* Legend */
+.lottery-page .legend-row {
+  display: flex; justify-content: center; gap: 16px; font-size: 0.75rem; color: var(--lot-muted); margin-bottom: 1.5rem;
+}
+.lottery-page .legend-row span { display: flex; align-items: center; gap: 4px; }
+.lottery-page .dot { width: 10px; height: 10px; border-radius: 50%; }
+.lottery-page .dot.available { background: var(--lot-card); border: 1px solid var(--lot-border); }
+.lottery-page .dot.sold { background: rgba(255,77,77,0.5); }
+.lottery-page .dot.mine { background: var(--lot-green); }
+
+/* Buy Card */
+.lottery-page .buy-action-card {
+  background: var(--lot-card); border: 1px solid var(--lot-border);
+  padding: 16px; border-radius: 12px; display: flex; flex-direction: column; gap: 12px;
+  position: sticky; bottom: 20px;
+}
+.lottery-page .buy-action-card > div { display: flex; justify-content: space-between; font-size: 0.9rem; color: var(--lot-muted); }
+.lottery-page .buy-action-card strong { color: #fff; font-size: 1.1rem; }
+.lottery-page .buy-btn {
+  width: 100%; padding: 14px; background: linear-gradient(90deg, #ffd700, #ffaa00);
+  color: #000; border: none; border-radius: 8px; font-weight: 900; font-size: 1rem; cursor: pointer;
+  transition: 0.2s;
+}
+.lottery-page .buy-btn:hover:not(:disabled) { opacity: 0.9; }
+.lottery-page .buy-btn:disabled { background: var(--lot-border); color: var(--lot-muted); cursor: not-allowed; }
+.lottery-page .insufficient-text { color: var(--lot-red); font-size: 0.75rem; text-align: center; margin: 0; }
+
+/* Empty */
+.lottery-page .lottery-empty {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 40px 16px; background: var(--lot-card); border: 1px dashed var(--lot-border);
+  border-radius: 12px; color: var(--lot-muted); text-align: center; gap: 10px;
+}
+.lottery-page .lottery-empty i { font-size: 2.5rem; color: var(--lot-border); }
