@@ -265,3 +265,46 @@
 .lottery-page .lottery-alert { padding: 10px; border-radius: 8px; font-size: 0.85rem; margin-bottom: 1rem; }
 .lottery-page .lottery-alert.success { background: rgba(0,231,1,0.1); color: var(--lot-green); border: 1px solid rgba(0,231,1,0.3); }
 .lottery-page .lottery-alert.error { background: rgba(255,77,77,0.1); color: var(--lot-red); border: 1px solid rgba(255,77,77,0.3); }
+
+/* গ্রিড ১০ কলামে নামিয়ে আনা হয়েছে (ছোট করতে) */
+.lottery-page .number-grid {
+  display: grid; 
+  grid-template-columns: repeat(10, 1fr); 
+  gap: 4px; 
+  margin-bottom: 1rem;
+}
+.lottery-page .num-btn {
+  aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
+  background: var(--lot-card); border: 1px solid var(--lot-border);
+  border-radius: 4px; color: var(--lot-text); font-weight: 700; font-size: 0.7rem;
+  cursor: pointer; transition: 0.2s; padding: 0;
+}
+.lottery-page .num-btn.selected {
+  background: var(--lot-gold); color: #000; border-color: var(--lot-gold);
+  transform: scale(1.1); z-index: 1;
+}
+.lottery-page .dot.selected { background: var(--lot-gold); }
+
+/* মডাল স্টাইল */
+.lottery-page .lottery-modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(4px);
+  display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 16px;
+}
+.lottery-page .lottery-modal {
+  background: #1a2c38; border: 1px solid #2f4553; border-radius: 16px; padding: 24px;
+  width: 100%; max-width: 400px; color: #fff;
+}
+.lottery-page .lottery-modal h3 { margin: 0 0 16px; font-size: 1.2rem; text-align: center; }
+.lottery-page .modal-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.9rem; color: #b1bad3; }
+.lottery-page .modal-row.total { border-top: 1px dashed #2f4553; padding-top: 8px; margin-top: 8px; font-size: 1.1rem; font-weight: 700; color: #fff; }
+.lottery-page .text-green { color: #00e701 !important; }
+.lottery-page .modal-actions { display: flex; gap: 10px; margin-top: 20px; }
+.lottery-page .modal-actions button { flex: 1; padding: 12px; border-radius: 8px; font-weight: 700; cursor: pointer; border: none; }
+.lottery-page .btn-cancel { background: rgba(255,255,255,0.1); color: #fff; }
+.lottery-page .btn-confirm { background: #ffd700; color: #000; }
+.lottery-page .kyc-form { display: flex; flex-direction: column; gap: 10px; }
+.lottery-page .kyc-form input, .lottery-page .kyc-form textarea {
+  width: 100%; background: #0f212e; border: 1px solid #2f4553; padding: 10px;
+  border-radius: 8px; color: #fff; font-size: 0.9rem; outline: none; font-family: inherit;
+}
+.lottery-page .kyc-form input:focus, .lottery-page .kyc-form textarea:focus { border-color: #00e701; }
