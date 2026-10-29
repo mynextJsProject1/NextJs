@@ -35,31 +35,62 @@ export default function LotteryAdminDepositsPage() {
 
   const loadData = useCallback(async () => {
     setLoading(true);
+    setMessage("");
     
-    // ১. মেথড লোড
-    const { data: methodData } = await supabase.from("payment_methods").select("method_code, method_name");
-    if (methodData) {
-      const methodMap: Record<string, string> = {};
-      methodData.forEach(m => methodMap[m.method_code] = m.method_name);
-      setMethods(methodMap);
-    }
+    try {
+      // ১. মেথড লোড
+      const { data: methodData } = await supabase.from("payment_methods").select("method_code, method_name");
+      if (methodData) {
+        const methodMap: Record<string, string> = {};
+        methodData.forEach(m => methodMap[m.method_code] = m.method_name);
+        setMethods(methodMap);
+      }
 
-    // ২. শুধু লটারির পেন্ডিং ডিপোজিট লোড করা
-    const { data: txnData, error } = await supabase
-      .from("wallet_transactions")
-      .select(`
-        id, user_id, method_code, amount, transaction_reference, destination_details, created_at,
-        profiles ( full_name, mobile )
-      `)
-      .eq("transaction_type", "deposit")
-      .eq("destination_details", "LOTTERY_DEPOSIT")
-      .eq("status", "pending")
-      .order("created_at", { ascending: false });
+      // ২. শুধু লটারির পেন্ডিং ডিপোজিট লোড করা (জয়েন ছাড়া)
+      const { data: txnData, error: txnError } = await supabase
+        .from("wallet_transactions")
+        .select("id, user_id, method_code, amount, transaction_reference, destination_details, created_at")
+        .eq("transaction_type", "deposit")
+        .eq("destination_details", "LOTTERY_DEPOSIT")
+        .eq("status", "pending")
+        .order("created_at", { ascending: false });
 
-    if (!error && txnData) {
-      setDeposits(txnData as unknown as DepositTxn[]);
+      if (txnError) throw txnError;
+
+      if (txnData && txnData.length > 0) {
+        // ৩. ইউজারদের আইডি বের করা
+        const userIds = [...new Set(txnData.map(t => t.user_id))];
+
+        // ৪. ওই ইউজারদের প্রোফাইল ডাটা আলাদাভাবে লোড করা
+        const { data: profileData, error: profileError } = await supabase
+          .from("profiles")
+          .select("id, full_name, mobile")
+          .in("id", userIds);
+
+        if (profileError) throw profileError;
+
+        // ৫. ইউজারদের ডাটা একটি Map-এ সেভ করা
+        const profileMap: Record<string, { full_name: string, mobile: string }> = {};
+        profileData?.forEach(p => {
+          profileMap[p.id] = { full_name: p.full_name, mobile: p.mobile };
+        });
+
+        // ৬. ডিপোজিটের সাথে ইউজারের ডাটা মিলিয়ে নেওয়া (Merge)
+        const mergedData = txnData.map(txn => ({
+          ...txn,
+          profiles: profileMap[txn.user_id] || null
+        }));
+
+        setDeposits(mergedData as DepositTxn[]);
+      } else {
+        setDeposits([]);
+      }
+    } catch (err: any) {
+      console.error(err);
+      setMessage(`Error loading data: ${err.message || "Unknown error"}`);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }, [supabase]);
 
   useEffect(() => { loadData(); }, [loadData]);
