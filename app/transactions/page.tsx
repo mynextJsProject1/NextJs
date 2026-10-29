@@ -154,13 +154,7 @@ export default function TransactionsPage() {
                 <div className="txn-list">
                   {filteredTransactions.map((txn) => (
                     <div className="txn-card" key={txn.id}>
-                      <div className="txn-icon-wrap">
-                        {txn.transaction_type === "deposit" ? (
-                          <i className="fa-solid fa-arrow-down text-green" />
-                        ) : (
-                          <i className="fa-solid fa-arrow-up text-red" />
-                        )}
-                      </div>
+                      {/* গোল আইকনটি সরিয়ে দেওয়া হয়েছে */}
                       <div className="txn-info">
                         <strong className="txn-type">{txn.transaction_type.toUpperCase()}</strong>
                         
