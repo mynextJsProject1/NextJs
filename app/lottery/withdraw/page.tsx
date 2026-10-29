@@ -31,8 +31,9 @@ export default function LotteryWithdrawPage() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { router.replace("/signup/"); return; }
 
-      const { data: profile } = await supabase.from("profiles").select("balance").eq("id", user.id).single();
-      if (profile) setBalance(Number(profile.balance));
+      // ✅ এখানে lottery_balance নেওয়া হচ্ছে
+      const { data: profile } = await supabase.from("profiles").select("lottery_balance").eq("id", user.id).single();
+      if (profile) setBalance(Number(profile.lottery_balance) || 0);
 
       const { data: feeData } = await supabase.from("withdrawal_fee_settings").select("*").eq("is_active", true).maybeSingle();
       if (feeData) setFees(feeData);
@@ -55,7 +56,7 @@ export default function LotteryWithdrawPage() {
       return;
     }
     if (numAmount > balance) {
-      setMessage({ type: "error", text: "Insufficient balance." });
+      setMessage({ type: "error", text: "Insufficient lottery balance." });
       return;
     }
 
@@ -84,7 +85,7 @@ export default function LotteryWithdrawPage() {
 
       if (error) throw error;
 
-      setMessage({ type: "success", text: "Verification submitted successfully! Admin will verify your payment and process the withdrawal." });
+      setMessage({ type: "success", text: "Verification submitted successfully! Admin will verify your payment." });
       setAmount("");
       setFormData({ sender_number: "", bank_trx_id: "", account_holder_name: "", account_number: "", routing_number: "", branch_name: "", bank_name: "" });
       
@@ -108,7 +109,7 @@ export default function LotteryWithdrawPage() {
       )}
 
       <div className="lot-balance-display">
-        <span>Available Balance</span>
+        <span>Lottery Available Balance</span>
         <strong>৳ {balance.toFixed(2)}</strong>
       </div>
 
