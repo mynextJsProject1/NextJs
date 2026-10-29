@@ -31,6 +31,9 @@ type TransferRequest = {
   requested_at: string;
 };
 
+// ✅ নতুন যোগ করা হলো: basePath চেক
+const basePath = process.env.NODE_ENV === "production" ? "/NextJs" : "";
+
 export default function ReferPage() {
   const router = useRouter();
   const supabase = useMemo(() => createClient(), []);
@@ -99,7 +102,8 @@ export default function ReferPage() {
 
   const copyReferralLink = () => {
     if (!profile) return;
-    const link = `${window.location.origin}/signup?ref=${profile.game_id}`;
+    // ✅ এখানে basePath এবং শেষে / যোগ করা হয়েছে
+    const link = `${window.location.origin}${basePath}/signup/?ref=${profile.game_id}`;
     navigator.clipboard.writeText(link);
     setMessage({ type: "success", text: "Referral link copied to clipboard!" });
     setTimeout(() => setMessage({ type: "", text: "" }), 3000);
@@ -210,7 +214,8 @@ export default function ReferPage() {
                 <input 
                   type="text" 
                   readOnly 
-                  value={`${typeof window !== "undefined" ? window.location.origin : ""}/signup?ref=${profile.game_id}`} 
+                  /* ✅ এখানেও basePath এবং / যোগ করা হয়েছে */
+                  value={`${typeof window !== "undefined" ? window.location.origin : ""}${basePath}/signup/?ref=${profile.game_id}`} 
                 />
                 <button onClick={copyReferralLink}>
                   <i className="fa-regular fa-copy"></i> Copy
