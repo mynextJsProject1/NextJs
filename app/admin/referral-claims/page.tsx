@@ -15,8 +15,10 @@ type Claim = {
   created_at: string;
   referrer_name?: string;
   referrer_game_id?: string;
+  referrer_mobile?: string;
   referred_name?: string;
   referred_game_id?: string;
+  referred_mobile?: string;
 };
 
 export default function AdminReferralClaimsPage() {
@@ -37,17 +39,17 @@ export default function AdminReferralClaimsPage() {
 
     if (data && data.length > 0) {
       const mergedData = await Promise.all(data.map(async (claim) => {
-        // রেফারারের ডাটা
-        const { data: refUser } = await supabase.from("profiles").select("full_name, game_id").eq("id", claim.referrer_id).maybeSingle();
-        // নতুন ইউজারের ডাটা
-        const { data: newUser } = await supabase.from("profiles").select("full_name, game_id").eq("id", claim.referred_user_id).maybeSingle();
+        const { data: refUser } = await supabase.from("profiles").select("full_name, game_id, mobile").eq("id", claim.referrer_id).maybeSingle();
+        const { data: newUser } = await supabase.from("profiles").select("full_name, game_id, mobile").eq("id", claim.referred_user_id).maybeSingle();
         
         return {
           ...claim,
           referrer_name: refUser?.full_name,
           referrer_game_id: refUser?.game_id,
+          referrer_mobile: refUser?.mobile,
           referred_name: newUser?.full_name,
           referred_game_id: newUser?.game_id,
+          referred_mobile: newUser?.mobile,
         };
       }));
       setClaims(mergedData);
@@ -64,26 +66,12 @@ export default function AdminReferralClaimsPage() {
     setMessage("");
     
     try {
-      // ১. ক্লেইম স্ট্যাটাস আপডেট
-      const { error: claimError } = await supabase
-        .from("referral_claims")
-        .update({ status: "approved" })
-        .eq("id", claim.id);
+      const { error: claimError } = await supabase.from("referral_claims").update({ status: "approved" }).eq("id", claim.id);
       if (claimError) throw claimError;
 
-      // ২. রেফারারের bonus_balance বাড়ানো
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("bonus_balance")
-        .eq("id", claim.referrer_id)
-        .single();
-      
+      const { data: profile } = await supabase.from("profiles").select("bonus_balance").eq("id", claim.referrer_id).single();
       if (profile) {
-        const { error: profileError } = await supabase
-          .from("profiles")
-          .update({ bonus_balance: Number(profile.bonus_balance) + Number(claim.bonus_amount) })
-          .eq("id", claim.referrer_id);
-        if (profileError) throw profileError;
+        await supabase.from("profiles").update({ bonus_balance: Number(profile.bonus_balance) + Number(claim.bonus_amount) }).eq("id", claim.referrer_id);
       }
 
       setMessage("Claim approved! Bonus added to referrer's wallet.");
@@ -99,14 +87,9 @@ export default function AdminReferralClaimsPage() {
     if (!confirm("Are you sure you want to reject this claim?")) return;
     setActionLoading(id);
     setMessage("");
-
     const { error } = await supabase.from("referral_claims").update({ status: "rejected" }).eq("id", id);
-    if (!error) {
-      setMessage("Claim rejected.");
-      loadData();
-    } else {
-      setMessage(`Error: ${error.message}`);
-    }
+    if (!error) { setMessage("Claim rejected."); loadData(); } 
+    else { setMessage(`Error: ${error.message}`); }
     setActionLoading(null);
   };
 
@@ -121,56 +104,47 @@ export default function AdminReferralClaimsPage() {
         <div className="admin-empty">No pending referral claims found.</div>
       ) : (
         <div className="claims-list">
-          {claims.map((claim) => (
-            <div className="claim-card" key={claim.id}>
-              <div className="claim-header">
-                <span className="claim-date">{new Date(claim.created_at).toLocaleString()}</span>
-                <span className="badge-pending">PENDING</span>
-              </div>
+          {claims.map((claim) => {
+            const isSuspicious = claim.referrer_mobile === claim.referred_mobile;
+            return (
+              <div className={`claim-card ${isSuspicious ? 'suspicious' : ''}`} key={claim.id}>
+                <div className="claim-header">
+                  <span className="claim-date">{new Date(claim.created_at).toLocaleString()}</span>
+                  {isSuspicious ? (
+                    <span className="badge-suspicious">SUSPICIOUS (Same Mobile)</span>
+                  ) : (
+                    <span className="badge-pending">PENDING</span>
+                  )}
+                </div>
 
-              <div className="claim-users">
-                <div className="user-box">
-                  <span className="user-role">Referrer</span>
-                  <strong>{claim.referrer_name}</strong>
-                  <span className="user-id">{claim.referrer_game_id}</span>
+                <div className="claim-users">
+                  <div className="user-box">
+                    <span className="user-role">Referrer</span>
+                    <strong>{claim.referrer_name}</strong>
+                    <span className="user-id">{claim.referrer_game_id}</span>
+                    <span className="user-mobile">📱 {claim.referrer_mobile}</span>
+                  </div>
+                  <i className="fa-solid fa-arrow-right"></i>
+                  <div className="user-box" style={{ textAlign: "right" }}>
+                    <span className="user-role">New User</span>
+                    <strong>{claim.referred_name}</strong>
+                    <span className="user-id">{claim.referred_game_id}</span>
+                    <span className="user-mobile">📱 {claim.referred_mobile}</span>
+                  </div>
                 </div>
-                <i className="fa-solid fa-arrow-right"></i>
-                <div className="user-box">
-                  <span className="user-role">New User</span>
-                  <strong>{claim.referred_name}</strong>
-                  <span className="user-id">{claim.referred_game_id}</span>
-                </div>
-              </div>
 
-              <div className="claim-amounts">
-                <div>
-                  <span>Deposit Amount:</span>
-                  <strong>৳ {Number(claim.deposit_amount).toLocaleString()}</strong>
+                <div className="claim-amounts">
+                  <div><span>Deposit:</span><strong>৳ {Number(claim.deposit_amount).toLocaleString()}</strong></div>
+                  <div><span>Bonus:</span><strong className="text-green">৳ {Number(claim.bonus_amount).toLocaleString()}</strong></div>
                 </div>
-                <div>
-                  <span>Bonus Amount:</span>
-                  <strong className="text-green">৳ {Number(claim.bonus_amount).toLocaleString()}</strong>
-                </div>
-              </div>
 
-              <div className="claim-actions">
-                <button 
-                  className="btn-reject" 
-                  onClick={() => handleReject(claim.id)}
-                  disabled={actionLoading === claim.id}
-                >
-                  Reject
-                </button>
-                <button 
-                  className="btn-approve" 
-                  onClick={() => handleApprove(claim)}
-                  disabled={actionLoading === claim.id}
-                >
-                  {actionLoading === claim.id ? "Processing..." : "Approve"}
-                </button>
+                <div className="claim-actions">
+                  <button className="btn-reject" onClick={() => handleReject(claim.id)} disabled={actionLoading === claim.id}>Reject</button>
+                  <button className="btn-approve" onClick={() => handleApprove(claim)} disabled={actionLoading === claim.id}>Approve</button>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>
