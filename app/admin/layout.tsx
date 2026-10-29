@@ -17,6 +17,7 @@ const menuItems = [
   { name: "Turnover Management", path: "/admin/turnover", icon: "fa-sync" },
   { name: "Referral Claims", path: "/admin/referral-claims", icon: "fa-users" },
 { name: "Referral Settings", path: "/admin/refer-settings", icon: "fa-gear" },
+  { name: "Bonus Transfers", path: "/admin/bonus-transfers", icon: "fa-money-bill-transfer" },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
