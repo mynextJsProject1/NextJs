@@ -15,6 +15,8 @@ const menuItems = [
   { name: "Bonus Settings", path: "/admin/bonus-settings", icon: "fa-gift" },
   { name: "Banner Management", path: "/admin/banners", icon: "fa-image" },
   { name: "Turnover Management", path: "/admin/turnover", icon: "fa-sync" },
+  { name: "Referral Claims", path: "/admin/referral-claims", icon: "fa-users" },
+{ name: "Referral Settings", path: "/admin/refer-settings", icon: "fa-gear" },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
