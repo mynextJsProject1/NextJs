@@ -1,9 +1,10 @@
-/* app/admin/lottery/page.tsx */
+/* app/lottery/page.tsx */
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
-import { createClient } from "../../../lib/supabase/client";
-import "./lottery-admin.css";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import { createClient } from "../../lib/supabase/client";
+import "./lottery.css";
 
 type Draw = {
   id: string;
@@ -11,249 +12,370 @@ type Draw = {
   ticket_price: number;
   total_tickets: number;
   jackpot_amount: number;
-  draw_type: string;
   draw_time: string;
   status: string;
-  winning_number: number | null;
 };
 
-export default function AdminLotteryPage() {
-  const [draws, setDraws] = useState<Draw[]>([]);
+type Ticket = {
+  ticket_number: string;
+  user_id: string;
+};
+
+type MyTicketData = {
+  id: string;
+  ticket_number: string;
+  ticket_code: string;
+  created_at: string;
+  lottery_draws: {
+    draw_name: string;
+    ticket_price: number;
+  } | null;
+};
+
+type KycData = {
+  mobile: string;
+  full_name: string;
+  father_name: string;
+  mother_name: string;
+  full_address: string;
+};
+
+const TICKET_PRICES = [50, 100, 250, 500, 1000];
+
+export default function LotteryHomePage() {
+  const router = useRouter();
+  const supabase = useMemo(() => createClient(), []);
+
+  const [activeTab, setActiveTab] = useState<"buy" | "my-tickets">("buy");
+  const [selectedPrice, setSelectedPrice] = useState(50);
+  const [draw, setDraw] = useState<Draw | null>(null);
+  const [soldTickets, setSoldTickets] = useState<Ticket[]>([]);
+  const [myTickets, setMyTickets] = useState<string[]>([]);
+  const [allMyTickets, setAllMyTickets] = useState<MyTicketData[]>([]);
+  
+  const [balance, setBalance] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [buying, setBuying] = useState(false);
   const [message, setMessage] = useState({ type: "", text: "" });
   
-  // Create Form State
-  const [showForm, setShowForm] = useState(false);
-  const [formData, setFormData] = useState({
-    draw_name: "",
-    ticket_price: "50",
-    total_tickets: "100",
-    jackpot_amount: "",
-    draw_type: "auto",
-    draw_time: "",
+  const [selectedNumbers, setSelectedNumbers] = useState<string[]>([]);
+  const [showCheckout, setShowCheckout] = useState(false);
+
+  // KYC State
+  const [hasKyc, setHasKyc] = useState(false);
+  const [showKycForm, setShowKycForm] = useState(false);
+  const [kycData, setKycData] = useState<KycData>({
+    mobile: "", full_name: "", father_name: "", mother_name: "", full_address: ""
   });
-  const [creating, setCreating] = useState(false);
-
-  // Manual Draw State
-  const [manualDrawId, setManualDrawId] = useState<string | null>(null);
-  const [manualNumber, setManualNumber] = useState("");
-  const [executing, setExecuting] = useState<string | null>(null);
-
-  const supabase = createClient();
+  const [savingKyc, setSavingKyc] = useState(false);
+  
+  const [timeLeft, setTimeLeft] = useState("");
 
   const loadData = useCallback(async () => {
     setLoading(true);
-    const { data } = await supabase
-      .from("lottery_draws")
-      .select("*")
-      .order("created_at", { ascending: false });
+    setMessage({ type: "", text: "" });
+    setSelectedNumbers([]);
+    
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) { router.replace("/signup/"); return; }
 
-    if (data) setDraws(data as Draw[]);
-    setLoading(false);
-  }, [supabase]);
+      // ১. ব্যালেন্স এবং KYC চেক
+      const { data: profile } = await supabase.from("profiles").select("balance, mobile, full_name").eq("id", user.id).single();
+      if (profile) {
+        setBalance(Number(profile.balance));
+        setKycData(prev => ({ ...prev, mobile: profile.mobile || "", full_name: profile.full_name || "" }));
+      }
+
+      const { data: kyc } = await supabase.from("lottery_user_details").select("user_id").eq("user_id", user.id).maybeSingle();
+      setHasKyc(!!kyc);
+
+      // ২. আমার সব টিকিট
+      const { data: myTicketsData } = await supabase
+        .from("lottery_tickets")
+        .select("id, ticket_number, ticket_code, created_at, lottery_draws(draw_name, ticket_price)")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
+      
+      if (myTicketsData) setAllMyTickets(myTicketsData as unknown as MyTicketData[]);
+
+      // ৩. চলমান ড্র
+      const { data: drawData } = await supabase
+        .from("lottery_draws")
+        .select("*")
+        .eq("ticket_price", selectedPrice)
+        .eq("status", "upcoming")
+        .order("draw_time", { ascending: true })
+        .limit(1)
+        .maybeSingle();
+
+      if (drawData) {
+        setDraw(drawData as Draw);
+        const { data: tickets } = await supabase.from("lottery_tickets").select("ticket_number, user_id").eq("draw_id", drawData.id);
+        if (tickets) {
+          setSoldTickets(tickets as Ticket[]);
+          setMyTickets(tickets.filter(t => t.user_id === user.id).map(t => t.ticket_number));
+        }
+      } else {
+        setDraw(null);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  }, [router, supabase, selectedPrice]);
 
   useEffect(() => { void loadData(); }, [loadData]);
 
-  const handleCreateDraw = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setCreating(true);
-    setMessage({ type: "", text: "" });
+  // টাইমার
+  useEffect(() => {
+    if (!draw) return;
+    const timer = setInterval(() => {
+      const distance = new Date(draw.draw_time).getTime() - new Date().getTime();
+      if (distance < 0) { setTimeLeft("Drawing..."); clearInterval(timer); return; }
+      const h = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const m = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+      const s = Math.floor((distance % (1000 * 60)) / 1000);
+      setTimeLeft(`${h}h ${m}m ${s}s`);
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [draw]);
 
-    const { error } = await supabase.from("lottery_draws").insert({
-      draw_name: formData.draw_name,
-      ticket_price: Number(formData.ticket_price),
-      total_tickets: Number(formData.total_tickets),
-      jackpot_amount: Number(formData.jackpot_amount),
-      draw_type: formData.draw_type,
-      draw_time: new Date(formData.draw_time).toISOString(),
-      status: "upcoming"
-    });
-
-    if (error) {
-      setMessage({ type: "error", text: error.message });
+  const toggleNumber = (num: string) => {
+    if (selectedNumbers.includes(num)) {
+      setSelectedNumbers(selectedNumbers.filter(n => n !== num));
     } else {
-      setMessage({ type: "success", text: "Draw created successfully!" });
-      setShowForm(false);
-      setFormData({ draw_name: "", ticket_price: "50", total_tickets: "100", jackpot_amount: "", draw_type: "auto", draw_time: "" });
-      loadData();
+      setSelectedNumbers([...selectedNumbers, num]);
     }
-    setCreating(false);
   };
 
-  const handleExecuteDraw = async (drawId: string, type: string) => {
-    let winningNumber = null;
-
-    if (type === "manual") {
-      if (!manualNumber) {
-        setMessage({ type: "error", text: "Please enter a manual winning number." });
-        return;
-      }
-      winningNumber = Number(manualNumber);
+  const handleProceedToCheckout = () => {
+    if (selectedNumbers.length === 0) {
+      setMessage({ type: "error", text: "Please select at least one ticket." });
+      return;
     }
+    setShowCheckout(true);
+  };
 
-    if (!confirm(`Are you sure you want to ${type === 'auto' ? 'AUTO' : 'MANUAL'} draw for this lottery?`)) return;
-
-    setExecuting(drawId);
+  const handleConfirmBuy = async () => {
+    if (!draw) return;
+    setBuying(true);
     setMessage({ type: "", text: "" });
 
-    const { data, error } = await supabase.rpc("execute_lottery_draw", {
-      p_draw_id: drawId,
-      p_winning_number: winningNumber
+    const { data, error } = await supabase.rpc("buy_lottery_tickets_bulk", {
+      p_draw_id: draw.id,
+      p_ticket_numbers: selectedNumbers
     });
 
     if (error) {
       setMessage({ type: "error", text: error.message });
+      setShowCheckout(false);
     } else if (data && data.success) {
-      setMessage({ type: "success", text: `Draw completed! Winning Number: ${data.winning_number}. Jackpot ৳${data.jackpot_amount} added to winner.` });
-      setManualDrawId(null);
-      setManualNumber("");
+      setMessage({ type: "success", text: `${data.total_tickets} Tickets purchased successfully!` });
+      setShowCheckout(false);
       loadData();
     } else {
-      setMessage({ type: "error", text: data?.error || "Failed to execute draw." });
+      setMessage({ type: "error", text: data?.error || "Failed to buy tickets." });
+      setShowCheckout(false);
     }
-    setExecuting(null);
+    setBuying(false);
   };
+
+  const handleSaveKyc = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSavingKyc(true);
+    setMessage({ type: "", text: "" });
+
+    try {
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      if (authError || !user) throw new Error("Please log in again.");
+
+      const { error } = await supabase.from("lottery_user_details").upsert({
+        user_id: user.id,
+        mobile: kycData.mobile,
+        full_name: kycData.full_name,
+        father_name: kycData.father_name,
+        mother_name: kycData.mother_name,
+        full_address: kycData.full_address
+      }, { onConflict: 'user_id' });
+
+      if (error) throw error;
+
+      setHasKyc(true);
+      setShowKycForm(false);
+      if (selectedNumbers.length > 0) setShowCheckout(true);
+    } catch (err: any) {
+      setMessage({ type: "error", text: err.message || "Failed to save KYC." });
+    } finally {
+      setSavingKyc(false);
+    }
+  };
+
+  const isSold = (num: string) => soldTickets.some(t => t.ticket_number === num);
+  const isMine = (num: string) => myTickets.includes(num);
+  const totalWorth = allMyTickets.reduce((sum, t) => sum + (t.lottery_draws?.ticket_price || 0), 0);
+
+  if (loading) return <div className="lottery-loading"><i className="fa-solid fa-circle-notch fa-spin"></i><span>Loading...</span></div>;
 
   return (
-    <div>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
-        <h1 className="admin-page-title" style={{ margin: 0 }}>Lottery Management</h1>
-        <button 
-          onClick={() => setShowForm(!showForm)}
-          style={{ background: "#ffd700", color: "#000", border: "none", padding: "10px 16px", borderRadius: "8px", fontWeight: "bold", cursor: "pointer" }}
-        >
-          {showForm ? "Close Form" : "+ Create Draw"}
-        </button>
+    <div className="lottery-home-page">
+      <div className="main-tabs">
+        <button className={activeTab === "buy" ? "active" : ""} onClick={() => setActiveTab("buy")}>Buy Tickets</button>
+        <button className={activeTab === "my-tickets" ? "active" : ""} onClick={() => setActiveTab("my-tickets")}>My Tickets</button>
       </div>
 
-      {message.text && (
-        <div style={{ background: message.type === 'error' ? 'rgba(255,77,77,0.1)' : 'rgba(0,231,1,0.1)', color: message.type === 'error' ? '#ff4d4d' : '#00e701', padding: "12px", borderRadius: "8px", marginBottom: "16px", fontSize: "14px", border: `1px solid ${message.type === 'error' ? 'rgba(255,77,77,0.3)' : 'rgba(0,231,1,0.3)'}` }}>
-          {message.text}
+      {activeTab === "buy" ? (
+        <>
+          <div className="jackpot-banner">
+            <div className="jackpot-label">MEGA JACKPOT</div>
+            <div className="jackpot-amount">৳ {draw ? Number(draw.jackpot_amount).toLocaleString() : "0"}</div>
+            <div className="jackpot-timer"><i className="fa-regular fa-clock"></i> Next Draw In: <strong>{timeLeft}</strong></div>
+          </div>
+
+          <div className="price-tabs">
+            {TICKET_PRICES.map(price => (
+              <button key={price} className={selectedPrice === price ? "active" : ""} onClick={() => setSelectedPrice(price)}>৳{price}</button>
+            ))}
+          </div>
+
+          {message.text && message.type === "success" && (
+            <div className="lottery-alert success">{message.text}</div>
+          )}
+
+          {!draw ? (
+            <div className="lottery-empty"><i className="fa-solid fa-ticket"></i><p>No upcoming draw for ৳{selectedPrice}.</p></div>
+          ) : (
+            <div className="lottery-body">
+              <div className="lottery-info-row">
+                <span><i className="fa-solid fa-ticket"></i> Price: <strong>৳{draw.ticket_price}</strong></span>
+                <span><i className="fa-solid fa-wallet"></i> Balance: <strong>৳{balance.toFixed(2)}</strong></span>
+              </div>
+
+              <div className="number-grid">
+                {Array.from({ length: draw.total_tickets }, (_, i) => (i + 1).toString()).map(num => {
+                  const sold = isSold(num);
+                  const mine = isMine(num);
+                  const selected = selectedNumbers.includes(num);
+                  
+                  return (
+                    <button
+                      key={num}
+                      className={`num-btn ${sold ? "sold" : ""} ${mine ? "mine" : ""} ${selected ? "selected" : ""}`}
+                      onClick={() => !sold && toggleNumber(num)}
+                      disabled={sold}
+                    >
+                      {num}
+                    </button>
+                  );
+                })}
+              </div>
+
+              <div className="legend-row">
+                <span><div className="dot available"></div> Available</span>
+                <span><div className="dot sold"></div> Sold</span>
+                <span><div className="dot mine"></div> Mine</span>
+                <span><div className="dot selected"></div> Selected</span>
+              </div>
+
+              <div className="buy-action-card">
+                <div>
+                  <span>Selected Tickets:</span>
+                  <strong>{selectedNumbers.length > 0 ? selectedNumbers.join(", ") : "None"}</strong>
+                </div>
+                <div>
+                  <span>Total Price:</span>
+                  <strong className="text-gold">৳ {draw.ticket_price * selectedNumbers.length}</strong>
+                </div>
+                <button 
+                  className="buy-btn" 
+                  onClick={() => { if (!hasKyc) setShowKycForm(true); else handleProceedToCheckout(); }} 
+                  disabled={selectedNumbers.length === 0 || buying || balance < (draw.ticket_price * selectedNumbers.length)}
+                >
+                  Proceed to Checkout
+                </button>
+              </div>
+            </div>
+          )}
+        </>
+      ) : (
+        <div className="my-tickets-wrapper">
+          <div className="total-worth-card">
+            <div><span>Total Worth</span><strong>৳ {totalWorth.toLocaleString()}</strong></div>
+            <div className="worth-icon">💰</div>
+          </div>
+
+          {allMyTickets.length === 0 ? (
+            <div className="lottery-empty" style={{ marginTop: "20px" }}><i className="fa-solid fa-ticket"></i><p>You haven't bought any tickets yet.</p></div>
+          ) : (
+            <div className="ticket-cards-list">
+              {allMyTickets.map((t) => (
+                <div className="physical-ticket" key={t.id}>
+                  <div className="ticket-top">
+                    <div><span className="t-label">Ticket Code</span><strong className="t-number">{t.ticket_code}</strong></div>
+                    <div style={{ textAlign: "right" }}><span className="t-label">Date</span><strong className="t-date">{new Date(t.created_at).toLocaleDateString("en-GB")}</strong></div>
+                  </div>
+                  <div className="ticket-middle">
+                    <div><span className="t-label">Draw Name</span><strong className="t-draw">{t.lottery_draws?.draw_name} (#{t.ticket_number})</strong></div>
+                    <div style={{ textAlign: "right" }}><span className="t-label">Price</span><strong className="t-price">৳ {t.lottery_draws?.ticket_price}</strong></div>
+                  </div>
+                  <div className="ticket-cutout-line"><div className="circle left"></div><div className="dashed"></div><div className="circle right"></div></div>
+                  <div className="ticket-bottom">
+                    <img src={`https://barcode.tec-it.com/barcode.ashx?data=${t.ticket_code}&code=Code128&dpi=96`} alt="Barcode" className="barcode-img" />
+                    <span className="download-text"><i className="fa-solid fa-download"></i> Download Ticket</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
-      {/* Create Form */}
-      {showForm && (
-        <form onSubmit={handleCreateDraw} className="admin-form-card" style={{ marginBottom: "24px" }}>
-          <h3 style={{ margin: "0 0 16px", color: "#fff" }}>Create New Lottery Draw</h3>
-          
-          <div className="admin-field">
-            <label>Draw Name</label>
-            <input type="text" placeholder="e.g. 50 Taka Mega Draw" value={formData.draw_name} onChange={e => setFormData({...formData, draw_name: e.target.value})} required />
-          </div>
-
-          <div style={{ display: "flex", gap: "10px" }}>
-            <div className="admin-field" style={{ flex: 1 }}>
-              <label>Ticket Price (৳)</label>
-              <input type="number" value={formData.ticket_price} onChange={e => setFormData({...formData, ticket_price: e.target.value})} required />
-            </div>
-            <div className="admin-field" style={{ flex: 1 }}>
-              <label>Total Tickets</label>
-              <input type="number" value={formData.total_tickets} onChange={e => setFormData({...formData, total_tickets: e.target.value})} required />
+      {/* Checkout Modal */}
+      {showCheckout && draw && (
+        <div className="lottery-modal-overlay">
+          <div className="lottery-modal">
+            <h3>Confirm Payment</h3>
+            <div className="modal-row"><span>Selected Numbers:</span> <strong>{selectedNumbers.join(", ")}</strong></div>
+            <div className="modal-row"><span>Total Tickets:</span> <strong>{selectedNumbers.length}</strong></div>
+            <div className="modal-row"><span>Price per ticket:</span> <strong>৳{draw.ticket_price}</strong></div>
+            <div className="modal-row total"><span>Total Amount:</span> <strong>৳{draw.ticket_price * selectedNumbers.length}</strong></div>
+            <div className="modal-row"><span>Current Balance:</span> <strong>৳{balance.toFixed(2)}</strong></div>
+            <div className="modal-row"><span>Balance After Payment:</span> <strong className="text-green">৳{(balance - (draw.ticket_price * selectedNumbers.length)).toFixed(2)}</strong></div>
+            
+            <div className="modal-actions">
+              <button className="btn-cancel" onClick={() => setShowCheckout(false)}>Cancel</button>
+              <button className="btn-confirm" onClick={handleConfirmBuy} disabled={buying}>{buying ? "Processing..." : "Confirm & Pay"}</button>
             </div>
           </div>
-
-          <div className="admin-field">
-            <label>Jackpot Amount (৳)</label>
-            <input type="number" value={formData.jackpot_amount} onChange={e => setFormData({...formData, jackpot_amount: e.target.value})} placeholder="e.g. 5000" required />
-          </div>
-
-          <div style={{ display: "flex", gap: "10px" }}>
-            <div className="admin-field" style={{ flex: 1 }}>
-              <label>Draw Type</label>
-              <select value={formData.draw_type} onChange={e => setFormData({...formData, draw_type: e.target.value})}>
-                <option value="auto">Auto (Random)</option>
-                <option value="manual">Manual (Admin Selects)</option>
-              </select>
-            </div>
-            <div className="admin-field" style={{ flex: 1 }}>
-              <label>Draw Time</label>
-              <input type="datetime-local" value={formData.draw_time} onChange={e => setFormData({...formData, draw_time: e.target.value})} required />
-            </div>
-          </div>
-
-          <button type="submit" className="admin-submit-btn" disabled={creating}>
-            {creating ? "Creating..." : "Create Draw"}
-          </button>
-        </form>
+        </div>
       )}
 
-      {/* Draw List */}
-      {loading ? (
-        <p style={{ color: "#9ca9a3" }}>Loading draws...</p>
-      ) : draws.length === 0 ? (
-        <p style={{ color: "#9ca9a3" }}>No lottery draws created yet.</p>
-      ) : (
-        <div className="admin-lottery-list">
-          {draws.map(draw => (
-            <div className="admin-draw-card" key={draw.id}>
-              <div className="draw-header">
-                <div>
-                  <strong style={{ color: "#fff", display: "block", fontSize: "16px" }}>{draw.draw_name}</strong>
-                  <span style={{ fontSize: "12px", color: "#9ca9a3" }}>Price: ৳{draw.ticket_price} | Jackpot: ৳{draw.jackpot_amount}</span>
-                </div>
-                <span className={`draw-status ${draw.status}`}>{draw.status.toUpperCase()}</span>
+      {/* KYC Modal */}
+      {showKycForm && (
+        <div className="lottery-modal-overlay">
+          <div className="lottery-modal">
+            <h3>KYC Verification</h3>
+            <p style={{ fontSize: "12px", color: "#b1bad3", marginBottom: "16px" }}>Please fill up these details before buying a ticket.</p>
+            
+            {message.text && message.type === "error" && (
+              <div style={{ background: "rgba(255,77,77,0.1)", color: "#ff4d4d", padding: "10px", borderRadius: "8px", marginBottom: "16px", fontSize: "12px", border: "1px solid rgba(255,77,77,0.3)" }}>
+                {message.text}
               </div>
+            )}
 
-              <div className="draw-info">
-                <span><strong>Type:</strong> {draw.draw_type.toUpperCase()}</span>
-                <span><strong>Time:</strong> {new Date(draw.draw_time).toLocaleString()}</span>
-                {draw.status === "finished" && (
-                  <span style={{ color: "#00e701" }}><strong>Winning Number:</strong> #{draw.winning_number}</span>
-                )}
+            <form onSubmit={handleSaveKyc} className="kyc-form">
+              <input type="text" placeholder="Mobile Number" value={kycData.mobile} onChange={e => setKycData({...kycData, mobile: e.target.value})} required />
+              <input type="text" placeholder="Full Name" value={kycData.full_name} onChange={e => setKycData({...kycData, full_name: e.target.value})} required />
+              <input type="text" placeholder="Father's Name" value={kycData.father_name} onChange={e => setKycData({...kycData, father_name: e.target.value})} required />
+              <input type="text" placeholder="Mother's Name" value={kycData.mother_name} onChange={e => setKycData({...kycData, mother_name: e.target.value})} required />
+              <textarea placeholder="Full Address" value={kycData.full_address} onChange={e => setKycData({...kycData, full_address: e.target.value})} required />
+              <div className="modal-actions">
+                <button type="button" className="btn-cancel" onClick={() => setShowKycForm(false)}>Cancel</button>
+                <button type="submit" className="btn-confirm" disabled={savingKyc}>{savingKyc ? "Saving..." : "Save & Continue"}</button>
               </div>
-
-              {draw.status === "upcoming" && (
-                <div className="draw-actions">
-                  {draw.draw_type === "auto" ? (
-                    <button 
-                      className="btn-execute"
-                      onClick={() => handleExecuteDraw(draw.id, "auto")}
-                      disabled={executing === draw.id}
-                    >
-                      {executing === draw.id ? "Executing..." : "Execute Auto Draw"}
-                    </button>
-                  ) : (
-                    <div style={{ display: "flex", gap: "10px", width: "100%" }}>
-                      {manualDrawId === draw.id ? (
-                        <>
-                          <input 
-                            type="number" 
-                            placeholder="Winning No" 
-                            value={manualNumber} 
-                            onChange={e => setManualNumber(e.target.value)}
-                            style={{ flex: 1, background: "#07110f", color: "#fff", border: "1px solid #26352e", padding: "10px", borderRadius: "6px" }}
-                          />
-                          <button 
-                            className="btn-execute"
-                            onClick={() => handleExecuteDraw(draw.id, "manual")}
-                            disabled={executing === draw.id}
-                            style={{ flex: 1 }}
-                          >
-                            {executing === draw.id ? "Wait..." : "Confirm"}
-                          </button>
-                          <button 
-                            onClick={() => setManualDrawId(null)}
-                            style={{ background: "transparent", border: "none", color: "#ff4d4d", cursor: "pointer" }}
-                          >
-                            Cancel
-                          </button>
-                        </>
-                      ) : (
-                        <button 
-                          className="btn-execute"
-                          onClick={() => setManualDrawId(draw.id)}
-                          style={{ width: "100%" }}
-                        >
-                          Execute Manual Draw
-                        </button>
-                      )}
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          ))}
+            </form>
+          </div>
         </div>
       )}
     </div>
