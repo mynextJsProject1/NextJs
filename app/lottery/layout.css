@@ -1,0 +1,89 @@
+/* app/lottery/layout.css */
+.lottery-app-layout {
+  min-height: 100vh;
+  background: #0f0a1a; /* Deep purple/black background */
+  color: #fff;
+  padding-bottom: 70px; /* Space for bottom nav */
+  font-family: inherit;
+}
+
+/* Header */
+.lottery-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: rgba(26, 15, 46, 0.9);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid #3a1f6b;
+}
+
+.lottery-logo {
+  font-size: 1.2rem;
+  font-weight: 900;
+  color: #fff;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.lottery-logo i { color: #ffd700; }
+
+.lottery-header-right {
+  display: flex;
+  gap: 8px;
+}
+
+.lottery-wallet-pill, .lottery-trophy-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #2a154a;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  border: 1px solid #4b2882;
+  cursor: pointer;
+}
+.lottery-wallet-pill i { color: #00e701; }
+
+/* Content */
+.lottery-content {
+  padding: 16px;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* Bottom Nav */
+.lottery-bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 65px;
+  background: #1a0f2e;
+  border-top: 1px solid #3a1f6b;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  z-index: 100;
+}
+
+.lottery-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  color: #888;
+  text-decoration: none;
+  font-size: 0.7rem;
+  font-weight: 600;
+  transition: 0.2s;
+}
+
+.lottery-nav-item i { font-size: 1.2rem; }
+.lottery-nav-item.active { color: #ffd700; }
