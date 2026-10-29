@@ -1,189 +1,151 @@
-/* app/admin/deposits/page.tsx */
+/* app/lottery/deposit/page.tsx */
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { createClient } from "../../../lib/supabase/client";
 import "./deposit.css";
 
-type DepositTxn = {
-  id: string;
-  user_id: string;
+type PaymentMethod = {
+  id: number;
   method_code: string;
-  amount: number;
-  claimed_bonus_amount: number;
-  required_turnover: number;
-  transaction_reference: string;
-  destination_details: string | null;
-  created_at: string;
-  profiles: {
-    full_name: string;
-    mobile: string;
-  } | null;
+  method_name: string;
+  payment_number: string | null;
 };
 
 const methodImages: Record<string, string> = {
   bkash: "bkash.png", nagad: "nagad.png", rocket: "rocket.png", usdt: "usdt.png",
 };
 const paymentImageBase = process.env.NODE_ENV === "production" ? "/NextJs" : "";
+const QUICK_AMOUNTS = [50, 100, 500, 1000, 5000];
 
-export default function AdminDepositsPage() {
-  const [deposits, setDeposits] = useState<DepositTxn[]>([]);
-  const [methods, setMethods] = useState<Record<string, string>>({});
+export default function LotteryDepositPage() {
+  const supabase = useMemo(() => createClient(), []);
+  const [methods, setMethods] = useState<PaymentMethod[]>([]);
+  const [selectedMethod, setSelectedMethod] = useState<PaymentMethod | null>(null);
+  const [amount, setAmount] = useState("");
+  const [trxId, setTrxId] = useState("");
+  const [balance, setBalance] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [actionLoading, setActionLoading] = useState<string | null>(null);
-  const [message, setMessage] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [message, setMessage] = useState({ type: "", text: "" });
 
-  const supabase = createClient();
-
-  const loadData = useCallback(async () => {
-    setLoading(true);
-    
-    const { data: methodData } = await supabase.from("payment_methods").select("method_code, method_name");
-    if (methodData) {
-      const methodMap: Record<string, string> = {};
-      methodData.forEach(m => methodMap[m.method_code] = m.method_name);
-      setMethods(methodMap);
-    }
-
-    const { data: txnData, error } = await supabase
-      .from("wallet_transactions")
-      .select(`
-        id, user_id, method_code, amount, claimed_bonus_amount, required_turnover, transaction_reference, destination_details, created_at,
-        profiles ( full_name, mobile )
-      `)
-      .eq("transaction_type", "deposit")
-      .eq("status", "pending")
-      .order("created_at", { ascending: false });
-
-    if (!error && txnData) {
-      setDeposits(txnData as unknown as DepositTxn[]);
-    }
-    setLoading(false);
+  useEffect(() => {
+    const fetchData = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: profile } = await supabase.from("profiles").select("lottery_balance").eq("id", user.id).single();
+        if (profile) setBalance(Number(profile.lottery_balance) || 0);
+      }
+      const { data } = await supabase.from("payment_methods").select("*").eq("is_enabled", true).eq("deposit_enabled", true);
+      if (data) setMethods(data);
+      setLoading(false);
+    };
+    void fetchData();
   }, [supabase]);
 
-  useEffect(() => { loadData(); }, [loadData]);
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedMethod) return;
+    const numAmount = Number(amount);
+    if (numAmount < 50) {
+      setMessage({ type: "error", text: "Minimum deposit is 50 BDT." });
+      return;
+    }
+    if (trxId.trim().length < 5) {
+      setMessage({ type: "error", text: "Please enter a valid TrxID." });
+      return;
+    }
 
-  const handleApprove = async (txn: DepositTxn) => {
-    setActionLoading(txn.id);
-    setMessage("");
+    setSubmitting(true);
+    setMessage({ type: "", text: "" });
 
     try {
-      const { error: updateError } = await supabase
-        .from("wallet_transactions")
-        .update({ status: "approved" })
-        .eq("id", txn.id);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not logged in");
 
-      if (updateError) throw updateError;
+      // লটারি ডিপোজিট হিসেবে সেভ হবে
+      const { error } = await supabase.from("wallet_transactions").insert({
+        user_id: user.id,
+        transaction_type: "deposit",
+        method_code: selectedMethod.method_code,
+        amount: numAmount,
+        transaction_reference: trxId.toUpperCase(),
+        status: "pending",
+        destination_details: "LOTTERY_DEPOSIT" // চিহ্নিত করার জন্য
+      });
 
-      // ✅ এখানে প্রোফাইল থেকে lottery_balance ও নেওয়া হচ্ছে
-      const { data: profile, error: profileError } = await supabase
-        .from("profiles")
-        .select("balance, total_required_turnover, lottery_balance")
-        .eq("id", txn.user_id)
-        .single();
+      if (error) throw error;
 
-      if (profileError) throw profileError;
-
-      if (profile) {
-        // ✅ চেক করা হচ্ছে এটি লটারি ডিপোজিট কি না
-        if (txn.destination_details === "LOTTERY_DEPOSIT") {
-          await supabase
-            .from("profiles")
-            .update({
-              lottery_balance: Number(profile.lottery_balance || 0) + Number(txn.amount)
-            })
-            .eq("id", txn.user_id);
-        } else {
-          // ক্যাসিনোর সাধারণ ডিপোজিট
-          const totalCredit = Number(txn.amount) + Number(txn.claimed_bonus_amount || 0);
-          await supabase
-            .from("profiles")
-            .update({
-              balance: Number(profile.balance) + totalCredit,
-              total_required_turnover: Number(profile.total_required_turnover) + Number(txn.required_turnover),
-            })
-            .eq("id", txn.user_id);
-        }
-      }
-
-      setMessage("Deposit approved successfully!");
-      loadData();
+      setMessage({ type: "success", text: "Deposit request submitted! Please wait for admin approval." });
+      setAmount(""); setTrxId(""); setSelectedMethod(null);
     } catch (err: any) {
-      setMessage(`Error: ${err.message}`);
+      setMessage({ type: "error", text: err.message });
     } finally {
-      setActionLoading(null);
+      setSubmitting(false);
     }
   };
 
-  const handleReject = async (id: string) => {
-    if (!confirm("Are you sure you want to reject this deposit?")) return;
-    setActionLoading(id);
-    setMessage("");
-
-    const { error } = await supabase
-      .from("wallet_transactions")
-      .update({ status: "rejected" })
-      .eq("id", id);
-
-    if (error) setMessage(`Error: ${error.message}`);
-    else {
-      setMessage("Deposit rejected.");
-      loadData();
-    }
-    setActionLoading(null);
-  };
+  if (loading) return <div className="lot-loading">Loading...</div>;
 
   return (
-    <div>
-      <h1 className="admin-page-title">Pending Deposits</h1>
-      {message && <div className="admin-alert">{message}</div>}
+    <div className="lot-deposit-page">
+      <div className="lot-balance-display">
+        <span>Lottery Balance</span>
+        <strong>৳ {balance.toFixed(2)}</strong>
+      </div>
 
-      {loading ? (
-        <div className="admin-loading"><i className="fa-solid fa-circle-notch fa-spin" /> Loading deposits...</div>
-      ) : deposits.length === 0 ? (
-        <div className="admin-empty">No pending deposits found.</div>
-      ) : (
-        <div className="deposit-list">
-          {deposits.map((txn) => {
-            const isLottery = txn.destination_details === "LOTTERY_DEPOSIT";
-            return (
-              <div className="deposit-card" key={txn.id} style={{ borderColor: isLottery ? "#ffd700" : "#26352e" }}>
-                <div className="deposit-header">
-                  <div>
-                    <strong className="deposit-amount">৳ {txn.amount}</strong>
-                    {isLottery && <span style={{ fontSize: "10px", background: "#ffd700", color: "#000", padding: "2px 6px", borderRadius: "4px", marginLeft: "8px", fontWeight: "bold" }}>LOTTERY</span>}
-                    <div className="deposit-method-wrap">
-                      {methodImages[txn.method_code] && (
-                        <img src={`${paymentImageBase}/images/payment/${methodImages[txn.method_code]}`} alt={txn.method_code} className="deposit-method-logo" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
-                      )}
-                      <span className="deposit-method">{methods[txn.method_code] || txn.method_code.toUpperCase()}</span>
-                    </div>
-                  </div>
-                  <div className="deposit-date">{new Date(txn.created_at).toLocaleString()}</div>
-                </div>
+      <h1 className="lot-page-title">Deposit Funds</h1>
+      
+      {message.text && <div className={`lot-alert ${message.type}`}>{message.text}</div>}
 
-                <div className="deposit-user-info">
-                  <p><strong>User:</strong> {txn.profiles?.full_name || "Unknown"}</p>
-                  <p><strong>Mobile:</strong> {txn.profiles?.mobile || "N/A"}</p>
-                  <p><strong>TrxID:</strong> <span className="trx-text">{txn.transaction_reference}</span></p>
-                </div>
-
-                {txn.claimed_bonus_amount > 0 && !isLottery && (
-                  <div className="deposit-bonus">
-                    <span>Bonus: ৳ {txn.claimed_bonus_amount}</span>
-                    <span>Req. Turnover: ৳ {txn.required_turnover}</span>
-                  </div>
-                )}
-
-                <div className="deposit-actions">
-                  <button className="btn-reject" onClick={() => handleReject(txn.id)} disabled={actionLoading === txn.id}>Reject</button>
-                  <button className="btn-approve" onClick={() => handleApprove(txn)} disabled={actionLoading === txn.id}>
-                    {actionLoading === txn.id ? "Processing..." : "Approve"}
-                  </button>
-                </div>
+      {!selectedMethod ? (
+        <div className="lot-method-grid">
+          {methods.map(m => (
+            <button key={m.id} className="lot-method-card" onClick={() => setSelectedMethod(m)}>
+              <div className="lot-method-img">
+                <img src={`${paymentImageBase}/images/payment/${methodImages[m.method_code]}`} alt={m.method_name} onError={(e) => e.currentTarget.style.display = 'none'} />
               </div>
-            );
-          })}
+              <span>{m.method_name}</span>
+            </button>
+          ))}
+        </div>
+      ) : (
+        <div className="lot-deposit-form-card">
+          <div className="lot-form-header">
+            <button className="lot-back-btn" onClick={() => setSelectedMethod(null)}>
+              <i className="fa-solid fa-arrow-left"></i>
+            </button>
+            <h2>Pay via {selectedMethod.method_name}</h2>
+          </div>
+
+          <div className="lot-payment-instruction">
+            <p>Send money to this number:</p>
+            <div className="lot-number-box">
+              <strong>{selectedMethod.payment_number || "Not set"}</strong>
+              <button onClick={() => navigator.clipboard.writeText(selectedMethod.payment_number || "")}>
+                <i className="fa-regular fa-copy"></i>
+              </button>
+            </div>
+          </div>
+
+          <form onSubmit={handleSubmit} className="lot-form">
+            <div className="lot-input-group">
+              <label>Amount (৳) - Min 50</label>
+              <input type="number" value={amount} onChange={e => setAmount(e.target.value)} placeholder="Enter amount" required />
+              <div className="lot-quick-amounts">
+                {QUICK_AMOUNTS.map(amt => (
+                  <button key={amt} type="button" onClick={() => setAmount(amt.toString())}>৳{amt}</button>
+                ))}
+              </div>
+            </div>
+            <div className="lot-input-group">
+              <label>Transaction ID (TrxID)</label>
+              <input type="text" value={trxId} onChange={e => setTrxId(e.target.value.toUpperCase())} placeholder="Enter TrxID" required />
+            </div>
+            <button type="submit" className="lot-submit-btn" disabled={submitting}>
+              {submitting ? "Submitting..." : "Submit Deposit"}
+            </button>
+          </form>
         </div>
       )}
     </div>
