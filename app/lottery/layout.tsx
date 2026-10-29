@@ -18,9 +18,9 @@ export default function LotteryLayout({ children }: { children: React.ReactNode 
   const loadBalance = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
-      const { data } = await supabase.from("profiles").select("balance, lottery_winnings").eq("id", user.id).single();
+      const { data } = await supabase.from("profiles").select("lottery_balance, lottery_winnings").eq("id", user.id).single();
       if (data) {
-        setBalance(Number(data.balance) || 0);
+        setBalance(Number(data.lottery_balance) || 0);
         setWinnings(Number(data.lottery_winnings) || 0);
       }
     }
@@ -28,12 +28,9 @@ export default function LotteryLayout({ children }: { children: React.ReactNode 
 
   useEffect(() => {
     void loadBalance();
-    
-    // Realtime আপডেটের জন্য (ব্যালেন্স বা টিকিট কেনার পর আপডেট হবে)
     const channel = supabase.channel("lottery-layout-profile")
       .on("postgres_changes", { event: "UPDATE", schema: "public", table: "profiles" }, () => loadBalance())
       .subscribe();
-
     return () => { supabase.removeChannel(channel); };
   }, [supabase]);
 
@@ -42,17 +39,15 @@ export default function LotteryLayout({ children }: { children: React.ReactNode 
     { name: "Deposit", path: "/lottery/deposit", icon: "fa-wallet" },
     { name: "Withdraw", path: "/lottery/withdraw", icon: "fa-money-bill-transfer" },
     { name: "My Tickets", path: "/lottery/my-tickets", icon: "fa-ticket" },
-    { name: "Profile", path: "/lottery/profile", icon: "fa-user" },
+    { name: "Winners", path: "/lottery/winner", icon: "fa-trophy" },
   ];
 
   return (
     <div className="lottery-app-layout">
-      {/* Header */}
       <header className="lottery-header">
         <Link href="/lottery" className="lottery-logo">
           <i className="fa-solid fa-trophy"></i> GaziLottery
         </Link>
-        
         <div className="lottery-header-right">
           <div className="lottery-wallet-pill" onClick={() => router.push('/lottery/deposit')}>
             <i className="fa-solid fa-coins"></i>
@@ -65,12 +60,10 @@ export default function LotteryLayout({ children }: { children: React.ReactNode 
         </div>
       </header>
 
-      {/* Main Content */}
       <main className="lottery-content">
         {children}
       </main>
 
-      {/* Bottom Nav */}
       <nav className="lottery-bottom-nav">
         {navItems.map((item) => {
           const isActive = pathname === item.path;
