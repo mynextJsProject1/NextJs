@@ -14,6 +14,27 @@
   margin: 0 auto;
 }
 
+/* ফুল স্ক্রিন সেন্টার লোডিং */
+.transactions-page .txn-full-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  gap: 16px;
+  color: var(--txn-accent);
+}
+
+.transactions-page .txn-full-loading i {
+  font-size: 3rem;
+}
+
+.transactions-page .txn-full-loading span {
+  color: var(--txn-muted);
+  font-size: 1rem;
+  font-weight: 500;
+}
+
 .transactions-page .transactions-title {
   font-size: 1.3rem;
   font-weight: 800;
@@ -92,7 +113,30 @@
 }
 
 .transactions-page .txn-type { font-size: 0.9rem; color: var(--txn-text); }
-.transactions-page .txn-method { font-size: 0.75rem; color: var(--txn-muted); font-weight: bold; }
+
+/* নতুন: মেথড লোগো ও নাম */
+.transactions-page .txn-method-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 2px 0;
+}
+
+.transactions-page .txn-method-logo {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+  background: #ffffff;
+  border-radius: 4px;
+  padding: 2px;
+}
+
+.transactions-page .txn-method { 
+  font-size: 0.75rem; 
+  color: var(--txn-muted); 
+  font-weight: bold; 
+}
+
 .transactions-page .txn-date { font-size: 0.7rem; color: var(--txn-muted); }
 .transactions-page .txn-ref { font-size: 0.75rem; color: var(--txn-muted); margin-top: 4px; word-break: break-all; }
 
@@ -163,8 +207,7 @@
   justify-content: flex-end;
 }
 
-/* Loading & Empty */
-.transactions-page .txn-loading,
+/* Empty State */
 .transactions-page .txn-empty {
   display: flex;
   flex-direction: column;
@@ -173,7 +216,7 @@
   min-height: 40vh;
   color: var(--txn-muted);
   gap: 12px;
+  text-align: center;
 }
 
-.transactions-page .txn-loading i { font-size: 2rem; color: var(--txn-accent); }
 .transactions-page .txn-empty i { font-size: 2.5rem; color: var(--txn-border); }
