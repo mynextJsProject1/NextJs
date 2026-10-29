@@ -10,16 +10,13 @@ type PaymentMethod = {
   method_code: string;
   method_name: string;
   payment_number: string | null;
-  usdt_address: string | null;
 };
 
 const methodImages: Record<string, string> = {
-  bkash: "bkash.png",
-  nagad: "nagad.png",
-  rocket: "rocket.png",
-  usdt: "usdt.png",
+  bkash: "bkash.png", nagad: "nagad.png", rocket: "rocket.png", usdt: "usdt.png",
 };
 const paymentImageBase = process.env.NODE_ENV === "production" ? "/NextJs" : "";
+const QUICK_AMOUNTS = [50, 100, 500, 1000, 5000];
 
 export default function LotteryDepositPage() {
   const supabase = useMemo(() => createClient(), []);
@@ -27,23 +24,28 @@ export default function LotteryDepositPage() {
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethod | null>(null);
   const [amount, setAmount] = useState("");
   const [trxId, setTrxId] = useState("");
+  const [balance, setBalance] = useState(0);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState({ type: "", text: "" });
 
   useEffect(() => {
-    const fetchMethods = async () => {
+    const fetchData = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: profile } = await supabase.from("profiles").select("lottery_balance").eq("id", user.id).single();
+        if (profile) setBalance(Number(profile.lottery_balance) || 0);
+      }
       const { data } = await supabase.from("payment_methods").select("*").eq("is_enabled", true).eq("deposit_enabled", true);
       if (data) setMethods(data);
       setLoading(false);
     };
-    void fetchMethods();
+    void fetchData();
   }, [supabase]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedMethod) return;
-
     const numAmount = Number(amount);
     if (numAmount < 50) {
       setMessage({ type: "error", text: "Minimum deposit is 50 BDT." });
@@ -61,6 +63,7 @@ export default function LotteryDepositPage() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not logged in");
 
+      // লটারি ডিপোজিট হিসেবে সেভ হবে
       const { error } = await supabase.from("wallet_transactions").insert({
         user_id: user.id,
         transaction_type: "deposit",
@@ -68,14 +71,13 @@ export default function LotteryDepositPage() {
         amount: numAmount,
         transaction_reference: trxId.toUpperCase(),
         status: "pending",
+        destination_details: "LOTTERY_DEPOSIT" // চিহ্নিত করার জন্য
       });
 
       if (error) throw error;
 
       setMessage({ type: "success", text: "Deposit request submitted! Please wait for admin approval." });
-      setAmount("");
-      setTrxId("");
-      setSelectedMethod(null);
+      setAmount(""); setTrxId(""); setSelectedMethod(null);
     } catch (err: any) {
       setMessage({ type: "error", text: err.message });
     } finally {
@@ -87,11 +89,14 @@ export default function LotteryDepositPage() {
 
   return (
     <div className="lot-deposit-page">
+      <div className="lot-balance-display">
+        <span>Lottery Balance</span>
+        <strong>৳ {balance.toFixed(2)}</strong>
+      </div>
+
       <h1 className="lot-page-title">Deposit Funds</h1>
       
-      {message.text && (
-        <div className={`lot-alert ${message.type}`}>{message.text}</div>
-      )}
+      {message.text && <div className={`lot-alert ${message.type}`}>{message.text}</div>}
 
       {!selectedMethod ? (
         <div className="lot-method-grid">
@@ -116,8 +121,8 @@ export default function LotteryDepositPage() {
           <div className="lot-payment-instruction">
             <p>Send money to this number:</p>
             <div className="lot-number-box">
-              <strong>{selectedMethod.payment_number || selectedMethod.usdt_address || "Not set"}</strong>
-              <button onClick={() => navigator.clipboard.writeText(selectedMethod.payment_number || selectedMethod.usdt_address || "")}>
+              <strong>{selectedMethod.payment_number || "Not set"}</strong>
+              <button onClick={() => navigator.clipboard.writeText(selectedMethod.payment_number || "")}>
                 <i className="fa-regular fa-copy"></i>
               </button>
             </div>
@@ -125,8 +130,13 @@ export default function LotteryDepositPage() {
 
           <form onSubmit={handleSubmit} className="lot-form">
             <div className="lot-input-group">
-              <label>Amount (৳)</label>
-              <input type="number" value={amount} onChange={e => setAmount(e.target.value)} placeholder="e.g. 500" required />
+              <label>Amount (৳) - Min 50</label>
+              <input type="number" value={amount} onChange={e => setAmount(e.target.value)} placeholder="Enter amount" required />
+              <div className="lot-quick-amounts">
+                {QUICK_AMOUNTS.map(amt => (
+                  <button key={amt} type="button" onClick={() => setAmount(amt.toString())}>৳{amt}</button>
+                ))}
+              </div>
             </div>
             <div className="lot-input-group">
               <label>Transaction ID (TrxID)</label>
