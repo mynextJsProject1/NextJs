@@ -13,6 +13,7 @@ type DepositTxn = {
   claimed_bonus_amount: number;
   required_turnover: number;
   transaction_reference: string;
+  destination_details: string | null; // নতুন যোগ করা হলো
   created_at: string;
   profiles: {
     full_name: string;
@@ -51,12 +52,13 @@ export default function AdminDepositsPage() {
         setMethods(methodMap);
       }
 
-      // ২. শুধু পেন্ডিং ডিপোজিটগুলো লোড করা (জয়েন ছাড়া)
+      // ২. শুধু পেন্ডিং ডিপোজিটগুলো লোড করা (লটারি ডিপোজিট বাদ দিয়ে)
       const { data: txnData, error: txnError } = await supabase
         .from("wallet_transactions")
-        .select("id, user_id, method_code, amount, claimed_bonus_amount, required_turnover, transaction_reference, created_at")
+        .select("id, user_id, method_code, amount, claimed_bonus_amount, required_turnover, transaction_reference, destination_details, created_at")
         .eq("transaction_type", "deposit")
         .eq("status", "pending")
+        .or('destination_details.neq.LOTTERY_DEPOSIT,destination_details.is.null') // ✅ ফিল্টার: লটারি বাদ দিবে
         .order("created_at", { ascending: false });
 
       if (txnError) throw txnError;
