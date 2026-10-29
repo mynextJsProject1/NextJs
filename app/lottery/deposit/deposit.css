@@ -119,3 +119,10 @@
 .lot-submit-btn:disabled { opacity: 0.6; cursor: not-allowed; }
 
 .lot-loading { text-align: center; padding: 40px; color: #ffd700; }
+
+.lot-quick-amounts { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+.lot-quick-amounts button {
+  flex: 1; padding: 8px; background: #2a154a; border: 1px solid #3a1f6b;
+  color: #fff; border-radius: 6px; font-size: 0.8rem; cursor: pointer; min-width: 60px;
+}
+.lot-quick-amounts button:hover { border-color: #ffd700; }
