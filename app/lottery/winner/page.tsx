@@ -95,7 +95,7 @@ export default function WinnerPage() {
     return mobile.slice(0, 5) + "***" + mobile.slice(-3);
   };
 
-  // ড্র-এর তারিখ ও সময় ফরম্যাট করার জন্য
+  // ড্র-এর তারিখ ও সময় ফরম্যাট করার ফাংশন
   const formatDrawTime = (dateString: string) => {
     if (!dateString) return "N/A";
     const date = new Date(dateString);
@@ -128,7 +128,6 @@ export default function WinnerPage() {
   return (
     <div className="lot-winner-page" style={{ padding: '15px', paddingBottom: '80px' }}>
       
-      {/* ✅ Recent Winners শিরোনাম */}
       <h1 style={{ color: 'white', textAlign: 'center', marginBottom: '20px', fontSize: '22px', fontWeight: 'bold' }}>
         🏆 Recent Winners 🏆
       </h1>
@@ -157,9 +156,10 @@ export default function WinnerPage() {
                   overflow: 'hidden'
                 }}
               >
-                {/* টপ সেকশন: ড্র-এর নাম এবং তারিখ */}
+                {/* টপ সেকশন: ড্র-এর নাম, তারিখ এবং লক আইকন */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '15px' }}>
                   
+                  {/* বাম দিকে ড্র-এর নাম ও নিচে তারিখ */}
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                     <div style={{ backgroundColor: 'rgba(255,255,255,0.3)', padding: '5px 12px', borderRadius: '20px', color: '#000', fontWeight: 'bold', fontSize: '12px', alignSelf: 'flex-start' }}>
                       {winner.draw_name || `Draw #${winner.winning_number}`}
@@ -170,15 +170,28 @@ export default function WinnerPage() {
                     </div>
                   </div>
                   
-                  {/* ❌ ডান দিকের টিকিট প্রাইস সরিয়ে ফেলা হয়েছে */}
-
+                  {/* ডান দিকে: Ticket Prize এর জায়গায় Lock SVG আইকন */}
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.15)', padding: '8px', borderRadius: '12px' }}>
+                    <svg 
+                      width="24" 
+                      height="24" 
+                      viewBox="0 0 24 24" 
+                      fill="none" 
+                      stroke="#1a1129" 
+                      strokeWidth="2.5" 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round"
+                    >
+                      <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                      <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                      <path d="M9 16l2 2 4-4"></path>
+                    </svg>
+                  </div>
                 </div>
 
-                {/* মাঝখানের সেকশন: Jackpot Amount এবং মানি ব্যাগ আইকন */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  
-                  {/* ✅ Prize Pool এবং Amount সুন্দরভাবে উপরে-নিচে এলাইন করা */}
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                {/* মাঝখানের সেকশন: Jackpot Amount (উপরে অ্যালাইন করা) এবং মানি ব্যাগ আইকন */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <div>
                     <p style={{ margin: 0, color: 'rgba(0,0,0,0.6)', fontSize: '12px', fontWeight: 'bold', textTransform: 'uppercase' }}>Prize Pool</p>
                     <div style={{ 
                       backgroundColor: theme.pillBg, 
@@ -196,7 +209,7 @@ export default function WinnerPage() {
                   </div>
                   
                   {/* মানি ব্যাগ ইমোজি */}
-                  <div style={{ fontSize: '50px', filter: 'drop-shadow(0px 5px 5px rgba(0,0,0,0.3))' }}>
+                  <div style={{ fontSize: '50px', filter: 'drop-shadow(0px 5px 5px rgba(0,0,0,0.3))', marginTop: '-5px' }}>
                     💰
                   </div>
                 </div>
