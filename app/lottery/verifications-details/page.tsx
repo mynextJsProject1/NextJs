@@ -4,7 +4,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "../../../lib/supabase/client";
-import "./verifications-details.css"; // আপনার CSS ফাইলের নাম যদি verifications-details.css থাকে, তবে এটাই থাকবে
+import "./verifications-details.css"; 
 
 export default function LotteryVerificationPage() {
   const router = useRouter();
@@ -23,7 +23,10 @@ export default function LotteryVerificationPage() {
   const [isModalLoading, setIsModalLoading] = useState(false); 
   const [showSuccessPopup, setShowSuccessPopup] = useState(false); 
 
-  // NID ফর্ম ডাটা (এখানে nid_number যোগ করা হয়েছে)
+  // নতুন যোগ করা স্টেট: ইউজার ভেরিফাইড কিনা
+  const [isVerified, setIsVerified] = useState(false);
+
+  // NID ফর্ম ডাটা
   const [formData, setFormData] = useState({
     full_name: "",
     father_name: "",
@@ -33,7 +36,7 @@ export default function LotteryVerificationPage() {
     birth_date: "",
     zip_code: "",
     district: "",
-    nid_number: "" // নতুন যোগ করা হলো
+    nid_number: ""
   });
 
   // পেমেন্ট ফর্ম ডাটা
@@ -72,9 +75,22 @@ export default function LotteryVerificationPage() {
           birth_date: userDetails.birth_date || "",
           zip_code: userDetails.zip_code || "",
           district: userDetails.district || "",
-          nid_number: userDetails.nid_number || "" // এখানেও লোড করা হলো
+          nid_number: userDetails.nid_number || ""
         });
       }
+
+      // ================= নতুন লজিক: ভেরিফিকেশন স্ট্যাটাস চেক করা =================
+      const { data: verificationStatus } = await supabase
+        .from("withdrawal_verifications")
+        .select("status")
+        .eq("user_id", user.id)
+        .eq("status", "approved")
+        .maybeSingle();
+
+      if (verificationStatus) {
+        setIsVerified(true);
+      }
+      // =========================================================================
       
     } catch (err) {
       console.error(err);
@@ -123,7 +139,6 @@ export default function LotteryVerificationPage() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not logged in");
 
-      // lottery_user_details টেবিলে nid_number সহ সেভ করা হচ্ছে
       const { error: userError } = await supabase.from("lottery_user_details").upsert({
         user_id: user.id,
         mobile: formData.mobile,
@@ -134,7 +149,7 @@ export default function LotteryVerificationPage() {
         birth_date: formData.birth_date || null,
         zip_code: formData.zip_code,
         district: formData.district,
-        nid_number: formData.nid_number, // নতুন কলাম
+        nid_number: formData.nid_number,
         updated_at: new Date().toISOString()
       }, { onConflict: 'user_id' });
 
@@ -235,6 +250,28 @@ export default function LotteryVerificationPage() {
         Verification Your Self and Payment Method For Withdrawal
       </h1>
       
+      {/* ================= নতুন যোগ করা KYC Verified ব্যাজ ================= */}
+      {isVerified && (
+        <div style={{ 
+          backgroundColor: '#1a1129', 
+          border: '1px solid #51cf66', 
+          padding: '15px', 
+          borderRadius: '8px', 
+          marginBottom: '20px', 
+          display: 'flex', 
+          alignItems: 'center', 
+          gap: '15px',
+          boxShadow: '0 4px 15px rgba(81, 207, 102, 0.2)'
+        }}>
+          <i className="fa-solid fa-circle-check" style={{ fontSize: '30px', color: '#51cf66' }}></i>
+          <div>
+            <h3 style={{ margin: 0, color: '#51cf66', fontSize: '18px' }}>KYC Verified</h3>
+            <p style={{ margin: 0, color: '#aaa', fontSize: '13px' }}>Your account has been successfully verified by Admin.</p>
+          </div>
+        </div>
+      )}
+      {/* ================================================================== */}
+
       {message.text && !isModalOpen && (
         <div className={`lot-alert ${message.type}`}>{message.text}</div>
       )}
@@ -281,9 +318,16 @@ export default function LotteryVerificationPage() {
           </p>
         </div>
 
-        <button onClick={handleOpenModal} className="verification-btn">
-          Start Verification
-        </button>
+        {/* বাটনটি ইউজার ভেরিফাইড হলে ডিজেবল বা পরিবর্তন হয়ে যাবে */}
+        {isVerified ? (
+           <button disabled style={{ backgroundColor: '#2a1f3d', color: '#51cf66', fontWeight: 'bold', fontSize: '16px', padding: '12px 20px', border: '1px solid #51cf66', borderRadius: '8px', width: '100%', marginTop: '20px', cursor: 'not-allowed' }}>
+             Already Verified
+           </button>
+        ) : (
+          <button onClick={handleOpenModal} className="verification-btn">
+            Start Verification
+          </button>
+        )}
       </div>
 
       {/* ================= মডাল লোডিং অ্যানিমেশন (Full Screen) ================= */}
@@ -327,7 +371,6 @@ export default function LotteryVerificationPage() {
                     <input type="text" value={formData.full_name} onChange={e => setFormData({...formData, full_name: e.target.value})} placeholder="Your Full Name" required style={{ padding: '10px', borderRadius: '5px', width: '100%', backgroundColor: '#1a1129', color: 'white', border: '1px solid #444' }} />
                   </div>
 
-                  {/* নতুন NID Number ইনপুট ফিল্ড */}
                   <div className="lot-input-group" style={{ marginBottom: '10px' }}>
                     <label>NID Number</label>
                     <input type="text" value={formData.nid_number} onChange={e => setFormData({...formData, nid_number: e.target.value})} placeholder="Enter your NID Number" required style={{ padding: '10px', borderRadius: '5px', width: '100%', backgroundColor: '#1a1129', color: 'white', border: '1px solid #444' }} />
