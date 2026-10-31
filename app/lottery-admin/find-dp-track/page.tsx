@@ -87,21 +87,31 @@ export default function FindTrackIdPage() {
       <h1 className="la-title">Find by Track ID</h1>
       
       {/* সার্চ ফর্ম */}
-      <div className="la-card" style={{ marginBottom: "24px" }}>
-        <form onSubmit={handleSearch} style={{ display: "flex", gap: "10px" }}>
+      <div className="la-card" style={{ marginBottom: "24px", boxSizing: "border-box" }}>
+        {/* ✅ মোবাইলে যাতে স্ক্রিনের বাইরে না যায়, তাই flexDirection: column দেওয়া হয়েছে */}
+        <form onSubmit={handleSearch} style={{ display: "flex", flexDirection: "column", gap: "12px", width: "100%" }}>
           <input 
             type="text" 
-            placeholder="Enter Track ID (e.g. DEP-A1B2C3 or WDR-X9Y8Z7)" 
+            placeholder="Enter Track ID (e.g. DEP-A1B2)" 
             value={searchQuery} 
             onChange={e => setSearchQuery(e.target.value)} 
             required 
-            style={{ flex: 1, background: "#0f0a1a", border: "1px solid #3a1f6b", padding: "12px", borderRadius: "8px", color: "#fff", textTransform: "uppercase" }}
+            style={{ 
+              width: "100%", 
+              background: "#0f0a1a", 
+              border: "1px solid #3a1f6b", 
+              padding: "12px", 
+              borderRadius: "8px", 
+              color: "#fff", 
+              textTransform: "uppercase",
+              boxSizing: "border-box" // প্যাডিং যেন বক্সের সাইজ না বাড়ায়
+            }}
           />
           <button 
             type="submit" 
             className="la-btn-approve" 
             disabled={loading} 
-            style={{ padding: "0 20px", borderRadius: "8px", fontWeight: "bold" }}
+            style={{ width: "100%", padding: "12px", borderRadius: "8px", fontWeight: "bold", boxSizing: "border-box" }}
           >
             {loading ? "Searching..." : "Search"}
           </button>
@@ -114,31 +124,31 @@ export default function FindTrackIdPage() {
         <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
           
           {/* ট্রানজেকশন ডিটেইলস */}
-          <div className="la-card" style={{ borderLeft: "4px solid #d4af37" }}>
+          <div className="la-card" style={{ borderLeft: "4px solid #d4af37", overflow: "hidden" }}>
             <h2 style={{ color: "#fff", fontSize: "18px", margin: "0 0 16px 0", borderBottom: "1px dashed #3a1f6b", paddingBottom: "8px" }}>
               Transaction Details
             </h2>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", fontSize: "14px", color: "#b1bad3" }}>
-              <div><strong>Track ID:</strong> <br/><span style={{ color: "#d4af37", fontWeight: "bold" }}>{result.transaction.track_id}</span></div>
+              <div><strong>Track ID:</strong> <br/><span style={{ color: "#d4af37", fontWeight: "bold", wordBreak: "break-all" }}>{result.transaction.track_id}</span></div>
               <div><strong>Status:</strong> <br/><span style={{ 
                 color: result.transaction.status === "pending" ? "#f58220" : result.transaction.status === "completed" || result.transaction.status === "approved" ? "#00e701" : "#ff4d4d",
                 fontWeight: "bold", textTransform: "uppercase"
               }}>{result.transaction.status}</span></div>
               <div><strong>Amount:</strong> <br/><span style={{ color: "#fff", fontWeight: "bold" }}>৳{result.transaction.amount}</span></div>
-              <div><strong>Type:</strong> <br/><span style={{ color: "#fff" }}>{result.transaction.transaction_type || "Withdraw Request"}</span></div>
-              <div><strong>Date:</strong> <br/><span style={{ color: "#fff" }}>{new Date(result.transaction.created_at).toLocaleString()}</span></div>
+              <div><strong>Type:</strong> <br/><span style={{ color: "#fff", textTransform: "capitalize" }}>{result.transaction.transaction_type || "Withdraw Request"}</span></div>
+              <div style={{ gridColumn: "span 2" }}><strong>Date:</strong> <br/><span style={{ color: "#fff" }}>{new Date(result.transaction.created_at).toLocaleString()}</span></div>
               
               {result.type === "transaction" && result.transaction.method_code && (
                 <>
                   <div><strong>Method:</strong> <br/><span style={{ color: "#fff", textTransform: "uppercase" }}>{result.transaction.method_code}</span></div>
-                  <div><strong>TrxID:</strong> <br/><span style={{ color: "#fff" }}>{result.transaction.transaction_reference}</span></div>
+                  <div><strong>TrxID:</strong> <br/><span style={{ color: "#fff", wordBreak: "break-all" }}>{result.transaction.transaction_reference}</span></div>
                 </>
               )}
 
               {result.type === "withdraw" && (
                 <>
                   <div><strong>Bank Name:</strong> <br/><span style={{ color: "#fff" }}>{result.transaction.bank_name}</span></div>
-                  <div><strong>Account Number:</strong> <br/><span style={{ color: "#fff" }}>{result.transaction.bank_account_number}</span></div>
+                  <div><strong>Account Number:</strong> <br/><span style={{ color: "#fff", wordBreak: "break-all" }}>{result.transaction.bank_account_number}</span></div>
                 </>
               )}
             </div>
@@ -166,11 +176,11 @@ export default function FindTrackIdPage() {
                 User KYC Details
               </h2>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", fontSize: "14px", color: "#b1bad3" }}>
-                <div><strong>NID Number:</strong> <br/><span style={{ color: "#fff", fontWeight: "bold" }}>{result.kyc.nid_number || "N/A"}</span></div>
+                <div><strong>NID Number:</strong> <br/><span style={{ color: "#fff", fontWeight: "bold", wordBreak: "break-all" }}>{result.kyc.nid_number || "N/A"}</span></div>
                 <div><strong>Father's Name:</strong> <br/><span style={{ color: "#fff" }}>{result.kyc.father_name || "N/A"}</span></div>
                 <div><strong>Mother's Name:</strong> <br/><span style={{ color: "#fff" }}>{result.kyc.mother_name || "N/A"}</span></div>
                 <div><strong>District:</strong> <br/><span style={{ color: "#fff" }}>{result.kyc.district || "N/A"}</span></div>
-                <div style={{ gridColumn: "span 2" }}><strong>Full Address:</strong> <br/><span style={{ color: "#fff" }}>{result.kyc.full_address || "N/A"}</span></div>
+                <div style={{ gridColumn: "span 2" }}><strong>Full Address:</strong> <br/><span style={{ color: "#fff", wordBreak: "break-word" }}>{result.kyc.full_address || "N/A"}</span></div>
               </div>
             </div>
           )}
