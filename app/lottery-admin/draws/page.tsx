@@ -111,11 +111,11 @@ export default function LotteryAdminDrawsPage() {
     } else if (data && data.success) {
       
       // ==========================================
-      // ✅ ২. অটোমেটিক নতুন ড্র তৈরি করার লজিক
+      // ✅ নতুন লজিক: আগামীকাল রাত ১১:৫৯ মিনিটের নতুন ড্র তৈরি
       // ==========================================
-      // পরবর্তী ড্র-এর তারিখ ঠিক করা হচ্ছে (বর্তমান ড্র-এর ৭ দিন পর)
-      const nextDrawTime = new Date(currentDraw.draw_time);
-      nextDrawTime.setDate(nextDrawTime.getDate() + 7); 
+      const nextDrawTime = new Date();
+      nextDrawTime.setDate(nextDrawTime.getDate() + 1); // আগামীকালের তারিখ
+      nextDrawTime.setHours(23, 59, 0, 0); // রাত ১১:৫৯:০০ মিনিট
 
       const { error: nextDrawError } = await supabase.from("lottery_draws").insert({
         draw_name: currentDraw.draw_name, 
@@ -123,14 +123,14 @@ export default function LotteryAdminDrawsPage() {
         total_tickets: currentDraw.total_tickets,
         jackpot_amount: currentDraw.jackpot_amount, 
         draw_type: currentDraw.draw_type,
-        draw_time: nextDrawTime.toISOString(),
+        draw_time: nextDrawTime.toISOString(), // নতুন তারিখ ও সময়
         status: "upcoming"
       });
 
       if (nextDrawError) {
         setMessage(`Draw executed, but failed to create next draw: ${nextDrawError.message}`);
       } else {
-        setMessage(`Draw executed! Winning Number: ${data.winning_number}. Next draw auto-created for ${nextDrawTime.toLocaleDateString()}.`);
+        setMessage(`Draw executed! Winning No: ${data.winning_number}. Next draw auto-created for Tomorrow 11:59 PM.`);
       }
       // ==========================================
 
