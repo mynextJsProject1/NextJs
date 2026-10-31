@@ -8,10 +8,12 @@ import { createClient } from "../../lib/supabase/client";
 import "./lottery-admin.css";
 
 const menuItems = [
+  { name: "Deposit Withdraw Kyc Etc Track", path: "/lottery-admin/find-dp-track", icon: "fa-ticket" },
   { name: "Lottery Dashboard", path: "/lottery-admin", icon: "fa-chart-pie" },
   { name: "Deposit Requests", path: "/lottery-admin/deposits", icon: "fa-arrow-down" },
   { name: "Withdraw Requests", path: "/lottery-admin/withdrawals", icon: "fa-arrow-up" },
   { name: "Draw Management", path: "/lottery-admin/draws", icon: "fa-ticket" },
+  { name: "Draw Management", path: "/lottery-admin/find-dp-track", icon: "fa-ticket" },
   
   // ✅ নতুন যোগ করা ৩টি মেনু আইটেম
   { name: "User Tickets", path: "/lottery-admin/submit-ticket", icon: "fa-headset" },
