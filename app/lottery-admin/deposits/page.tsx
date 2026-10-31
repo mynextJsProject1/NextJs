@@ -22,6 +22,8 @@ type DepositTxn = {
 const methodImages: Record<string, string> = {
   bkash: "bkash.png", nagad: "nagad.png", rocket: "rocket.png", usdt: "usdt.png",
 };
+// ✅ ইমেজ পাথ ফিক্স করা হলো
+const paymentImageBase = ""; 
 
 export default function LotteryAdminDepositsPage() {
   const [deposits, setDeposits] = useState<DepositTxn[]>([]);
@@ -98,7 +100,7 @@ export default function LotteryAdminDepositsPage() {
     setMessage("");
 
     try {
-      // ✅ ১. lottery_transactions এ স্ট্যাটাস 'completed' করা (অথবা 'approved')
+      // ১. ✅ lottery_transactions এ স্ট্যাটাস completed করা
       const { error: updateError } = await supabase
         .from("lottery_transactions")
         .update({ status: "completed" })
@@ -106,7 +108,7 @@ export default function LotteryAdminDepositsPage() {
 
       if (updateError) throw updateError;
 
-      // ✅ ২. ইউজারের lottery_balance আপডেট করা
+      // ২. ইউজারের lottery_balance আপডেট করা
       const { data: profile, error: profileError } = await supabase
         .from("profiles")
         .select("lottery_balance")
@@ -140,7 +142,7 @@ export default function LotteryAdminDepositsPage() {
     setActionLoading(id);
     setMessage("");
 
-    // ✅ lottery_transactions এ স্ট্যাটাস 'rejected' করা
+    // ✅ lottery_transactions এ স্ট্যাটাস rejected করা
     const { error } = await supabase
       .from("lottery_transactions")
       .update({ status: "rejected" })
@@ -173,8 +175,7 @@ export default function LotteryAdminDepositsPage() {
                   <strong className="la-amount">৳ {txn.amount}</strong>
                   <div className="la-method">
                     {methodImages[txn.method_code] && (
-                      {/* ✅ ইমেজ পাথ ঠিক করা হয়েছে */}
-                      <img src={`/images/payment/${methodImages[txn.method_code]}`} alt="logo" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+                      <img src={`${paymentImageBase}/images/payment/${methodImages[txn.method_code]}`} alt="logo" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
                     )}
                     <span>{methods[txn.method_code] || txn.method_code.toUpperCase()}</span>
                   </div>
