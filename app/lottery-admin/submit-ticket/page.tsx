@@ -26,6 +26,12 @@ export default function AdminTicketsPage() {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [message, setMessage] = useState("");
 
+  // ✅ নতুন স্টেট: KYC মডালের জন্য
+  const [kycModalOpen, setKycModalOpen] = useState(false);
+  const [kycLoading, setKycLoading] = useState(false);
+  const [selectedUserKyc, setSelectedUserKyc] = useState<any>(null);
+  const [selectedUserDetails, setSelectedUserDetails] = useState<any>(null);
+
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
@@ -56,7 +62,40 @@ export default function AdminTicketsPage() {
 
   useEffect(() => { loadData(); }, [loadData]);
 
-  // রিপ্লাই পাঠানো এবং স্ট্যাটাস আপডেট করা
+  // ✅ KYC ডাটা লোড করার ফাংশন
+  const handleCheckKyc = async (userId: string) => {
+    setKycModalOpen(true);
+    setKycLoading(true);
+    setSelectedUserKyc(null);
+    setSelectedUserDetails(null);
+
+    try {
+      // ১. সর্বশেষ ভেরিফিকেশন রেকর্ড আনা
+      const { data: vData } = await supabase
+        .from("withdrawal_verifications")
+        .select("*")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      // ২. ইউজারের NID ডিটেইলস আনা
+      const { data: uData } = await supabase
+        .from("lottery_user_details")
+        .select("*")
+        .eq("user_id", userId)
+        .maybeSingle();
+
+      setSelectedUserKyc(vData);
+      setSelectedUserDetails(uData);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setKycLoading(false);
+    }
+  };
+
+  // রিপ্লাই পাঠানো
   const handleReply = async (ticketId: string) => {
     const reply = replyText[ticketId];
     if (!reply || reply.trim() === "") return alert("Please write a reply first.");
@@ -66,7 +105,7 @@ export default function AdminTicketsPage() {
       .from("lottery_support_tickets")
       .update({ 
         admin_reply: reply, 
-        status: "replied", // ✅ অটো স্ট্যাটাস আপডেট
+        status: "replied",
         replied_at: new Date().toISOString()
       })
       .eq("id", ticketId);
@@ -81,13 +120,11 @@ export default function AdminTicketsPage() {
     setActionLoading(null);
   };
 
-  // এডিট বাটনে ক্লিক করলে পুরনো রিপ্লাই লোড হবে
   const handleEditReply = (ticket: Ticket) => {
     setReplyText(prev => ({ ...prev, [ticket.id]: ticket.admin_reply || "" }));
     setEditingTicketId(ticket.id);
   };
 
-  // ডিলিট করা
   const handleDelete = async (id: string) => {
     if (!confirm("Are you sure you want to permanently delete this ticket?")) return;
     setActionLoading(id);
@@ -101,7 +138,6 @@ export default function AdminTicketsPage() {
     setActionLoading(null);
   };
 
-  // হাইড করা (স্ট্যাটাস 'hidden' করা)
   const handleHide = async (id: string) => {
     setActionLoading(id);
     const { error } = await supabase
@@ -132,7 +168,6 @@ export default function AdminTicketsPage() {
             <div className="la-card" key={t.id} style={{ opacity: t.status === "hidden" ? 0.6 : 1 }}>
               <div className="la-card-header">
                 <div>
-                  {/* ✅ টিকিট সাপোর্ট আইডি */}
                   <span style={{ fontSize: "11px", background: "#3a1f6b", color: "#fff", padding: "2px 6px", borderRadius: "4px", display: "inline-block", marginBottom: "4px" }}>
                     {t.ticket_support_id || "TKT-XXXX"}
                   </span>
@@ -150,9 +185,18 @@ export default function AdminTicketsPage() {
                 </span>
               </div>
 
-              <div className="la-user-info" style={{ marginBottom: "12px" }}>
-                <p><strong>User:</strong> {t.profiles?.full_name || "Unknown"}</p>
-                <p><strong>Mobile:</strong> {t.profiles?.mobile || "N/A"}</p>
+              <div className="la-user-info" style={{ marginBottom: "12px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div>
+                  <p><strong>User:</strong> {t.profiles?.full_name || "Unknown"}</p>
+                  <p><strong>Mobile:</strong> {t.profiles?.mobile || "N/A"}</p>
+                </div>
+                {/* ✅ নতুন KYC চেক বাটন */}
+                <button 
+                  onClick={() => handleCheckKyc(t.user_id)}
+                  style={{ padding: "6px 12px", background: "rgba(212, 175, 55, 0.15)", color: "#d4af37", border: "1px solid #d4af37", borderRadius: "6px", fontSize: "12px", fontWeight: "bold", cursor: "pointer" }}
+                >
+                  <i className="fa-solid fa-id-card" style={{ marginRight: "6px" }}></i> Check KYC
+                </button>
               </div>
 
               <div style={{ background: "#0f0a1a", padding: "10px", borderRadius: "8px", border: "1px dashed #3a1f6b", marginBottom: "12px" }}>
@@ -166,7 +210,6 @@ export default function AdminTicketsPage() {
                 </div>
               )}
 
-              {/* রিপ্লাই বক্স (এডিট মোডে থাকলে পুরনো রিপ্লাই দেখাবে) */}
               {(!t.admin_reply || editingTicketId === t.id) && t.status !== "hidden" && (
                 <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                   <textarea 
@@ -177,11 +220,7 @@ export default function AdminTicketsPage() {
                   />
                   <div style={{ display: "flex", gap: "8px" }}>
                     {editingTicketId === t.id && (
-                      <button 
-                        className="la-btn-reject" 
-                        onClick={() => setEditingTicketId(null)} 
-                        style={{ flex: 1, padding: "10px" }}
-                      >
+                      <button className="la-btn-reject" onClick={() => setEditingTicketId(null)} style={{ flex: 1, padding: "10px" }}>
                         Cancel
                       </button>
                     )}
@@ -197,27 +236,16 @@ export default function AdminTicketsPage() {
                 </div>
               )}
 
-              {/* অ্যাকশন বাটন (Edit, Hide, Delete) */}
               <div style={{ display: "flex", gap: "8px", marginTop: "12px", paddingTop: "12px", borderTop: "1px dashed #3a1f6b" }}>
                 {t.admin_reply && (
-                  <button 
-                    onClick={() => handleEditReply(t)} 
-                    style={{ flex: 1, padding: "8px", borderRadius: "6px", fontWeight: "bold", background: "rgba(0,231,1,0.15)", color: "#00e701", border: "1px solid #00e701" }}
-                  >
+                  <button onClick={() => handleEditReply(t)} style={{ flex: 1, padding: "8px", borderRadius: "6px", fontWeight: "bold", background: "rgba(0,231,1,0.15)", color: "#00e701", border: "1px solid #00e701" }}>
                     Edit
                   </button>
                 )}
-                <button 
-                  onClick={() => handleHide(t.id)} 
-                  disabled={t.status === "hidden"}
-                  style={{ flex: 1, padding: "8px", borderRadius: "6px", fontWeight: "bold", background: "rgba(245,130,32,0.15)", color: "#f58220", border: "1px solid #f58220", opacity: t.status === "hidden" ? 0.5 : 1 }}
-                >
+                <button onClick={() => handleHide(t.id)} disabled={t.status === "hidden"} style={{ flex: 1, padding: "8px", borderRadius: "6px", fontWeight: "bold", background: "rgba(245,130,32,0.15)", color: "#f58220", border: "1px solid #f58220", opacity: t.status === "hidden" ? 0.5 : 1 }}>
                   Hide
                 </button>
-                <button 
-                  onClick={() => handleDelete(t.id)} 
-                  style={{ flex: 1, padding: "8px", borderRadius: "6px", fontWeight: "bold", background: "rgba(255,77,77,0.15)", color: "#ff4d4d", border: "1px solid #ff4d4d" }}
-                >
+                <button onClick={() => handleDelete(t.id)} style={{ flex: 1, padding: "8px", borderRadius: "6px", fontWeight: "bold", background: "rgba(255,77,77,0.15)", color: "#ff4d4d", border: "1px solid #ff4d4d" }}>
                   Delete
                 </button>
               </div>
@@ -225,6 +253,75 @@ export default function AdminTicketsPage() {
           ))}
         </div>
       )}
+
+      {/* ✅ KYC History Modal (Popup) */}
+      {kycModalOpen && (
+        <div style={{
+          position: "fixed", top: 0, left: 0, right: 0, bottom: 0,
+          background: "rgba(0,0,0,0.8)", zIndex: 9999, display: "flex", justifyContent: "center", alignItems: "center", padding: "16px"
+        }}>
+          <div style={{
+            background: "#1a0f2e", border: "1px solid #3a1f6b", borderRadius: "12px", width: "100%", maxWidth: "500px", maxHeight: "90vh", overflowY: "auto", padding: "20px"
+          }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px", borderBottom: "1px solid #3a1f6b", paddingBottom: "12px" }}>
+              <h3 style={{ margin: 0, color: "#d4af37", fontSize: "18px" }}><i className="fa-solid fa-id-card"></i> User KYC Details</h3>
+              <button onClick={() => setKycModalOpen(false)} style={{ background: "transparent", border: "none", color: "#fff", fontSize: "20px", cursor: "pointer" }}>✕</button>
+            </div>
+
+            {kycLoading ? (
+              <div style={{ textAlign: "center", padding: "30px 0", color: "#aaa" }}>
+                <i className="fa-solid fa-circle-notch fa-spin fa-2x" style={{ color: "#d4af37" }}></i>
+                <p style={{ marginTop: "10px" }}>Fetching KYC Data...</p>
+              </div>
+            ) : !selectedUserKyc ? (
+              <div style={{ textAlign: "center", padding: "30px 0", color: "#aaa" }}>
+                <i className="fa-solid fa-circle-xmark fa-2x" style={{ color: "#ff4d4d", marginBottom: "10px" }}></i>
+                <p>No KYC verification record found for this user.</p>
+              </div>
+            ) : (
+              <>
+                {/* স্ট্যাটাস এবং কারণ */}
+                <div style={{ 
+                  background: selectedUserKyc.status === "approved" ? "rgba(0,231,1,0.1)" : selectedUserKyc.status === "rejected" ? "rgba(255,77,77,0.1)" : "rgba(245,130,32,0.1)",
+                  border: `1px solid ${selectedUserKyc.status === "approved" ? "#00e701" : selectedUserKyc.status === "rejected" ? "#ff4d4d" : "#f58220"}`,
+                  padding: "12px", borderRadius: "8px", marginBottom: "16px"
+                }}>
+                  <h4 style={{ margin: "0 0 6px 0", color: selectedUserKyc.status === "approved" ? "#00e701" : selectedUserKyc.status === "rejected" ? "#ff4d4d" : "#f58220", fontSize: "14px" }}>
+                    Status: {selectedUserKyc.status.toUpperCase()}
+                  </h4>
+                  {selectedUserKyc.status === "rejected" && (
+                    <p style={{ margin: 0, color: "#ffb3b3", fontSize: "13px" }}>
+                      <strong>Reject Reason:</strong> {selectedUserKyc.admin_note || "No reason provided."}
+                    </p>
+                  )}
+                  <p style={{ margin: "6px 0 0 0", color: "#aaa", fontSize: "11px" }}>
+                    Submitted on: {new Date(selectedUserKyc.created_at).toLocaleString()}
+                  </p>
+                </div>
+
+                {/* NID ডিটেইলস */}
+                {selectedUserDetails ? (
+                  <div style={{ background: "#0f0a1a", padding: "16px", borderRadius: "8px", border: "1px dashed #3a1f6b" }}>
+                    <h4 style={{ margin: "0 0 12px 0", color: "#d4af37", fontSize: "14px" }}>Submitted NID Information</h4>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", fontSize: "13px" }}>
+                      <div><span style={{ color: "#888", display: "block", fontSize: "11px" }}>Full Name</span><span style={{ color: "#fff" }}>{selectedUserDetails.full_name || "N/A"}</span></div>
+                      <div><span style={{ color: "#888", display: "block", fontSize: "11px" }}>NID Number</span><span style={{ color: "#fff" }}>{selectedUserDetails.nid_number || "N/A"}</span></div>
+                      <div><span style={{ color: "#888", display: "block", fontSize: "11px" }}>Father's Name</span><span style={{ color: "#fff" }}>{selectedUserDetails.father_name || "N/A"}</span></div>
+                      <div><span style={{ color: "#888", display: "block", fontSize: "11px" }}>Mother's Name</span><span style={{ color: "#fff" }}>{selectedUserDetails.mother_name || "N/A"}</span></div>
+                      <div><span style={{ color: "#888", display: "block", fontSize: "11px" }}>Birth Date</span><span style={{ color: "#fff" }}>{selectedUserDetails.birth_date || "N/A"}</span></div>
+                      <div><span style={{ color: "#888", display: "block", fontSize: "11px" }}>District</span><span style={{ color: "#fff" }}>{selectedUserDetails.district || "N/A"}</span></div>
+                      <div style={{ gridColumn: "span 2" }}><span style={{ color: "#888", display: "block", fontSize: "11px" }}>Full Address</span><span style={{ color: "#fff" }}>{selectedUserDetails.full_address || "N/A"}</span></div>
+                    </div>
+                  </div>
+                ) : (
+                  <p style={{ color: "#aaa", fontSize: "13px", textAlign: "center" }}>NID details not found.</p>
+                )}
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
