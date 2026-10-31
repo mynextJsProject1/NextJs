@@ -8,6 +8,7 @@ import "./submit-ticket.css";
 
 type Ticket = {
   id: string;
+  ticket_support_id: string; // ✅ নতুন যোগ করা হয়েছে
   subject: string;
   message: string;
   status: string;
@@ -173,7 +174,21 @@ export default function SubmitTicketPage() {
             {tickets.map((t) => (
               <div key={t.id} className="ticket-card">
                 <div className="ticket-card-top">
-                  <h3 className="ticket-subject">{t.subject}</h3>
+                  <div>
+                    {/* ✅ নতুন যোগ করা টিকিট সাপোর্ট আইডি */}
+                    <span style={{ 
+                      display: "inline-block", 
+                      fontSize: "10px", 
+                      background: "#3a1f6b", 
+                      color: "#fff", 
+                      padding: "2px 6px", 
+                      borderRadius: "4px", 
+                      marginBottom: "6px" 
+                    }}>
+                      {t.ticket_support_id || "Generating..."}
+                    </span>
+                    <h3 className="ticket-subject">{t.subject}</h3>
+                  </div>
                   <span className={`ticket-status ${t.status === 'replied' ? 'replied' : 'pending'}`}>
                     {t.status.toUpperCase()}
                   </span>
