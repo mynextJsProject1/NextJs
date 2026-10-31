@@ -22,9 +22,10 @@ export async function middleware(request: NextRequest) {
   );
 
   const { data: { user } } = await supabase.auth.getUser();
+  const path = request.nextUrl.pathname;
 
-  // অ্যাডমিন প্যানেল প্রোটেকশন
-  if (request.nextUrl.pathname.startsWith("/admin")) {
+  // অ্যাডমিন এবং লটারি-অ্যাডমিন প্যানেল প্রোটেকশন
+  if (path.startsWith("/admin") || path.startsWith("/lottery-admin")) {
     if (!user) {
       return NextResponse.redirect(new URL("/login", request.url));
     }
@@ -35,7 +36,8 @@ export async function middleware(request: NextRequest) {
       .eq("id", user.id)
       .single();
 
-    if (profile?.role !== "admin") {
+    // ✅ admin এবং sub_admin উভয়েই ঢুকতে পারবে
+    if (profile?.role !== "admin" && profile?.role !== "sub_admin") {
       return NextResponse.redirect(new URL("/", request.url));
     }
   }
@@ -44,5 +46,6 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*"],
+  // ✅ matcher-এ lottery-admin যোগ করা হলো
+  matcher: ["/admin/:path*", "/lottery-admin/:path*"],
 };
