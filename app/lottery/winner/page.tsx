@@ -22,32 +22,69 @@ export default function WinnerPage() {
     const fetchWinners = async () => {
       setLoading(true);
       try {
-        // ডাটাবেস থেকে বিজয়ীদের তথ্য আনা (নিরাপদ SELECT কুয়েরি)
-        // এখানে lottery_draws, lottery_tickets এবং profiles টেবিল JOIN করা হয়েছে
-        const { data, error } = await supabase
+        // ১. প্রথমে শুধু সেই ড্র-গুলো আনি যেগুলোর winning_number সেট করা আছে
+        const { data: draws, error: drawError } = await supabase
           .from("lottery_draws")
-          .select(`
-            id,
-            draw_name,
-            jackpot_amount,
-            draw_time,
-            winning_number,
-            ticket_price,
-            lottery_tickets!inner (
-              ticket_number,
-              user_id,
-              profiles!inner (
-                full_name,
-                mobile
-              )
-            )
-          `)
+          .select("*")
           .not("winning_number", "is", null)
           .order("draw_time", { ascending: false })
-          .limit(10); // সর্বশেষ ১০টি ড্র দেখাবে
+          .limit(10);
 
-        if (error) throw error;
-        if (data) setWinners(data);
+        if (drawError) {
+          console.error("Draw Fetch Error:", drawError);
+          throw drawError;
+        }
+
+        if (!draws || draws.length === 0) {
+          setWinners([]);
+          return;
+        }
+
+        // ২. প্রতিটি ড্র-এর জন্য আলাদা করে টিকিট এবং ইউজারের তথ্য বের করা (কোনো Join ছাড়া)
+        const winnersData = await Promise.all(
+          draws.map(async (draw) => {
+            // টিকিট টেবিল থেকে সেই নির্দিষ্ট বিজয়ী টিকিটটি খোঁজা হচ্ছে
+            const { data: ticket, error: ticketError } = await supabase
+              .from("lottery_tickets")
+              .select("*")
+              .eq("draw_id", draw.id)
+              .eq("ticket_number", draw.winning_number.toString())
+              .maybeSingle();
+
+            if (ticketError) {
+              console.error(`Ticket Error for draw ${draw.id}:`, ticketError);
+              return null;
+            }
+
+            if (!ticket) {
+              console.warn(`No ticket found for winning number ${draw.winning_number}`);
+              return null;
+            }
+
+            // ইউজারের প্রোফাইল থেকে নাম ও মোবাইল বের করা
+            const { data: profile, error: profileError } = await supabase
+              .from("profiles")
+              .select("full_name, mobile")
+              .eq("id", ticket.user_id)
+              .maybeSingle();
+
+            if (profileError) {
+              console.error(`Profile Error for user ${ticket.user_id}:`, profileError);
+            }
+
+            // ডাটা একসাথে জোড়া লাগানো
+            return {
+              ...draw,
+              winning_ticket: {
+                ...ticket,
+                profiles: profile || { full_name: "Unknown User", mobile: "N/A" }
+              }
+            };
+          })
+        );
+
+        // null ভ্যালুগুলো বাদ দিয়ে স্টেটে সেট করা
+        setWinners(winnersData.filter((w) => w !== null));
       } catch (err) {
         console.error("Error fetching winners:", err);
       } finally {
@@ -85,10 +122,9 @@ export default function WinnerPage() {
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           {winners.map((winner, index) => {
-            // প্রতিটি কার্ডের জন্য আলাদা রঙ নির্বাচন
             const theme = CARD_COLORS[index % CARD_COLORS.length];
-            // টিকিট টেবিল থেকে প্রথম ডাটাটি নেওয়া হচ্ছে
-            const ticket = winner.lottery_tickets[0]; 
+            
+            const ticket = winner.winning_ticket; 
             const user = ticket?.profiles;
 
             return (
@@ -132,7 +168,7 @@ export default function WinnerPage() {
                     </div>
                   </div>
                   
-                  {/* মানি ব্যাগ ইমোজি (ছবির মতো) */}
+                  {/* মানি ব্যাগ ইমোজি */}
                   <div style={{ fontSize: '50px', filter: 'drop-shadow(0px 5px 5px rgba(0,0,0,0.3))' }}>
                     💰
                   </div>
