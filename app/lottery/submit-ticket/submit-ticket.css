@@ -1,0 +1,207 @@
+/* app/lottery/submit-ticket/submit-ticket.css */
+.ticket-page {
+  padding: 15px;
+  padding-bottom: 80px;
+  max-width: 600px;
+  margin: 0 auto;
+  min-height: 100vh;
+}
+
+.ticket-header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.ticket-header h1 {
+  color: #fff;
+  font-size: 20px;
+  font-weight: 800;
+  margin: 0 0 5px 0;
+}
+
+.ticket-header p {
+  color: #b1bad3;
+  font-size: 12px;
+  margin: 0;
+}
+
+/* ফর্ম কার্ড */
+.ticket-form-card {
+  background: #1a0f2e;
+  border: 1px solid #3a1f6b;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 25px;
+}
+
+.ticket-error {
+  background: rgba(255, 77, 77, 0.1);
+  color: #ff4d4d;
+  padding: 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  margin-bottom: 12px;
+  border: 1px solid rgba(255, 77, 77, 0.3);
+}
+
+.input-group {
+  margin-bottom: 15px;
+  position: relative;
+}
+
+.input-group label {
+  display: block;
+  color: #b1bad3;
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.input-group input,
+.input-group textarea {
+  width: 100%;
+  background: #0f0a1a;
+  border: 1px solid #3a1f6b;
+  padding: 10px;
+  border-radius: 8px;
+  color: #fff;
+  font-size: 14px;
+  outline: none;
+  font-family: inherit;
+  transition: 0.2s;
+}
+
+.input-group input:focus,
+.input-group textarea:focus {
+  border-color: #d4af37;
+}
+
+.word-count {
+  display: block;
+  text-align: right;
+  font-size: 11px;
+  color: #888;
+  margin-top: 4px;
+}
+
+.word-count.limit-exceeded {
+  color: #ff4d4d;
+  font-weight: bold;
+}
+
+.submit-btn {
+  width: 100%;
+  padding: 12px;
+  background: #d4af37;
+  color: #1a0f2e;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  font-size: 15px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.submit-btn:disabled {
+  background: #3a1f6b;
+  color: #888;
+  cursor: not-allowed;
+}
+
+/* টিকিট লিস্ট */
+.ticket-list-section h2 {
+  color: #fff;
+  font-size: 16px;
+  margin-bottom: 15px;
+}
+
+.ticket-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.ticket-card {
+  background: #1a0f2e;
+  border: 1px solid #3a1f6b;
+  border-radius: 12px;
+  padding: 15px;
+}
+
+.ticket-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.ticket-subject {
+  color: #fff;
+  font-size: 14px;
+  font-weight: bold;
+  margin: 0;
+}
+
+.ticket-status {
+  font-size: 10px;
+  font-weight: bold;
+  padding: 3px 8px;
+  border-radius: 10px;
+}
+
+.ticket-status.pending {
+  background: rgba(245, 130, 32, 0.15);
+  color: #f58220;
+}
+
+.ticket-status.replied {
+  background: rgba(0, 231, 1, 0.15);
+  color: #00e701;
+}
+
+.ticket-date {
+  color: #888;
+  font-size: 11px;
+  margin: 0 0 10px 0;
+}
+
+.ticket-message {
+  color: #ddd;
+  font-size: 13px;
+  line-height: 1.4;
+  margin: 0;
+  background: #0f0a1a;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px dashed #3a1f6b;
+}
+
+/* অ্যাডমিন রিপ্লাই বক্স */
+.admin-reply-box {
+  margin-top: 12px;
+  background: rgba(0, 231, 1, 0.05);
+  border: 1px solid rgba(0, 231, 1, 0.2);
+  border-radius: 8px;
+  padding: 10px;
+}
+
+.reply-header {
+  color: #00e701;
+  font-size: 12px;
+  font-weight: bold;
+  margin-bottom: 4px;
+}
+
+.reply-text {
+  color: #fff;
+  font-size: 13px;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.loading-text, .empty-text {
+  color: #888;
+  font-size: 13px;
+  text-align: center;
+  margin-top: 20px;
+}
