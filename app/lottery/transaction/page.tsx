@@ -14,6 +14,7 @@ type CombinedTransaction = {
   status: string;
   date: string;
   description: string;
+  track_id?: string; // ✅ নতুন যোগ করা হয়েছে
 };
 
 export default function TransactionPage() {
@@ -49,7 +50,8 @@ export default function TransactionPage() {
           type: t.transaction_type, 
           status: t.status,
           date: t.created_at,
-          description: t.description || "Wallet Transaction"
+          description: t.description || "Wallet Transaction",
+          track_id: t.track_id // ✅ ম্যাপিং করা হলো
         }));
 
         const formattedWithdraw: CombinedTransaction[] = (withdrawData || []).map(w => ({
@@ -58,7 +60,8 @@ export default function TransactionPage() {
           type: "withdraw_request",
           status: w.status,
           date: w.created_at,
-          description: `Bank: ${w.bank_name} (${w.bank_account_number})`
+          description: `Bank: ${w.bank_name} (${w.bank_account_number})`,
+          track_id: w.track_id // ✅ ম্যাপিং করা হলো
         }));
 
         // সব একসাথে করে তারিখ অনুযায়ী সাজানো (নতুন আগে)
@@ -142,6 +145,13 @@ export default function TransactionPage() {
                   
                   <p className="tx-desc">{tx.description}</p>
                   
+                  {/* ✅ নতুন যোগ করা Track ID */}
+                  {tx.track_id && (
+                    <p style={{ margin: '4px 0 8px 0', fontSize: '11px', color: '#aaa', fontWeight: 'bold' }}>
+                      Track ID: <span style={{ color: '#d4af37' }}>{tx.track_id}</span>
+                    </p>
+                  )}
+
                   <div className="tx-bottom">
                     <span className="tx-date">{formatDate(tx.date)}</span>
                     <span className={`tx-status ${tx.status}`}>
