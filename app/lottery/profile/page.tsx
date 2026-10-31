@@ -1,140 +1,142 @@
 /* app/lottery/profile/page.tsx */
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState, useMemo } from "react";
 import { createClient } from "../../../lib/supabase/client";
+import { useRouter } from "next/navigation";
 import "./profile.css";
 
-type ProfileData = {
+type UserDetails = {
   full_name: string;
-  game_id: string;
+  father_name: string;
+  mother_name: string;
   mobile: string;
-  balance: number;
-  lottery_winnings: number;
-  email_verified: boolean;
+  nid_number: string;
+  birth_date: string;
+  district: string;
+  zip_code: string;
+  full_address: string;
 };
 
-export default function LotteryProfilePage() {
-  const router = useRouter();
+export default function ProfilePage() {
   const supabase = useMemo(() => createClient(), []);
-
-  const [profile, setProfile] = useState<ProfileData | null>(null);
+  const router = useRouter();
+  
+  const [details, setDetails] = useState<UserDetails | null>(null);
   const [loading, setLoading] = useState(true);
-  const [transferring, setTransferring] = useState(false);
-  const [message, setMessage] = useState({ type: "", text: "" });
 
-  const loadData = useCallback(async () => {
-    setLoading(true);
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) { router.replace("/signup/"); return; }
+  useEffect(() => {
+    const fetchProfile = async () => {
+      setLoading(true);
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) { router.replace("/signup"); return; }
 
-      const { data } = await supabase.from("profiles").select("full_name, game_id, mobile, balance, lottery_winnings, email_verified").eq("id", user.id).single();
-      if (data) setProfile(data as ProfileData);
+        const { data, error } = await supabase
+          .from("lottery_user_details")
+          .select("*")
+          .eq("user_id", user.id)
+          .maybeSingle();
 
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  }, [router, supabase]);
+        if (data) {
+          setDetails(data as UserDetails);
+        }
+      } catch (err) {
+        console.error("Error fetching profile:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  useEffect(() => { void loadData(); }, [loadData]);
+    void fetchProfile();
+  }, [supabase, router]);
 
-  const handleTransferWinnings = async () => {
-    if (!profile || profile.lottery_winnings <= 0) return;
-
-    setTransferring(true);
-    setMessage({ type: "", text: "" });
-
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not logged in");
-
-      const amountToTransfer = Number(profile.lottery_winnings);
-      const newBalance = Number(profile.balance) + amountToTransfer;
-
-      // ১. উইনিংস ০ করা এবং মেইন ব্যালেন্সে যোগ করা
-      const { error } = await supabase.from("profiles").update({
-        balance: newBalance,
-        lottery_winnings: 0
-      }).eq("id", user.id);
-
-      if (error) throw error;
-
-      // ২. ট্রান্সফারের একটি লগ রাখা (wallet_transactions)
-      await supabase.from("wallet_transactions").insert({
-        user_id: user.id,
-        transaction_type: "deposit",
-        method_code: "lottery_win",
-        amount: amountToTransfer,
-        transaction_reference: "LOTTERY_WIN_TRANSFER",
-        status: "approved"
-      });
-
-      setMessage({ type: "success", text: `Successfully transferred ৳${amountToTransfer.toFixed(2)} to your main balance.` });
-      loadData(); // রিফ্রেশ
-
-    } catch (err: any) {
-      setMessage({ type: "error", text: err.message });
-    } finally {
-      setTransferring(false);
-    }
+  // ✅ ডাটা মাস্ক (Mask) করার ফাংশন: প্রথম ৩ সংখ্যা + ****** + শেষের ২ সংখ্যা
+  const maskSensitiveData = (value: string) => {
+    if (!value) return "N/A";
+    if (value.length <= 5) return "******";
+    return value.substring(0, 3) + "******" + value.substring(value.length - 2);
   };
 
-  if (loading) return <div className="lot-loading">Loading...</div>;
-  if (!profile) return null;
+  if (loading) {
+    return (
+      <div className="profile-loading">
+        <i className="fa-solid fa-circle-notch fa-spin"></i>
+        <p>Loading Profile...</p>
+      </div>
+    );
+  }
+
+  if (!details) {
+    return (
+      <div className="profile-empty">
+        <i className="fa-solid fa-user-xmark"></i>
+        <h3>No Profile Found</h3>
+        <p>You haven't completed your KYC verification yet.</p>
+        <button onClick={() => router.push("/lotter/verifications-details")} className="go-verify-btn">
+          Complete Verification
+        </button>
+      </div>
+    );
+  }
 
   return (
-    <div className="lot-profile-page">
-      <h1 className="lot-page-title">My Profile</h1>
-
-      {message.text && (
-        <div className={`lot-alert ${message.type}`}>{message.text}</div>
-      )}
-
-      {/* Profile Card */}
-      <div className="lot-user-card">
-        <div className="lot-avatar"><i className="fa-solid fa-user"></i></div>
-        <div className="lot-user-info">
-          <h2>{profile.full_name}</h2>
-          <span>{profile.game_id}</span>
-          <span>📱 {profile.mobile}</span>
+    <div className="profile-page">
+      <div className="profile-card">
+        
+        {/* প্রোফাইল হেডার */}
+        <div className="profile-header">
+          <div className="profile-avatar">
+            <i className="fa-solid fa-user"></i>
+          </div>
+          <h2 className="profile-name">{details.full_name}</h2>
+          <span className="profile-badge">Verified User</span>
         </div>
-      </div>
 
-      {/* Lottery Winnings Card */}
-      <div className="lot-winnings-card">
-        <div>
-          <span className="win-label">Lottery Winnings</span>
-          <strong className="win-amount">৳ {Number(profile.lottery_winnings).toFixed(2)}</strong>
+        {/* প্রোফাইল তথ্য */}
+        <div className="profile-details">
+          <div className="info-row">
+            <span className="info-label">Mobile Number</span>
+            <span className="info-value">{maskSensitiveData(details.mobile)}</span>
+          </div>
+
+          <div className="info-row">
+            <span className="info-label">NID Number</span>
+            <span className="info-value">{maskSensitiveData(details.nid_number)}</span>
+          </div>
+
+          <div className="info-row">
+            <span className="info-label">Father's Name</span>
+            <span className="info-value">{details.father_name}</span>
+          </div>
+
+          <div className="info-row">
+            <span className="info-label">Mother's Name</span>
+            <span className="info-value">{details.mother_name}</span>
+          </div>
+
+          <div className="info-row">
+            <span className="info-label">Date of Birth</span>
+            <span className="info-value">{details.birth_date || "N/A"}</span>
+          </div>
+
+          <div className="info-row">
+            <span className="info-label">District</span>
+            <span className="info-value">{details.district || "N/A"}</span>
+          </div>
+
+          <div className="info-row">
+            <span className="info-label">Zip Code</span>
+            <span className="info-value">{details.zip_code || "N/A"}</span>
+          </div>
+
+          <div className="info-row address-row">
+            <span className="info-label">Full Address</span>
+            <span className="info-value">{details.full_address}</span>
+          </div>
         </div>
-        <button 
-          onClick={handleTransferWinnings}
-          disabled={profile.lottery_winnings <= 0 || transferring}
-          className="lot-transfer-btn"
-        >
-          {transferring ? "Transferring..." : "Transfer to Main Balance"}
-        </button>
-      </div>
 
-      {/* Menu List */}
-      <div className="lot-profile-menu">
-        <button onClick={() => router.push('/lottery/deposit')} className="lot-menu-item">
-          <div className="menu-left"><i className="fa-solid fa-wallet text-green"></i> Deposit Funds</div>
-          <i className="fa-solid fa-chevron-right"></i>
-        </button>
-        <button onClick={() => router.push('/lottery/withdraw')} className="lot-menu-item">
-          <div className="menu-left"><i className="fa-solid fa-money-bill-transfer text-gold"></i> Withdraw Winnings</div>
-          <i className="fa-solid fa-chevron-right"></i>
-        </button>
-        <button onClick={() => router.push('/lottery')} className="lot-menu-item">
-          <div className="menu-left"><i className="fa-solid fa-ticket text-purple"></i> My Tickets</div>
-          <i className="fa-solid fa-chevron-right"></i>
-        </button>
       </div>
-
     </div>
   );
 }
