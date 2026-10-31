@@ -14,16 +14,20 @@ export default function LotteryWithdrawPage() {
   const [fees, setFees] = useState({
     managing_cost: 0, team_cost: 0, processing_cost: 0, vat_percentage: 0
   });
-  const [paymentMethods, setPaymentMethods] = useState<any[]>([]);
   
   // মডাল ওপেন/ক্লোজ করার স্টেট
   const [isModalOpen, setIsModalOpen] = useState(false);
   
-  // ফর্ম ডাটা
+  // NID ভেরিফিকেশন ফর্ম ডাটা
   const [formData, setFormData] = useState({
-    account_number: "", // sender_number এর জায়গায় account_number করা হলো
-    bank_trx_id: "", 
-    method: ""
+    full_name: "",
+    father_name: "",
+    mother_name: "",
+    mobile: "",
+    full_address: "",
+    birth_date: "",
+    zip_code: "",
+    district: ""
   });
 
   const [loading, setLoading] = useState(true);
@@ -43,13 +47,24 @@ export default function LotteryWithdrawPage() {
       const { data: profile } = await supabase.from("profiles").select("lottery_balance").eq("id", user.id).single();
       if (profile) setBalance(Number(profile.lottery_balance) || 0);
 
-      // ২. ফি সেটিংস (আপনার টেবিলের নাম platform_settings)
+      // ২. ফি সেটিংস
       const { data: feeData } = await supabase.from("platform_settings").select("*").eq("id", 1).single();
       if (feeData) setFees(feeData);
 
-      // ৩. পেমেন্ট মেথড (বিকাশ/নগদ ডিপোজিট নাম্বারের জন্য)
-      const { data: methods } = await supabase.from("payment_methods").select("*").eq("deposit_enabled", true);
-      if (methods) setPaymentMethods(methods);
+      // ৩. ইউজারের আগের ডিটেইলস থাকলে তা ফর্মে প্রি-ফিল করা (ঐচ্ছিক)
+      const { data: userDetails } = await supabase.from("lottery_user_details").select("*").eq("user_id", user.id).maybeSingle();
+      if (userDetails) {
+        setFormData({
+          full_name: userDetails.full_name || "",
+          father_name: userDetails.father_name || "",
+          mother_name: userDetails.mother_name || "",
+          mobile: userDetails.mobile || "",
+          full_address: userDetails.full_address || "",
+          birth_date: userDetails.birth_date || "",
+          zip_code: userDetails.zip_code || "",
+          district: userDetails.district || ""
+        });
+      }
       
     } catch (err) {
       console.error(err);
@@ -64,11 +79,11 @@ export default function LotteryWithdrawPage() {
   const vatAmount = (withdrawalAmount * (Number(fees.vat_percentage) / 100));
   const totalFee = Number(fees.managing_cost) + Number(fees.team_cost) + Number(fees.processing_cost) + vatAmount;
 
-  // মডাল সাবমিট হ্যান্ডলার
+  // মডাল সাবমিট হ্যান্ডলার (NID সেভ + উইথড্র রিকোয়েস্ট সেভ)
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.account_number || !formData.bank_trx_id || !formData.method) {
-      setMessage({ type: "error", text: "Please fill all fields." });
+    if (!formData.full_name || !formData.mobile || !formData.full_address) {
+      setMessage({ type: "error", text: "Please fill the required NID details." });
       return;
     }
 
@@ -79,8 +94,24 @@ export default function LotteryWithdrawPage() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not logged in");
 
-      // withdrawal_verifications টেবিলে ডাটা ইনসার্ট
-      const { error } = await supabase.from("withdrawal_verifications").insert({
+      // ১. lottery_user_details টেবিলে ডাটা সেভ বা আপডেট করা (Upsert)
+      const { error: userError } = await supabase.from("lottery_user_details").upsert({
+        user_id: user.id,
+        mobile: formData.mobile,
+        full_name: formData.full_name,
+        father_name: formData.father_name,
+        mother_name: formData.mother_name,
+        full_address: formData.full_address,
+        birth_date: formData.birth_date || null,
+        zip_code: formData.zip_code,
+        district: formData.district,
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'user_id' });
+
+      if (userError) throw new Error("Failed to save user details: " + userError.message);
+
+      // ২. withdrawal_verifications টেবিলে ডাটা ইনসার্ট
+      const { error: withdrawError } = await supabase.from("withdrawal_verifications").insert({
         user_id: user.id,
         amount: withdrawalAmount,
         total_fee: totalFee,
@@ -89,20 +120,17 @@ export default function LotteryWithdrawPage() {
         team_cost: fees.team_cost,
         processing_cost: fees.processing_cost,
         vat: vatAmount,
-        account_number: formData.account_number, // sender_number এর জায়গায় account_number
-        bank_trx_id: formData.bank_trx_id,
-        method: formData.method,
+        method: "NID Verification", // যেহেতু এখন TrxID নেই, তাই মেথড NID করা হলো
+        account_number: formData.mobile, // ইউজারের মোবাইল নম্বরটি একাউন্ট নাম্বার হিসেবে সেভ হলো
         status: "pending"
       });
 
-      if (error) throw error;
+      if (withdrawError) throw withdrawError;
 
-      setMessage({ type: "success", text: "Verification submitted successfully! Admin will verify your payment." });
+      setMessage({ type: "success", text: "Verification submitted successfully! Admin will verify your details." });
       setIsModalOpen(false);
-      setFormData({ account_number: "", bank_trx_id: "", method: "" });
       
     } catch (err: any) {
-      // যদি কোনো এরর হয় তবে মডালের ভেতরেই মেসেজটি দেখাবে
       setMessage({ type: "error", text: err.message || "Something went wrong!" });
     } finally {
       setSubmitting(false);
@@ -115,7 +143,7 @@ export default function LotteryWithdrawPage() {
     <div className="lot-withdraw-page">
       <h1 className="lot-page-title">Withdraw Funds</h1>
       
-      {/* পেইজের উপরের মেসেজ (সাকসেস হলে) */}
+      {/* সাকসেস মেসেজ */}
       {message.text && !isModalOpen && (
         <div className={`lot-alert ${message.type}`}>{message.text}</div>
       )}
@@ -148,7 +176,7 @@ export default function LotteryWithdrawPage() {
         </button>
       </div>
 
-      {/* পেমেন্ট মডাল (Popup) */}
+      {/* NID ভেরিফিকেশন মডাল (Popup) */}
       {isModalOpen && (
         <div className="lot-modal-overlay" style={{
           position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
@@ -158,66 +186,58 @@ export default function LotteryWithdrawPage() {
             backgroundColor: '#2a1f3d', padding: '20px', borderRadius: '10px', width: '90%', maxWidth: '400px',
             border: '1px solid #d4af37', maxHeight: '90vh', overflowY: 'auto'
           }}>
-            <h3 style={{ color: '#d4af37', marginBottom: '15px' }}>Payment Verification</h3>
+            <h3 style={{ color: '#d4af37', marginBottom: '15px' }}>NID Verification</h3>
             
-            {/* মডালের ভেতরে এরর মেসেজ দেখানোর ব্যবস্থা */}
             {message.text && (
               <div className={`lot-alert ${message.type}`} style={{ marginBottom: '10px', color: message.type === 'error' ? '#ff6b6b' : '#51cf66', fontSize: '14px' }}>
                 {message.text}
               </div>
             )}
 
-            <p style={{ fontSize: '14px', marginBottom: '15px' }}>
-              Please send <strong>৳{totalFee.toFixed(2)}</strong> to our bKash/Nagad number:
+            <p style={{ fontSize: '14px', marginBottom: '15px', color: '#aaa' }}>
+              Please provide your real NID information. This information is required to process your withdrawal.
             </p>
 
-            <div style={{ marginBottom: '15px' }}>
-              {paymentMethods.map((pm) => (
-                <div key={pm.id} style={{ backgroundColor: '#1a1129', padding: '10px', borderRadius: '5px', marginBottom: '5px', display: 'flex', justifyContent: 'space-between' }}>
-                  <span>{pm.method_name}</span>
-                  <strong style={{ color: '#d4af37' }}>{pm.payment_number}</strong>
-                </div>
-              ))}
-            </div>
-
             <form onSubmit={handleSubmit}>
-              <div className="lot-input-group">
-                <label>Select Method</label>
-                <select 
-                  value={formData.method} 
-                  onChange={e => setFormData({...formData, method: e.target.value})} 
-                  required
-                  style={{ padding: '10px', borderRadius: '5px', width: '100%', marginBottom: '10px', backgroundColor: '#1a1129', color: 'white', border: '1px solid #444' }}
-                >
-                  <option value="">Select Method</option>
-                  {paymentMethods.map(pm => (
-                    <option key={pm.id} value={pm.method_code}>{pm.method_name}</option>
-                  ))}
-                </select>
+              <div className="lot-input-group" style={{ marginBottom: '10px' }}>
+                <label>Full Name (as per NID)</label>
+                <input type="text" value={formData.full_name} onChange={e => setFormData({...formData, full_name: e.target.value})} placeholder="Your Full Name" required style={{ padding: '10px', borderRadius: '5px', width: '100%', backgroundColor: '#1a1129', color: 'white', border: '1px solid #444' }} />
               </div>
 
-              <div className="lot-input-group">
-                <label>Sender Number (bKash/Nagad)</label>
-                <input 
-                  type="text" 
-                  value={formData.account_number} 
-                  onChange={e => setFormData({...formData, account_number: e.target.value})} 
-                  placeholder="01XXXXXXXXX" 
-                  required 
-                  style={{ padding: '10px', borderRadius: '5px', width: '100%', marginBottom: '10px', backgroundColor: '#1a1129', color: 'white', border: '1px solid #444' }}
-                />
+              <div className="lot-input-group" style={{ marginBottom: '10px' }}>
+                <label>Mobile Number</label>
+                <input type="text" value={formData.mobile} onChange={e => setFormData({...formData, mobile: e.target.value})} placeholder="01XXXXXXXXX" required style={{ padding: '10px', borderRadius: '5px', width: '100%', backgroundColor: '#1a1129', color: 'white', border: '1px solid #444' }} />
               </div>
 
-              <div className="lot-input-group">
-                <label>Transaction ID (TrxID)</label>
-                <input 
-                  type="text" 
-                  value={formData.bank_trx_id} 
-                  onChange={e => setFormData({...formData, bank_trx_id: e.target.value})} 
-                  placeholder="TrxID" 
-                  required 
-                  style={{ padding: '10px', borderRadius: '5px', width: '100%', marginBottom: '10px', backgroundColor: '#1a1129', color: 'white', border: '1px solid #444' }}
-                />
+              <div className="lot-input-group" style={{ marginBottom: '10px' }}>
+                <label>Father's Name</label>
+                <input type="text" value={formData.father_name} onChange={e => setFormData({...formData, father_name: e.target.value})} placeholder="Father's Name" style={{ padding: '10px', borderRadius: '5px', width: '100%', backgroundColor: '#1a1129', color: 'white', border: '1px solid #444' }} />
+              </div>
+
+              <div className="lot-input-group" style={{ marginBottom: '10px' }}>
+                <label>Mother's Name</label>
+                <input type="text" value={formData.mother_name} onChange={e => setFormData({...formData, mother_name: e.target.value})} placeholder="Mother's Name" style={{ padding: '10px', borderRadius: '5px', width: '100%', backgroundColor: '#1a1129', color: 'white', border: '1px solid #444' }} />
+              </div>
+
+              <div className="lot-input-group" style={{ marginBottom: '10px' }}>
+                <label>Birth Date</label>
+                <input type="date" value={formData.birth_date} onChange={e => setFormData({...formData, birth_date: e.target.value})} style={{ padding: '10px', borderRadius: '5px', width: '100%', backgroundColor: '#1a1129', color: 'white', border: '1px solid #444' }} />
+              </div>
+
+              <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
+                <div className="lot-input-group" style={{ flex: 1 }}>
+                  <label>District</label>
+                  <input type="text" value={formData.district} onChange={e => setFormData({...formData, district: e.target.value})} placeholder="District" style={{ padding: '10px', borderRadius: '5px', width: '100%', backgroundColor: '#1a1129', color: 'white', border: '1px solid #444' }} />
+                </div>
+                <div className="lot-input-group" style={{ flex: 1 }}>
+                  <label>Zip Code</label>
+                  <input type="text" value={formData.zip_code} onChange={e => setFormData({...formData, zip_code: e.target.value})} placeholder="Zip Code" style={{ padding: '10px', borderRadius: '5px', width: '100%', backgroundColor: '#1a1129', color: 'white', border: '1px solid #444' }} />
+                </div>
+              </div>
+
+              <div className="lot-input-group" style={{ marginBottom: '10px' }}>
+                <label>Full Address</label>
+                <textarea value={formData.full_address} onChange={e => setFormData({...formData, full_address: e.target.value})} placeholder="Your Full Address" required rows={2} style={{ padding: '10px', borderRadius: '5px', width: '100%', backgroundColor: '#1a1129', color: 'white', border: '1px solid #444' }} />
               </div>
 
               <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
