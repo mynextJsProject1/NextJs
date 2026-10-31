@@ -1,0 +1,179 @@
+/* app/lottery/transaction/transaction.css */
+.tx-page {
+  padding: 15px;
+  padding-bottom: 80px;
+  max-width: 600px;
+  margin: 0 auto;
+  min-height: 100vh;
+}
+
+.tx-header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.tx-header h1 {
+  color: #fff;
+  font-size: 20px;
+  font-weight: 800;
+  margin: 0 0 5px 0;
+}
+
+.tx-header p {
+  color: #b1bad3;
+  font-size: 12px;
+  margin: 0;
+}
+
+/* লিস্ট ডিজাইন */
+.tx-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ট্রানজেকশন কার্ড */
+.tx-card {
+  background: #1a0f2e;
+  border: 1px solid #3a1f6b;
+  border-radius: 12px;
+  padding: 15px;
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+}
+
+.tx-icon {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.tx-details {
+  flex: 1;
+}
+
+.tx-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.tx-title {
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.tx-amount {
+  font-size: 15px;
+  font-weight: 900;
+}
+
+.tx-desc {
+  color: #b1bad3;
+  font-size: 12px;
+  margin: 0 0 8px 0;
+  line-height: 1.3;
+}
+
+.tx-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.tx-date {
+  color: #888;
+  font-size: 10px;
+}
+
+/* স্ট্যাটাস ব্যাজ */
+.tx-status {
+  font-size: 9px;
+  font-weight: bold;
+  padding: 3px 8px;
+  border-radius: 10px;
+  text-transform: uppercase;
+}
+
+.tx-status.pending {
+  background: rgba(245, 130, 32, 0.15);
+  color: #f58220;
+}
+
+.tx-status.approved,
+.tx-status.completed {
+  background: rgba(0, 231, 1, 0.15);
+  color: #00e701;
+}
+
+.tx-status.rejected {
+  background: rgba(255, 77, 77, 0.15);
+  color: #ff4d4d;
+}
+
+/* খালি অবস্থা */
+.tx-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 50px 20px;
+  text-align: center;
+  margin-top: 40px;
+}
+
+.tx-empty i {
+  font-size: 40px;
+  color: #3a1f6b;
+  margin-bottom: 15px;
+}
+
+.tx-empty h3 {
+  color: #fff;
+  margin: 0 0 5px 0;
+}
+
+.tx-empty p {
+  color: #888;
+  font-size: 12px;
+  margin: 0;
+}
+
+/* লোডিং */
+.tx-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  color: #ffd700;
+  gap: 15px;
+}
+
+.tx-loading i {
+  font-size: 30px;
+}
+
+.tx-loading p {
+  color: #b1bad3;
+  font-size: 14px;
+  margin: 0;
+}
+
+/* ডেস্কটপ রেসপন্সিভ */
+@media (min-width: 768px) {
+  .tx-page {
+    max-width: 800px;
+    padding: 24px;
+  }
+}
