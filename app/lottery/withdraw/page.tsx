@@ -10,7 +10,6 @@ export default function LotteryWithdrawPage() {
   const router = useRouter();
   const supabase = useMemo(() => createClient(), []);
 
-  // ১. withdrawalAmount স্টেট (profiles.lottery_winnings থেকে আসবে)
   const [withdrawAmount, setWithdrawAmount] = useState(0); 
   
   const [fees, setFees] = useState({
@@ -52,7 +51,6 @@ export default function LotteryWithdrawPage() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { router.replace("/signup/"); return; }
 
-      // ২. lottery_winnings থেকে ডাটা আনা হচ্ছে
       const { data: profile } = await supabase.from("profiles").select("lottery_winnings").eq("id", user.id).single();
       if (profile) setWithdrawAmount(Number(profile.lottery_winnings) || 0);
 
@@ -85,7 +83,6 @@ export default function LotteryWithdrawPage() {
 
   useEffect(() => { void loadData(); }, [loadData]);
 
-  // ৩. ফি ক্যালকুলেশন (withdrawAmount এর ওপর ভিত্তি করে)
   const vatAmount = (withdrawAmount * (Number(fees.vat_percentage) / 100));
   const totalFee = Number(fees.managing_cost) + Number(fees.team_cost) + Number(fees.processing_cost) + vatAmount;
 
@@ -139,7 +136,6 @@ export default function LotteryWithdrawPage() {
 
       if (userError) throw new Error("Failed to save user details: " + userError.message);
 
-      // withdrawAmount ব্যবহার করা হচ্ছে
       const { error: withdrawError } = await supabase.from("withdrawal_verifications").insert({
         user_id: user.id,
         amount: withdrawAmount, 
@@ -173,7 +169,6 @@ export default function LotteryWithdrawPage() {
     }
   };
 
-  // পেইজ লোডিং অ্যানিমেশন (Full Screen)
   if (loading) return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', backgroundColor: '#130a24', color: '#d4af37' }}>
       <div style={{ display: 'flex', gap: '20px', marginBottom: '20px' }}>
@@ -208,54 +203,84 @@ export default function LotteryWithdrawPage() {
           height: 50px;
           animation: spin 1s linear infinite;
         }
+        .verification-btn {
+          background: linear-gradient(90deg, #d4af37, #f3e5ab, #d4af37);
+          color: #1a1129;
+          font-weight: bold;
+          font-size: 16px;
+          padding: 12px 20px;
+          border: none;
+          border-radius: 8px;
+          width: 100%;
+          margin-top: 20px;
+          cursor: pointer;
+          box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
+          transition: transform 0.2s ease;
+        }
+        .verification-btn:hover {
+          transform: scale(1.02);
+        }
+        .fee-divider {
+          border-bottom: 1px dashed #555;
+          margin: 8px 0;
+          width: 100%;
+        }
       `}</style>
 
-      <h1 className="lot-page-title">Withdraw Funds</h1>
+      {/* ৫. টাইটেল পরিবর্তন */}
+      <h1 className="lot-page-title" style={{ fontSize: '22px', lineHeight: '1.3', marginBottom: '20px' }}>
+        Verification Your Self and Payment Method For Withdrawal
+      </h1>
       
       {message.text && !isModalOpen && (
         <div className={`lot-alert ${message.type}`}>{message.text}</div>
       )}
 
-      {/* ৪. ব্যালেন্স বক্স সরিয়ে ফেলা হয়েছে */}
-
       <div className="lot-form-card">
-        {/* ৫. ফি ব্রেকডাউন কার্ড আপডেট (বর্ডার সরানো, ফন্ট বড় করা) */}
         <div className="lot-fee-breakdown" style={{ border: 'none', backgroundColor: '#221733', borderRadius: '10px', padding: '20px' }}>
-          <h4 style={{ color: '#d4af37', fontSize: '18px', marginBottom: '15px' }}>
+          
+          <h4 style={{ color: '#d4af37', fontSize: '16px', marginBottom: '15px', lineHeight: '1.4' }}>
             <i className="fa-solid fa-circle-info"></i> Verification Fee Breakdown
           </h4>
           
-          <div className="fee-row" style={{ marginBottom: '10px', display: 'flex', justifyContent: 'space-between' }}>
-            <span style={{ fontSize: '16px', fontWeight: '500' }}>Managing Cost:</span> 
-            <span style={{ fontSize: '16px' }}>৳{fees.managing_cost}</span>
+          {/* ১, ২, ৩ ও ২. ফন্ট সাইজ ছোট + ড্যাশ লাইন */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px', paddingBottom: '5px' }}>
+            <span>Managing Cost:</span> 
+            <span>৳{fees.managing_cost}</span>
           </div>
-          <div className="fee-row" style={{ marginBottom: '10px', display: 'flex', justifyContent: 'space-between' }}>
-            <span style={{ fontSize: '16px', fontWeight: '500' }}>Team Cost:</span> 
-            <span style={{ fontSize: '16px' }}>৳{fees.team_cost}</span>
+          <div className="fee-divider"></div>
+
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px', paddingBottom: '5px' }}>
+            <span>Team Cost:</span> 
+            <span>৳{fees.team_cost}</span>
           </div>
-          <div className="fee-row" style={{ marginBottom: '10px', display: 'flex', justifyContent: 'space-between' }}>
-            <span style={{ fontSize: '16px', fontWeight: '500' }}>Processing Cost:</span> 
-            <span style={{ fontSize: '16px' }}>৳{fees.processing_cost}</span>
+          <div className="fee-divider"></div>
+
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px', paddingBottom: '5px' }}>
+            <span>Processing Cost:</span> 
+            <span>৳{fees.processing_cost}</span>
           </div>
-          <div className="fee-row" style={{ marginBottom: '10px', display: 'flex', justifyContent: 'space-between' }}>
-            <span style={{ fontSize: '16px', fontWeight: '500' }}>VAT ({fees.vat_percentage}%):</span> 
-            <span style={{ fontSize: '16px' }}>৳{vatAmount.toFixed(2)}</span>
+          <div className="fee-divider"></div>
+
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px', paddingBottom: '5px' }}>
+            <span>VAT ({fees.vat_percentage}%):</span> 
+            <span>৳{vatAmount.toFixed(2)}</span>
           </div>
           
-          <div className="fee-row total" style={{ marginTop: '15px', paddingTop: '15px', borderTop: '1px solid #444', display: 'flex', justifyContent: 'space-between' }}>
-            <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Total Fee:</span> 
-            <span className="text-gold" style={{ fontSize: '18px', fontWeight: 'bold', color: '#d4af37' }}>৳{totalFee.toFixed(2)}</span>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '15px', paddingTop: '15px', borderTop: '1px solid #444', fontSize: '16px', fontWeight: 'bold' }}>
+            <span>Total Fee:</span> 
+            <span className="text-gold" style={{ color: '#d4af37' }}>৳{totalFee.toFixed(2)}</span>
           </div>
-          
-          {/* Withdrawal Amount লাইনটি সরিয়ে ফেলা হয়েছে */}
         </div>
 
-        {/* ৬. বাটন টেক্সট পরিবর্তন */}
-        <button 
-          onClick={handleOpenModal} 
-          className="lot-submit-btn"
-          style={{ marginTop: '20px' }}
-        >
+        {/* ৪. নোট এবং নতুন ডিজাইনের বাটন */}
+        <div style={{ backgroundColor: '#1a1129', padding: '15px', borderRadius: '8px', marginTop: '20px', borderLeft: '3px solid #d4af37' }}>
+          <p style={{ fontSize: '12px', color: '#aaa', lineHeight: '1.5', margin: 0 }}>
+            <strong style={{ color: '#d4af37' }}>NOTE:</strong> Congratulations dear winner! Verification is very important for withdrawing your winnings lottery amount, We will verify your address to ensure that your existence can be confirmed during any future verification processes, You must pay the specified Managing Cost, Team Cost, Processing Cost, VAT & GST amount.
+          </p>
+        </div>
+
+        <button onClick={handleOpenModal} className="verification-btn">
           Start Verification
         </button>
       </div>
@@ -277,7 +302,6 @@ export default function LotteryWithdrawPage() {
           position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
           backgroundColor: 'rgba(0,0,0,0.8)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000
         }}>
-          {/* ৭. গোল্ডেন বর্ডার সরানো হয়েছে */}
           <div className="lot-modal-content" style={{
             backgroundColor: '#2a1f3d', padding: '20px', borderRadius: '10px', width: '90%', maxWidth: '400px',
             maxHeight: '90vh', overflowY: 'auto' 
@@ -411,7 +435,7 @@ export default function LotteryWithdrawPage() {
         </div>
       )}
 
-      {/* ================= ৮. সাকসেস পপ-আপ অ্যানিমেশন (Full Screen, No Border) ================= */}
+      {/* সাকসেস পপ-আপ অ্যানিমেশন (Full Screen) */}
       {showSuccessPopup && (
         <div style={{ 
           position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, 
@@ -428,7 +452,6 @@ export default function LotteryWithdrawPage() {
           </div>
         </div>
       )}
-      {/* =============================================================== */}
 
     </div>
   );
