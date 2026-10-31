@@ -26,6 +26,7 @@
     "typescript": "^5.0.0"
   },
   "overrides": {
-    "@types/estree": "1.0.6"
+    "@types/estree": "1.0.6",
+    "unrs-resolver": "1.12.0"
   }
 }
