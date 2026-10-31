@@ -63,15 +63,16 @@ export default function LotteryDepositPage() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not logged in");
 
-      // লটারি ডিপোজিট হিসেবে সেভ হবে
-      const { error } = await supabase.from("wallet_transactions").insert({
+      // ✅ সমাধান: wallet_transactions এর জায়গায় lottery_transactions ব্যবহার করা হলো
+      // এবং destination_details এর জায়গায় description ব্যবহার করা হলো
+      const { error } = await supabase.from("lottery_transactions").insert({
         user_id: user.id,
         transaction_type: "deposit",
         method_code: selectedMethod.method_code,
         amount: numAmount,
         transaction_reference: trxId.toUpperCase(),
         status: "pending",
-        destination_details: "LOTTERY_DEPOSIT" // চিহ্নিত করার জন্য
+        description: "Lottery Deposit" 
       });
 
       if (error) throw error;
