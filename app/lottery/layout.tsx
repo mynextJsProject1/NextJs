@@ -100,16 +100,17 @@ export default function LotteryLayout({ children }: { children: React.ReactNode 
 
         {/* টপ বারের ডান দিক: ব্যালেন্স, উইনিং এবং নোটিফিকেশন */}
         <div className="lottery-header-right" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <div className="lottery-wallet-pill" onClick={() => router.push('/lottery/deposit')}>
+          {/* ✅ বর্ডার আরও চিকন করা হয়েছে (borderWidth: '0.5px') */}
+          <div className="lottery-wallet-pill" onClick={() => router.push('/lottery/deposit')} style={{ borderWidth: '0.5px' }}>
             <i className="fa-solid fa-coins"></i>
             <span>{balance.toFixed(2)}</span>
           </div>
-          <div className="lottery-trophy-pill">
+          <div className="lottery-trophy-pill" style={{ borderWidth: '0.5px' }}>
             <i className="fa-solid fa-gift" style={{ color: "#ffd700" }}></i>
             <span>{winnings.toFixed(2)}</span>
           </div>
           
-          {/* ✅ নতুন যোগ করা নোটিফিকেশন বেল আইকন */}
+          {/* ✅ নোটিফিকেশন বেল আইকন */}
           <div onClick={() => setIsNotifModalOpen(true)} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', marginLeft: '4px' }}>
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
@@ -144,17 +145,34 @@ export default function LotteryLayout({ children }: { children: React.ReactNode 
           <div className="drawer-menu">
             <div className="drawer-header">
               <h2 style={{ color: '#d4af37', margin: 0, fontSize: '20px' }}>Menu</h2>
-              <button onClick={() => setIsDrawerOpen(false)} style={{ background: 'transparent', border: 'none', color: '#fff', fontSize: '20px' }}>✕</button>
+              <button onClick={() => setIsDrawerOpen(false)} style={{ background: 'transparent', border: 'none', color: '#fff', fontSize: '20px', cursor: 'pointer' }}>✕</button>
             </div>
+            
             <Link href="/lottery/profile" className="drawer-item" onClick={() => setIsDrawerOpen(false)}>
               <i className="fa-solid fa-user"></i> Profile
             </Link>
-            <Link href="/lottery/contact" className="drawer-item" onClick={() => setIsDrawerOpen(false)}>
-              <i className="fa-solid fa-envelope"></i> Contact Us
+            
+            {/* ✅ Contact Us এর জায়গায় Submit Ticket */}
+            <Link href="/lottery/submit-ticket" className="drawer-item" onClick={() => setIsDrawerOpen(false)}>
+              <i className="fa-solid fa-ticket"></i> Submit Ticket
             </Link>
-            <Link href="/lottery/support" className="drawer-item" onClick={() => setIsDrawerOpen(false)}>
-              <i className="fa-solid fa-headset"></i> Live Support
+            
+            {/* ✅ নতুন যোগ করা Transaction */}
+            <Link href="/lottery/transaction" className="drawer-item" onClick={() => setIsDrawerOpen(false)}>
+              <i className="fa-solid fa-receipt"></i> Transaction
             </Link>
+            
+            {/* ✅ নতুন যোগ করা Verifications */}
+            <Link href="/lottery/verifications-details" className="drawer-item" onClick={() => setIsDrawerOpen(false)}>
+              <i className="fa-solid fa-id-card"></i> Verifications
+            </Link>
+            
+            {/* ✅ নতুন যোগ করা Lottery Verifie */}
+            <Link href="/lottery/lottery-verifie" className="drawer-item" onClick={() => setIsDrawerOpen(false)}>
+              <i className="fa-solid fa-check-double"></i> Lottery Verifie
+            </Link>
+
+            {/* ✅ Live Support সম্পূর্ণ সরিয়ে ফেলা হয়েছে */}
           </div>
         </>
       )}
@@ -166,7 +184,7 @@ export default function LotteryLayout({ children }: { children: React.ReactNode 
           <div className="notif-modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="notif-modal-header">
               <h3 style={{ margin: 0, color: '#fff', fontSize: '16px' }}>Notifications</h3>
-              <button onClick={() => setIsNotifModalOpen(false)} style={{ background: 'transparent', border: 'none', color: '#fff', fontSize: '18px' }}>✕</button>
+              <button onClick={() => setIsNotifModalOpen(false)} style={{ background: 'transparent', border: 'none', color: '#fff', fontSize: '18px', cursor: 'pointer' }}>✕</button>
             </div>
             
             <div className="notif-modal-body">
