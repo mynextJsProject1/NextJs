@@ -15,36 +15,36 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 16px;
+  padding: 10px 14px; /* প্যাডিং কমানো হয়েছে */
   background: rgba(26, 15, 46, 0.9);
   backdrop-filter: blur(10px);
   border-bottom: 1px solid #3a1f6b;
 }
 
 .lottery-logo {
-  font-size: 1.2rem;
+  font-size: 1.05rem; /* ফন্ট সাইজ কমানো হয়েছে (১.২ থেকে) */
   font-weight: 900;
   color: #fff;
   text-decoration: none;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 }
 .lottery-logo i { color: #ffd700; }
 
 .lottery-header-right {
   display: flex;
-  gap: 8px;
+  gap: 6px;
 }
 
 .lottery-wallet-pill, .lottery-trophy-pill {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
   background: #2a154a;
-  padding: 6px 12px;
+  padding: 5px 10px; /* প্যাডিং কমানো হয়েছে */
   border-radius: 20px;
-  font-size: 0.85rem;
+  font-size: 0.75rem; /* ফন্ট সাইজ কমানো হয়েছে (০.৮৫ থেকে) */
   font-weight: 700;
   border: 1px solid #4b2882;
   cursor: pointer;
@@ -53,7 +53,7 @@
 
 /* Content */
 .lottery-content {
-  padding: 16px;
+  padding: 12px; /* প্যাডিং কমানো হয়েছে */
   max-width: 600px;
   margin: 0 auto;
 }
@@ -64,7 +64,7 @@
   bottom: 0;
   left: 0;
   right: 0;
-  height: 65px;
+  height: 60px; /* উচ্চতা একটু কমানো হয়েছে */
   background: #1a0f2e;
   border-top: 1px solid #3a1f6b;
   display: flex;
@@ -77,13 +77,63 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  gap: 3px;
   color: #888;
   text-decoration: none;
-  font-size: 0.7rem;
+  font-size: 0.65rem; /* ফন্ট সাইজ কমানো হয়েছে (০.৭ থেকে) */
   font-weight: 600;
   transition: 0.2s;
 }
 
-.lottery-nav-item i { font-size: 1.2rem; }
+.lottery-nav-item i, 
+.lottery-nav-item svg { 
+  font-size: 1.1rem; /* আইকন সাইজ কমানো হয়েছে */
+  width: 20px; 
+  height: 20px;
+}
 .lottery-nav-item.active { color: #ffd700; }
+
+
+/* =========================================================================
+   ডেস্কটপ এবং বড় স্ক্রিনের জন্য রেসপন্সিভ ডিজাইন (Media Queries)
+   ========================================================================= */
+@media (min-width: 768px) {
+  .lottery-header {
+    padding: 14px 30px; /* ডেস্কটপে হেডার প্যাডিং বাড়বে */
+  }
+
+  .lottery-logo {
+    font-size: 1.3rem;
+  }
+
+  .lottery-wallet-pill, .lottery-trophy-pill {
+    font-size: 0.9rem;
+    padding: 6px 14px;
+  }
+
+  .lottery-content {
+    max-width: 900px; /* ডেস্কটপে মেইন কন্টেইনার বড় হবে (লটারি CSS এর সাথে ম্যাচ করা) */
+    padding: 24px;
+  }
+
+  /* ডেস্কটপে বটম নেভিগেশন বারকে স্ক্রিনের মাঝখানে সুন্দরভাবে বসানোর জন্য */
+  .lottery-bottom-nav {
+    max-width: 900px;
+    margin: 0 auto;
+    border-left: 1px solid #3a1f6b;
+    border-right: 1px solid #3a1f6b;
+    border-radius: 12px 12px 0 0;
+    height: 70px;
+  }
+
+  .lottery-nav-item {
+    font-size: 0.8rem;
+  }
+
+  .lottery-nav-item i, 
+  .lottery-nav-item svg {
+    font-size: 1.4rem;
+    width: 24px;
+    height: 24px;
+  }
+}
