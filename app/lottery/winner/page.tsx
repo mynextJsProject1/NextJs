@@ -95,7 +95,7 @@ export default function WinnerPage() {
     return mobile.slice(0, 5) + "***" + mobile.slice(-3);
   };
 
-  // ✅ নতুন ফাংশন: ড্র-এর তারিখ ও সময় ফরম্যাট করার জন্য (যেমন: 12 Oct 2023, 11:59 PM)
+  // ড্র-এর তারিখ ও সময় ফরম্যাট করার জন্য
   const formatDrawTime = (dateString: string) => {
     if (!dateString) return "N/A";
     const date = new Date(dateString);
@@ -128,7 +128,7 @@ export default function WinnerPage() {
   return (
     <div className="lot-winner-page" style={{ padding: '15px', paddingBottom: '80px' }}>
       
-      {/* ✅ Recent Winners শিরোনাম সবার উপরে */}
+      {/* ✅ Recent Winners শিরোনাম */}
       <h1 style={{ color: 'white', textAlign: 'center', marginBottom: '20px', fontSize: '22px', fontWeight: 'bold' }}>
         🏆 Recent Winners 🏆
       </h1>
@@ -157,30 +157,28 @@ export default function WinnerPage() {
                   overflow: 'hidden'
                 }}
               >
-                {/* টপ সেকশন: ড্র-এর নাম, তারিখ এবং প্রাইজ */}
+                {/* টপ সেকশন: ড্র-এর নাম এবং তারিখ */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '15px' }}>
                   
-                  {/* বাম দিকে ড্র-এর নাম ও নিচে নতুন তারিখ */}
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                     <div style={{ backgroundColor: 'rgba(255,255,255,0.3)', padding: '5px 12px', borderRadius: '20px', color: '#000', fontWeight: 'bold', fontSize: '12px', alignSelf: 'flex-start' }}>
                       {winner.draw_name || `Draw #${winner.winning_number}`}
                     </div>
-                    {/* ✅ নতুন যোগ করা ড্র-এর তারিখ ও সময় */}
                     <div style={{ color: 'rgba(0,0,0,0.7)', fontSize: '11px', fontWeight: 'bold', paddingLeft: '4px' }}>
                       <i className="fa-regular fa-calendar-days" style={{ marginRight: '4px' }}></i>
                       {formatDrawTime(winner.draw_time)}
                     </div>
                   </div>
                   
-                  {/* ডান দিকে টিকিট প্রাইস */}
-                  <div style={{ color: '#fff', fontWeight: 'bold', fontSize: '12px', backgroundColor: 'rgba(0,0,0,0.2)', padding: '5px 10px', borderRadius: '10px' }}>
-                    Ticket: ৳{winner.ticket_price}
-                  </div>
+                  {/* ❌ ডান দিকের টিকিট প্রাইস সরিয়ে ফেলা হয়েছে */}
+
                 </div>
 
                 {/* মাঝখানের সেকশন: Jackpot Amount এবং মানি ব্যাগ আইকন */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div>
+                  
+                  {/* ✅ Prize Pool এবং Amount সুন্দরভাবে উপরে-নিচে এলাইন করা */}
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
                     <p style={{ margin: 0, color: 'rgba(0,0,0,0.6)', fontSize: '12px', fontWeight: 'bold', textTransform: 'uppercase' }}>Prize Pool</p>
                     <div style={{ 
                       backgroundColor: theme.pillBg, 
@@ -217,7 +215,6 @@ export default function WinnerPage() {
                     <h4 style={{ margin: 0, color: '#1a1129', fontSize: '16px', fontWeight: 'bold' }}>
                       {user?.full_name || "Anonymous User"}
                     </h4>
-                    {/* ✅ মোবাইল আইকন সরিয়ে ফেলা হয়েছে */}
                     <p style={{ margin: '4px 0 0 0', color: 'rgba(0,0,0,0.7)', fontSize: '13px', fontWeight: '600' }}>
                       {user?.mobile ? maskMobile(user.mobile) : "N/A"}
                     </p>
