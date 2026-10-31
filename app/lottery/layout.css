@@ -15,14 +15,14 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 14px; /* প্যাডিং কমানো হয়েছে */
-  background: rgba(26, 15, 46, 0.9);
+  padding: 14px 16px; /* হেডার আরও একটু মোটা করা হয়েছে */
+  background: rgba(26, 15, 46, 0.95);
   backdrop-filter: blur(10px);
   border-bottom: 1px solid #3a1f6b;
 }
 
 .lottery-logo {
-  font-size: 1.05rem; /* ফন্ট সাইজ কমানো হয়েছে (১.২ থেকে) */
+  font-size: 1.1rem;
   font-weight: 900;
   color: #fff;
   text-decoration: none;
@@ -34,7 +34,8 @@
 
 .lottery-header-right {
   display: flex;
-  gap: 6px;
+  gap: 8px;
+  align-items: center;
 }
 
 .lottery-wallet-pill, .lottery-trophy-pill {
@@ -42,9 +43,9 @@
   align-items: center;
   gap: 4px;
   background: #2a154a;
-  padding: 5px 10px; /* প্যাডিং কমানো হয়েছে */
+  padding: 6px 12px;
   border-radius: 20px;
-  font-size: 0.75rem; /* ফন্ট সাইজ কমানো হয়েছে (০.৮৫ থেকে) */
+  font-size: 0.75rem;
   font-weight: 700;
   border: 1px solid #4b2882;
   cursor: pointer;
@@ -53,7 +54,7 @@
 
 /* Content */
 .lottery-content {
-  padding: 12px; /* প্যাডিং কমানো হয়েছে */
+  padding: 12px;
   max-width: 600px;
   margin: 0 auto;
 }
@@ -64,7 +65,7 @@
   bottom: 0;
   left: 0;
   right: 0;
-  height: 60px; /* উচ্চতা একটু কমানো হয়েছে */
+  height: 60px;
   background: #1a0f2e;
   border-top: 1px solid #3a1f6b;
   display: flex;
@@ -80,26 +81,167 @@
   gap: 3px;
   color: #888;
   text-decoration: none;
-  font-size: 0.65rem; /* ফন্ট সাইজ কমানো হয়েছে (০.৭ থেকে) */
+  font-size: 0.65rem;
   font-weight: 600;
   transition: 0.2s;
 }
 
 .lottery-nav-item i, 
 .lottery-nav-item svg { 
-  font-size: 1.1rem; /* আইকন সাইজ কমানো হয়েছে */
+  font-size: 1.1rem;
   width: 20px; 
   height: 20px;
 }
 .lottery-nav-item.active { color: #ffd700; }
 
+/* ========================================================= */
+/* ✅ নতুন যোগ করা: Drawer Menu (সাইড মেনু) স্টাইল */
+/* ========================================================= */
+.drawer-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  z-index: 1000;
+  backdrop-filter: blur(3px);
+}
+
+.drawer-menu {
+  position: fixed;
+  top: 0; left: 0; bottom: 0;
+  width: 260px;
+  background: #1a0f2e;
+  z-index: 1001;
+  border-right: 1px solid #3a1f6b;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 5px 0 15px rgba(0,0,0,0.5);
+  animation: slideInLeft 0.3s ease-out;
+}
+
+@keyframes slideInLeft {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
+}
+
+.drawer-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  border-bottom: 1px solid #3a1f6b;
+}
+
+.drawer-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  color: #fff;
+  text-decoration: none;
+  font-size: 15px;
+  font-weight: 600;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  transition: background 0.2s;
+}
+
+.drawer-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.drawer-item i {
+  color: #d4af37;
+  font-size: 18px;
+}
+
+/* ========================================================= */
+/* ✅ নতুন যোগ করা: Notification Modal (পপ-আপ) স্টাইল */
+/* ========================================================= */
+.notif-modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  backdrop-filter: blur(4px);
+}
+
+.notif-modal-content {
+  background: #1a0f2e;
+  border: 1px solid #3a1f6b;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 450px;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes popIn {
+  from { transform: scale(0.9); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.notif-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid #3a1f6b;
+}
+
+.notif-modal-body {
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.notif-item {
+  padding-bottom: 15px;
+  margin-bottom: 15px;
+  border-bottom: 1px dashed #3a1f6b;
+}
+.notif-item:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.notif-item-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.notif-item-title {
+  color: #fff;
+  margin: 0;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.notif-item-time {
+  color: #888;
+  font-size: 10px;
+}
+
+.notif-item-msg {
+  color: #b1bad3;
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
 
 /* =========================================================================
-   ডেস্কটপ এবং বড় স্ক্রিনের জন্য রেসপন্সিভ ডিজাইন (Media Queries)
+   ডেস্কটপ এবং বড় স্ক্রিনের জন্য রেসপন্সিভ ডিজাইন
    ========================================================================= */
 @media (min-width: 768px) {
   .lottery-header {
-    padding: 14px 30px; /* ডেস্কটপে হেডার প্যাডিং বাড়বে */
+    padding: 16px 30px;
   }
 
   .lottery-logo {
@@ -112,11 +254,10 @@
   }
 
   .lottery-content {
-    max-width: 900px; /* ডেস্কটপে মেইন কন্টেইনার বড় হবে (লটারি CSS এর সাথে ম্যাচ করা) */
+    max-width: 900px;
     padding: 24px;
   }
 
-  /* ডেস্কটপে বটম নেভিগেশন বারকে স্ক্রিনের মাঝখানে সুন্দরভাবে বসানোর জন্য */
   .lottery-bottom-nav {
     max-width: 900px;
     margin: 0 auto;
