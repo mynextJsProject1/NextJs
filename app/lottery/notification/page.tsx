@@ -4,7 +4,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { createClient } from "../../../lib/supabase/client";
 import { useRouter } from "next/navigation";
-import "./transaction.css";
+import "./notification.css";
 
 type CombinedTransaction = {
   id: string;
