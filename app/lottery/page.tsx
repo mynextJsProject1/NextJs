@@ -80,7 +80,7 @@ export default function LotteryHomePage() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { router.replace("/signup/"); return; }
 
-      // ✅ ১. এখানে balance এর জায়গায় lottery_balance নেওয়া হচ্ছে
+      // ✅ ব্যালেন্স চেক
       const { data: profile } = await supabase.from("profiles").select("lottery_balance, mobile, full_name").eq("id", user.id).single();
       if (profile) {
         setBalance(Number(profile.lottery_balance || 0)); 
@@ -114,6 +114,7 @@ export default function LotteryHomePage() {
         const { data: tickets } = await supabase.from("lottery_tickets").select("ticket_number, user_id").eq("draw_id", drawData.id);
         if (tickets) {
           setSoldTickets(tickets as Ticket[]);
+          // এই ইউজার আগে কোন কোন নাম্বার কিনেছে সেগুলো আলাদা করে রাখা
           setMyTickets(tickets.filter(t => t.user_id === user.id).map(t => t.ticket_number));
         }
       } else {
@@ -143,6 +144,9 @@ export default function LotteryHomePage() {
   }, [draw]);
 
   const toggleNumber = (num: string) => {
+    // যদি নিজে আগে কিনে থাকে, তবে সিলেক্ট করতে পারবে না
+    if (myTickets.includes(num)) return; 
+
     if (selectedNumbers.includes(num)) {
       setSelectedNumbers(selectedNumbers.filter(n => n !== num));
     } else {
@@ -163,6 +167,8 @@ export default function LotteryHomePage() {
     setBuying(true);
     setMessage({ type: "", text: "" });
 
+    // 📌 এখানে আপনার RPC (Database Function) কল হচ্ছে।
+    // নিশ্চিত করুন আপনার RPC-তে lottery_transactions এ ডাটা ইনসার্ট হচ্ছে।
     const { data, error } = await supabase.rpc("buy_lottery_tickets_bulk", {
       p_draw_id: draw.id,
       p_ticket_numbers: selectedNumbers
@@ -174,7 +180,7 @@ export default function LotteryHomePage() {
     } else if (data && data.success) {
       setMessage({ type: "success", text: `${data.total_tickets} Tickets purchased successfully!` });
       setShowCheckout(false);
-      loadData();
+      loadData(); // ডাটা রিফ্রেশ
     } else {
       setMessage({ type: "error", text: data?.error || "Failed to buy tickets." });
       setShowCheckout(false);
@@ -212,8 +218,12 @@ export default function LotteryHomePage() {
     }
   };
 
-  const isSold = (num: string) => soldTickets.some(t => t.ticket_number === num);
+  // এই ফাংশনটি চেক করবে ইউজার আগে এই নাম্বারটি কিনেছে কি না
   const isMine = (num: string) => myTickets.includes(num);
+  
+  // এই ফাংশনটি চেক করবে পৃথিবীতে কেউ এই নাম্বারটি কিনেছে কি না (শুধু ডিজাইন দেখানোর জন্য)
+  const isSoldByOthers = (num: string) => soldTickets.some(t => t.ticket_number === num) && !isMine(num);
+
   const totalWorth = allMyTickets.reduce((sum, t) => sum + (t.lottery_draws?.ticket_price || 0), 0);
 
   if (loading) return <div className="lottery-loading"><i className="fa-solid fa-circle-notch fa-spin"></i><span>Loading...</span></div>;
@@ -252,18 +262,31 @@ export default function LotteryHomePage() {
                 <span><i className="fa-solid fa-wallet"></i> Balance: <strong>৳{balance.toFixed(2)}</strong></span>
               </div>
 
-              <div className="number-grid">
+              {/* ১০০০ নাম্বার সুন্দরভাবে দেখানোর জন্য স্ক্রল এরিয়া */}
+              <div 
+                className="number-grid" 
+                style={{ 
+                  maxHeight: '350px', // সর্বোচ্চ উচ্চতা
+                  overflowY: 'auto',  // স্ক্রল বার
+                  paddingRight: '5px',
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(40px, 1fr))', 
+                  gap: '8px'
+                }}
+              >
                 {Array.from({ length: draw.total_tickets }, (_, i) => (i + 1).toString()).map(num => {
-                  const sold = isSold(num);
+                  const soldByOthers = isSoldByOthers(num);
                   const mine = isMine(num);
                   const selected = selectedNumbers.includes(num);
                   
                   return (
                     <button
                       key={num}
-                      className={`num-btn ${sold ? "sold" : ""} ${mine ? "mine" : ""} ${selected ? "selected" : ""}`}
-                      onClick={() => !sold && toggleNumber(num)}
-                      disabled={sold}
+                      // ✅ যেকোনো নাম্বার সিলেক্ট করা যাবে, শুধু নিজের কেনা নাম্বার বাদে
+                      className={`num-btn ${soldByOthers ? "sold" : ""} ${mine ? "mine" : ""} ${selected ? "selected" : ""}`}
+                      onClick={() => toggleNumber(num)}
+                      disabled={mine} 
+                      style={soldByOthers ? { backgroundColor: '#2a1f3d', border: '1px solid #444' } : {}} // অন্যরা কিনলে হালকা কালার
                     >
                       {num}
                     </button>
@@ -273,8 +296,8 @@ export default function LotteryHomePage() {
 
               <div className="legend-row">
                 <span><div className="dot available"></div> Available</span>
-                <span><div className="dot sold"></div> Sold</span>
-                <span><div className="dot mine"></div> Mine</span>
+                <span><div className="dot sold"></div> Sold (But You Can Buy)</span>
+                <span><div className="dot mine"></div> Yours</span>
                 <span><div className="dot selected"></div> Selected</span>
               </div>
 
