@@ -1,0 +1,175 @@
+/* app/lottery/notification/notification.css */
+.notif-page {
+  padding: 15px;
+  padding-bottom: 80px;
+  max-width: 600px;
+  margin: 0 auto;
+  min-height: 100vh;
+}
+
+.notif-header {
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.notif-header h1 {
+  color: #fff;
+  font-size: 20px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 0 0 5px 0;
+}
+
+.notif-header h1 i {
+  color: #ffd700;
+}
+
+.notif-header p {
+  color: #b1bad3;
+  font-size: 12px;
+  margin: 0;
+}
+
+/* লিস্ট ডিজাইন */
+.notif-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.notif-card {
+  background: #1a0f2e;
+  border: 1px solid #3a1f6b;
+  border-radius: 12px;
+  padding: 15px;
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+  animation: slideUp 0.3s ease-out;
+}
+
+.notif-icon {
+  background: rgba(255, 215, 0, 0.1);
+  color: #ffd700;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.notif-content {
+  flex: 1;
+}
+
+.notif-top-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.notif-title {
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.notif-time {
+  color: #888;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.notif-message {
+  color: #b1bad3;
+  font-size: 12px;
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* খালি অবস্থা */
+.notif-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 50px 20px;
+  text-align: center;
+  background: #1a0f2e;
+  border-radius: 12px;
+  border: 1px dashed #3a1f6b;
+  margin-top: 40px;
+}
+
+.notif-empty i {
+  font-size: 40px;
+  color: #3a1f6b;
+  margin-bottom: 15px;
+}
+
+.notif-empty h3 {
+  color: #fff;
+  margin: 0 0 5px 0;
+}
+
+.notif-empty p {
+  color: #888;
+  font-size: 12px;
+  margin: 0;
+}
+
+/* লোডিং */
+.notif-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  color: #ffd700;
+  gap: 15px;
+}
+
+.notif-loading i {
+  font-size: 30px;
+}
+
+.notif-loading p {
+  color: #b1bad3;
+  font-size: 14px;
+  margin: 0;
+}
+
+/* অ্যানিমেশন */
+@keyframes slideUp {
+  from { transform: translateY(10px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* ডেস্কটপ রেসপন্সিভ */
+@media (min-width: 768px) {
+  .notif-page {
+    max-width: 800px;
+    padding: 24px;
+  }
+
+  .notif-header h1 {
+    font-size: 24px;
+  }
+
+  .notif-title {
+    font-size: 16px;
+  }
+
+  .notif-message {
+    font-size: 14px;
+  }
+}
