@@ -101,13 +101,22 @@ export default function WinnerPage() {
     return mobile.slice(0, 5) + "***" + mobile.slice(-3);
   };
 
+  // ================= নতুন লোডিং অ্যানিমেশন (Full Screen + Small Font) =================
   if (loading) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', color: '#d4af37' }}>
-        <h2>Loading Winners...</h2>
+      <div style={{
+        position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+        backgroundColor: '#130a24', display: 'flex', flexDirection: 'column',
+        justifyContent: 'center', alignItems: 'center', zIndex: 9999
+      }}>
+        <i className="fa-solid fa-circle-notch fa-spin" style={{ fontSize: '40px', color: '#d4af37', marginBottom: '15px' }}></i>
+        <h2 style={{ color: 'white', fontSize: '12px', fontWeight: 'bold', letterSpacing: '1px', textAlign: 'center', margin: 0 }}>
+          Win Data Loading..
+        </h2>
       </div>
     );
   }
+  // =========================================================================================
 
   return (
     <div className="lot-winner-page" style={{ padding: '15px', paddingBottom: '80px' }}>
