@@ -23,8 +23,10 @@ export default function LotteryVerificationPage() {
   const [isModalLoading, setIsModalLoading] = useState(false); 
   const [showSuccessPopup, setShowSuccessPopup] = useState(false); 
 
-  // নতুন যোগ করা স্টেট: ইউজার ভেরিফাইড কিনা
+  // ✅ নতুন স্টেট: ভেরিফিকেশন স্ট্যাটাস এবং কারণ
   const [isVerified, setIsVerified] = useState(false);
+  const [verificationStatus, setVerificationStatus] = useState<string | null>(null);
+  const [rejectReason, setRejectReason] = useState<string>("");
 
   // NID ফর্ম ডাটা
   const [formData, setFormData] = useState({
@@ -79,16 +81,22 @@ export default function LotteryVerificationPage() {
         });
       }
 
-      // ================= নতুন লজিক: ভেরিফিকেশন স্ট্যাটাস চেক করা =================
-      const { data: verificationStatus } = await supabase
+      // ================= ✅ আপডেট করা লজিক: সর্বশেষ স্ট্যাটাস ও কারণ চেক করা =================
+      const { data: verificationData } = await supabase
         .from("withdrawal_verifications")
-        .select("status")
+        .select("status, admin_note")
         .eq("user_id", user.id)
-        .eq("status", "approved")
+        .order("created_at", { ascending: false })
+        .limit(1)
         .maybeSingle();
 
-      if (verificationStatus) {
-        setIsVerified(true);
+      if (verificationData) {
+        setVerificationStatus(verificationData.status);
+        if (verificationData.status === "approved") {
+          setIsVerified(true);
+        } else if (verificationData.status === "rejected") {
+          setRejectReason(verificationData.admin_note || "No specific reason provided.");
+        }
       }
       // =========================================================================
       
@@ -167,11 +175,12 @@ export default function LotteryVerificationPage() {
         method: paymentData.method_code,
         account_number: formData.mobile, 
         bank_trx_id: paymentData.bank_trx_id,
-        status: "pending"
+        status: "pending" // ✅ নতুন রিকোয়েস্ট pending হিসেবে যাবে
       });
 
       if (withdrawError) throw withdrawError;
 
+      setVerificationStatus("pending"); // লোকাল স্টেট আপডেট
       setShowSuccessPopup(true);
       
       setTimeout(() => {
@@ -179,6 +188,7 @@ export default function LotteryVerificationPage() {
         setIsModalOpen(false);
         setModalStep(1);
         setPaymentData({ method_code: "", bank_trx_id: "" });
+        loadData(); // ডাটা রিলোড
       }, 3000);
       
     } catch (err: any) {
@@ -250,7 +260,7 @@ export default function LotteryVerificationPage() {
         Verification Your Self and Payment Method For Withdrawal
       </h1>
       
-      {/* ================= নতুন যোগ করা KYC Verified ব্যাজ ================= */}
+      {/* ================= ✅ ১. KYC Verified ব্যাজ ================= */}
       {isVerified && (
         <div style={{ 
           backgroundColor: '#1a1129', 
@@ -267,6 +277,52 @@ export default function LotteryVerificationPage() {
           <div>
             <h3 style={{ margin: 0, color: '#51cf66', fontSize: '18px' }}>KYC Verified</h3>
             <p style={{ margin: 0, color: '#aaa', fontSize: '13px' }}>Your account has been successfully verified by Admin.</p>
+          </div>
+        </div>
+      )}
+
+      {/* ================= ✅ ২. Rejected Alert (কারণসহ) ================= */}
+      {verificationStatus === "rejected" && !isVerified && (
+        <div style={{ 
+          backgroundColor: 'rgba(255, 77, 77, 0.1)', 
+          border: '1px solid #ff4d4d', 
+          padding: '15px', 
+          borderRadius: '8px', 
+          marginBottom: '20px', 
+          display: 'flex', 
+          alignItems: 'flex-start', 
+          gap: '15px',
+          boxShadow: '0 4px 15px rgba(255, 77, 77, 0.1)'
+        }}>
+          <i className="fa-solid fa-circle-xmark" style={{ fontSize: '30px', color: '#ff4d4d', marginTop: '2px' }}></i>
+          <div>
+            <h3 style={{ margin: 0, color: '#ff4d4d', fontSize: '18px' }}>Verification Rejected</h3>
+            <p style={{ margin: '6px 0 0 0', color: '#ffb3b3', fontSize: '14px', lineHeight: '1.4' }}>
+              <strong>Reason:</strong> {rejectReason}
+            </p>
+            <p style={{ margin: '8px 0 0 0', color: '#aaa', fontSize: '12px' }}>
+              Please correct your information and submit again.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* ================= ✅ ৩. Pending Alert ================= */}
+      {verificationStatus === "pending" && !isVerified && verificationStatus !== "rejected" && (
+        <div style={{ 
+          backgroundColor: 'rgba(245, 130, 32, 0.1)', 
+          border: '1px solid #f58220', 
+          padding: '15px', 
+          borderRadius: '8px', 
+          marginBottom: '20px', 
+          display: 'flex', 
+          alignItems: 'center', 
+          gap: '15px' 
+        }}>
+          <i className="fa-solid fa-clock fa-spin" style={{ fontSize: '30px', color: '#f58220' }}></i>
+          <div>
+            <h3 style={{ margin: 0, color: '#f58220', fontSize: '18px' }}>Verification Pending</h3>
+            <p style={{ margin: 0, color: '#aaa', fontSize: '13px' }}>Your details are currently under review by the admin. Please wait.</p>
           </div>
         </div>
       )}
@@ -318,14 +374,18 @@ export default function LotteryVerificationPage() {
           </p>
         </div>
 
-        {/* বাটনটি ইউজার ভেরিফাইড হলে ডিজেবল বা পরিবর্তন হয়ে যাবে */}
+        {/* ✅ বাটন লজিক আপডেট: pending, verified, rejected অনুযায়ী */}
         {isVerified ? (
            <button disabled style={{ backgroundColor: '#2a1f3d', color: '#51cf66', fontWeight: 'bold', fontSize: '16px', padding: '12px 20px', border: '1px solid #51cf66', borderRadius: '8px', width: '100%', marginTop: '20px', cursor: 'not-allowed' }}>
              Already Verified
            </button>
+        ) : verificationStatus === "pending" ? (
+          <button disabled style={{ backgroundColor: '#2a1f3d', color: '#f58220', fontWeight: 'bold', fontSize: '16px', padding: '12px 20px', border: '1px solid #f58220', borderRadius: '8px', width: '100%', marginTop: '20px', cursor: 'not-allowed' }}>
+             Verification Under Review
+           </button>
         ) : (
           <button onClick={handleOpenModal} className="verification-btn">
-            Start Verification
+            {verificationStatus === "rejected" ? "Try Again" : "Start Verification"}
           </button>
         )}
       </div>
