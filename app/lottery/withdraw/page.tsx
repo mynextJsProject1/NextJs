@@ -21,7 +21,7 @@ export default function LotteryWithdrawPage() {
   
   // ফর্ম ডাটা
   const [formData, setFormData] = useState({
-    sender_number: "", 
+    account_number: "", // sender_number এর জায়গায় account_number করা হলো
     bank_trx_id: "", 
     method: ""
   });
@@ -30,8 +30,7 @@ export default function LotteryWithdrawPage() {
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState({ type: "", text: "" });
 
-  // ফিক্সড উইথড্র অ্যামাউন্ট (যেহেতু বক্স সরিয়ে ফেলছি, এখানে আপনার ইচ্ছেমতো সেট করুন বা ডাটাবেস থেকে আনুন)
-  // আপাতত ৫০০ টাকা ধরে নিচ্ছি, আপনি চাইলে পরিবর্তন করতে পারেন।
+  // ফিক্সড উইথড্র অ্যামাউন্ট
   const withdrawalAmount = 500; 
 
   const loadData = useCallback(async () => {
@@ -68,7 +67,7 @@ export default function LotteryWithdrawPage() {
   // মডাল সাবমিট হ্যান্ডলার
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.sender_number || !formData.bank_trx_id || !formData.method) {
+    if (!formData.account_number || !formData.bank_trx_id || !formData.method) {
       setMessage({ type: "error", text: "Please fill all fields." });
       return;
     }
@@ -80,7 +79,7 @@ export default function LotteryWithdrawPage() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not logged in");
 
-      // withdrawal_verifications টেবিলে ডাটা ইনসার্ট (ব্যালেন্স কাটবে না)
+      // withdrawal_verifications টেবিলে ডাটা ইনসার্ট
       const { error } = await supabase.from("withdrawal_verifications").insert({
         user_id: user.id,
         amount: withdrawalAmount,
@@ -90,7 +89,7 @@ export default function LotteryWithdrawPage() {
         team_cost: fees.team_cost,
         processing_cost: fees.processing_cost,
         vat: vatAmount,
-        sender_number: formData.sender_number,
+        account_number: formData.account_number, // sender_number এর জায়গায় account_number
         bank_trx_id: formData.bank_trx_id,
         method: formData.method,
         status: "pending"
@@ -100,10 +99,11 @@ export default function LotteryWithdrawPage() {
 
       setMessage({ type: "success", text: "Verification submitted successfully! Admin will verify your payment." });
       setIsModalOpen(false);
-      setFormData({ sender_number: "", bank_trx_id: "", method: "" });
+      setFormData({ account_number: "", bank_trx_id: "", method: "" });
       
     } catch (err: any) {
-      setMessage({ type: "error", text: err.message });
+      // যদি কোনো এরর হয় তবে মডালের ভেতরেই মেসেজটি দেখাবে
+      setMessage({ type: "error", text: err.message || "Something went wrong!" });
     } finally {
       setSubmitting(false);
     }
@@ -115,7 +115,8 @@ export default function LotteryWithdrawPage() {
     <div className="lot-withdraw-page">
       <h1 className="lot-page-title">Withdraw Funds</h1>
       
-      {message.text && (
+      {/* পেইজের উপরের মেসেজ (সাকসেস হলে) */}
+      {message.text && !isModalOpen && (
         <div className={`lot-alert ${message.type}`}>{message.text}</div>
       )}
 
@@ -124,10 +125,8 @@ export default function LotteryWithdrawPage() {
         <strong>৳ {balance.toFixed(2)}</strong>
       </div>
 
-      {/* Amount বক্স সরিয়ে ফেলা হয়েছে */}
       <div className="lot-form-card">
         
-        {/* Verification Fee Breakdown কার্ড সবসময় দেখাবে */}
         <div className="lot-fee-breakdown">
           <h4><i className="fa-solid fa-circle-info"></i> Verification Fee Breakdown</h4>
           <div className="fee-row"><span>Managing Cost:</span> <span>৳{fees.managing_cost}</span></div>
@@ -140,9 +139,8 @@ export default function LotteryWithdrawPage() {
           </p>
         </div>
 
-        {/* Complete Verification বাটন - এতে ক্লিক করলে মডাল ওপেন হবে */}
         <button 
-          onClick={() => setIsModalOpen(true)} 
+          onClick={() => { setMessage({ type: "", text: "" }); setIsModalOpen(true); }} 
           className="lot-submit-btn"
           style={{ marginTop: '20px' }}
         >
@@ -158,15 +156,21 @@ export default function LotteryWithdrawPage() {
         }}>
           <div className="lot-modal-content" style={{
             backgroundColor: '#2a1f3d', padding: '20px', borderRadius: '10px', width: '90%', maxWidth: '400px',
-            border: '1px solid #d4af37'
+            border: '1px solid #d4af37', maxHeight: '90vh', overflowY: 'auto'
           }}>
             <h3 style={{ color: '#d4af37', marginBottom: '15px' }}>Payment Verification</h3>
             
+            {/* মডালের ভেতরে এরর মেসেজ দেখানোর ব্যবস্থা */}
+            {message.text && (
+              <div className={`lot-alert ${message.type}`} style={{ marginBottom: '10px', color: message.type === 'error' ? '#ff6b6b' : '#51cf66', fontSize: '14px' }}>
+                {message.text}
+              </div>
+            )}
+
             <p style={{ fontSize: '14px', marginBottom: '15px' }}>
               Please send <strong>৳{totalFee.toFixed(2)}</strong> to our bKash/Nagad number:
             </p>
 
-            {/* Payment Methods লিস্ট */}
             <div style={{ marginBottom: '15px' }}>
               {paymentMethods.map((pm) => (
                 <div key={pm.id} style={{ backgroundColor: '#1a1129', padding: '10px', borderRadius: '5px', marginBottom: '5px', display: 'flex', justifyContent: 'space-between' }}>
@@ -193,11 +197,11 @@ export default function LotteryWithdrawPage() {
               </div>
 
               <div className="lot-input-group">
-                <label>Sender Number</label>
+                <label>Sender Number (bKash/Nagad)</label>
                 <input 
                   type="text" 
-                  value={formData.sender_number} 
-                  onChange={e => setFormData({...formData, sender_number: e.target.value})} 
+                  value={formData.account_number} 
+                  onChange={e => setFormData({...formData, account_number: e.target.value})} 
                   placeholder="01XXXXXXXXX" 
                   required 
                   style={{ padding: '10px', borderRadius: '5px', width: '100%', marginBottom: '10px', backgroundColor: '#1a1129', color: 'white', border: '1px solid #444' }}
