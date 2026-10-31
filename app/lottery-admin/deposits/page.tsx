@@ -11,7 +11,7 @@ type DepositTxn = {
   method_code: string;
   amount: number;
   transaction_reference: string;
-  destination_details: string | null;
+  description: string | null; // destination_details এর জায়গায় description
   created_at: string;
   profiles: {
     full_name: string;
@@ -22,7 +22,6 @@ type DepositTxn = {
 const methodImages: Record<string, string> = {
   bkash: "bkash.png", nagad: "nagad.png", rocket: "rocket.png", usdt: "usdt.png",
 };
-const paymentImageBase = process.env.NODE_ENV === "production" ? "/NextJs" : "";
 
 export default function LotteryAdminDepositsPage() {
   const [deposits, setDeposits] = useState<DepositTxn[]>([]);
@@ -46,12 +45,11 @@ export default function LotteryAdminDepositsPage() {
         setMethods(methodMap);
       }
 
-      // ২. শুধু লটারির পেন্ডিং ডিপোজিট লোড করা (জয়েন ছাড়া)
+      // ২. ✅ lottery_transactions থেকে পেন্ডিং ডিপোজিট লোড করা
       const { data: txnData, error: txnError } = await supabase
-        .from("wallet_transactions")
-        .select("id, user_id, method_code, amount, transaction_reference, destination_details, created_at")
+        .from("lottery_transactions")
+        .select("id, user_id, method_code, amount, transaction_reference, description, created_at")
         .eq("transaction_type", "deposit")
-        .eq("destination_details", "LOTTERY_DEPOSIT")
         .eq("status", "pending")
         .order("created_at", { ascending: false });
 
@@ -100,15 +98,15 @@ export default function LotteryAdminDepositsPage() {
     setMessage("");
 
     try {
-      // ১. ট্রানজেকশন স্ট্যাটাস approved করা
+      // ✅ ১. lottery_transactions এ স্ট্যাটাস 'completed' করা (অথবা 'approved')
       const { error: updateError } = await supabase
-        .from("wallet_transactions")
-        .update({ status: "approved" })
+        .from("lottery_transactions")
+        .update({ status: "completed" })
         .eq("id", txn.id);
 
       if (updateError) throw updateError;
 
-      // ২. ইউজারের lottery_balance আপডেট করা
+      // ✅ ২. ইউজারের lottery_balance আপডেট করা
       const { data: profile, error: profileError } = await supabase
         .from("profiles")
         .select("lottery_balance")
@@ -142,8 +140,9 @@ export default function LotteryAdminDepositsPage() {
     setActionLoading(id);
     setMessage("");
 
+    // ✅ lottery_transactions এ স্ট্যাটাস 'rejected' করা
     const { error } = await supabase
-      .from("wallet_transactions")
+      .from("lottery_transactions")
       .update({ status: "rejected" })
       .eq("id", id);
 
@@ -174,7 +173,8 @@ export default function LotteryAdminDepositsPage() {
                   <strong className="la-amount">৳ {txn.amount}</strong>
                   <div className="la-method">
                     {methodImages[txn.method_code] && (
-                      <img src={`${paymentImageBase}/images/payment/${methodImages[txn.method_code]}`} alt="logo" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+                      {/* ✅ ইমেজ পাথ ঠিক করা হয়েছে */}
+                      <img src={`/images/payment/${methodImages[txn.method_code]}`} alt="logo" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
                     )}
                     <span>{methods[txn.method_code] || txn.method_code.toUpperCase()}</span>
                   </div>
