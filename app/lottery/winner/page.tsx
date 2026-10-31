@@ -22,7 +22,6 @@ export default function WinnerPage() {
     const fetchWinners = async () => {
       setLoading(true);
       try {
-        // ১. প্রথমে শুধু সেই ড্র-গুলো আনি যেগুলোর winning_number সেট করা আছে
         const { data: draws, error: drawError } = await supabase
           .from("lottery_draws")
           .select("*")
@@ -40,10 +39,8 @@ export default function WinnerPage() {
           return;
         }
 
-        // ২. প্রতিটি ড্র-এর জন্য আলাদা করে টিকিট এবং ইউজারের তথ্য বের করা (কোনো Join ছাড়া)
         const winnersData = await Promise.all(
           draws.map(async (draw) => {
-            // টিকিট টেবিল থেকে সেই নির্দিষ্ট বিজয়ী টিকিটটি খোঁজা হচ্ছে
             const { data: ticket, error: ticketError } = await supabase
               .from("lottery_tickets")
               .select("*")
@@ -61,7 +58,6 @@ export default function WinnerPage() {
               return null;
             }
 
-            // ইউজারের প্রোফাইল থেকে নাম ও মোবাইল বের করা
             const { data: profile, error: profileError } = await supabase
               .from("profiles")
               .select("full_name, mobile")
@@ -72,7 +68,6 @@ export default function WinnerPage() {
               console.error(`Profile Error for user ${ticket.user_id}:`, profileError);
             }
 
-            // ডাটা একসাথে জোড়া লাগানো
             return {
               ...draw,
               winning_ticket: {
@@ -83,7 +78,6 @@ export default function WinnerPage() {
           })
         );
 
-        // null ভ্যালুগুলো বাদ দিয়ে স্টেটে সেট করা
         setWinners(winnersData.filter((w) => w !== null));
       } catch (err) {
         console.error("Error fetching winners:", err);
@@ -95,13 +89,27 @@ export default function WinnerPage() {
     fetchWinners();
   }, [supabase]);
 
-  // মোবাইল নাম্বার মাস্ক (Mask) করার ফাংশন (যেমন: 01712***678)
+  // মোবাইল নাম্বার মাস্ক (Mask) করার ফাংশন
   const maskMobile = (mobile: string) => {
     if (!mobile || mobile.length < 8) return mobile;
     return mobile.slice(0, 5) + "***" + mobile.slice(-3);
   };
 
-  // ================= নতুন লোডিং অ্যানিমেশন (Full Screen + Small Font) =================
+  // ✅ নতুন ফাংশন: ড্র-এর তারিখ ও সময় ফরম্যাট করার জন্য (যেমন: 12 Oct 2023, 11:59 PM)
+  const formatDrawTime = (dateString: string) => {
+    if (!dateString) return "N/A";
+    const date = new Date(dateString);
+    return date.toLocaleString('en-GB', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    });
+  };
+
+  // ================= লোডিং অ্যানিমেশন (Full Screen + Small Font) =================
   if (loading) {
     return (
       <div style={{
@@ -116,11 +124,12 @@ export default function WinnerPage() {
       </div>
     );
   }
-  // =========================================================================================
 
   return (
     <div className="lot-winner-page" style={{ padding: '15px', paddingBottom: '80px' }}>
-      <h1 style={{ color: 'white', textAlign: 'center', marginBottom: '20px', fontSize: '24px' }}>
+      
+      {/* ✅ Recent Winners শিরোনাম সবার উপরে */}
+      <h1 style={{ color: 'white', textAlign: 'center', marginBottom: '20px', fontSize: '22px', fontWeight: 'bold' }}>
         🏆 Recent Winners 🏆
       </h1>
 
@@ -148,12 +157,23 @@ export default function WinnerPage() {
                   overflow: 'hidden'
                 }}
               >
-                {/* টপ সেকশন: ড্র-এর নাম ও প্রাইজ */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
-                  <div style={{ backgroundColor: 'rgba(255,255,255,0.3)', padding: '5px 12px', borderRadius: '20px', color: '#000', fontWeight: 'bold', fontSize: '12px' }}>
-                    {winner.draw_name || `Draw #${winner.winning_number}`}
+                {/* টপ সেকশন: ড্র-এর নাম, তারিখ এবং প্রাইজ */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '15px' }}>
+                  
+                  {/* বাম দিকে ড্র-এর নাম ও নিচে নতুন তারিখ */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    <div style={{ backgroundColor: 'rgba(255,255,255,0.3)', padding: '5px 12px', borderRadius: '20px', color: '#000', fontWeight: 'bold', fontSize: '12px', alignSelf: 'flex-start' }}>
+                      {winner.draw_name || `Draw #${winner.winning_number}`}
+                    </div>
+                    {/* ✅ নতুন যোগ করা ড্র-এর তারিখ ও সময় */}
+                    <div style={{ color: 'rgba(0,0,0,0.7)', fontSize: '11px', fontWeight: 'bold', paddingLeft: '4px' }}>
+                      <i className="fa-regular fa-calendar-days" style={{ marginRight: '4px' }}></i>
+                      {formatDrawTime(winner.draw_time)}
+                    </div>
                   </div>
-                  <div style={{ color: '#fff', fontWeight: 'bold', fontSize: '12px' }}>
+                  
+                  {/* ডান দিকে টিকিট প্রাইস */}
+                  <div style={{ color: '#fff', fontWeight: 'bold', fontSize: '12px', backgroundColor: 'rgba(0,0,0,0.2)', padding: '5px 10px', borderRadius: '10px' }}>
                     Ticket: ৳{winner.ticket_price}
                   </div>
                 </div>
@@ -197,23 +217,21 @@ export default function WinnerPage() {
                     <h4 style={{ margin: 0, color: '#1a1129', fontSize: '16px', fontWeight: 'bold' }}>
                       {user?.full_name || "Anonymous User"}
                     </h4>
+                    {/* ✅ মোবাইল আইকন সরিয়ে ফেলা হয়েছে */}
                     <p style={{ margin: '4px 0 0 0', color: 'rgba(0,0,0,0.7)', fontSize: '13px', fontWeight: '600' }}>
-                      📱 {user?.mobile ? maskMobile(user.mobile) : "N/A"}
+                      {user?.mobile ? maskMobile(user.mobile) : "N/A"}
                     </p>
                     
-                    {/* ✅ Winning Ticket Number */}
                     <p style={{ margin: '2px 0 0 0', color: 'rgba(0,0,0,0.5)', fontSize: '11px' }}>
                       Winning Ticket: {ticket?.ticket_number || winner.winning_number}
                     </p>
                     
-                    {/* ✅ নতুন যোগ করা Ticket Code */}
                     <p style={{ margin: '2px 0 0 0', color: 'rgba(0,0,0,0.5)', fontSize: '11px', fontWeight: 'bold' }}>
                       Ticket Code: {ticket?.ticket_code || "N/A"}
                     </p>
-                    
                   </div>
 
-                  {/* QR Code (Trust বাড়ানোর জন্য) */}
+                  {/* QR Code */}
                   <div style={{ backgroundColor: 'white', padding: '5px', borderRadius: '8px' }}>
                     <img 
                       src={`https://api.qrserver.com/v1/create-qr-code/?size=50x50&data=Winner-${winner.id}`} 
