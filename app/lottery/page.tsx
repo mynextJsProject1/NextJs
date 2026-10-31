@@ -64,7 +64,7 @@ export default function LotteryHomePage() {
   // ✅ স্টেট: ব্যানার ইমেজের জন্য
   const [bannerUrl, setBannerUrl] = useState<string | null>(null);
 
-  // ✅ স্টেট: প্রাইস চেঞ্জ লোডিং অ্যানিমেশনের জন্য (এখন শুধু ট্রু/ফলস হিসেবে কাজ করবে)
+  // ✅ স্টেট: প্রাইস চেঞ্জ লোডিং অ্যানিমেশনের জন্য
   const [priceLoadingText, setPriceLoadingText] = useState<string | null>(null);
 
   // KYC State
@@ -265,7 +265,7 @@ export default function LotteryHomePage() {
   const handlePriceChange = (price: number) => {
     if (price === selectedPrice) return; 
     
-    setPriceLoadingText("loading"); // যেকোনো ভ্যালু দিলেই হবে, কারণ এখন আমরা এটি দিয়ে শুধু অন/অফ করব
+    setPriceLoadingText("loading"); 
     setSelectedPrice(price); 
     
     setTimeout(() => {
@@ -284,8 +284,9 @@ export default function LotteryHomePage() {
       backgroundColor: '#130a24', display: 'flex', flexDirection: 'column', 
       justifyContent: 'center', alignItems: 'center', zIndex: 9999
     }}>
-      <i className="fa-solid fa-circle-notch fa-spin" style={{ fontSize: '50px', color: '#d4af37', marginBottom: '20px' }}></i>
-      <h2 style={{ color: 'white', fontSize: '20px', fontWeight: 'bold', letterSpacing: '1px', textAlign: 'center' }}>
+      <i className="fa-solid fa-circle-notch fa-spin" style={{ fontSize: '40px', color: '#d4af37', marginBottom: '15px' }}></i>
+      {/* ✅ ফন্ট সাইজ ছোট করা হয়েছে (20px থেকে 12px) */}
+      <h2 style={{ color: 'white', fontSize: '12px', fontWeight: 'bold', letterSpacing: '1px', textAlign: 'center' }}>
         Loading Lucky Jackpot Data..
       </h2>
     </div>
@@ -295,7 +296,7 @@ export default function LotteryHomePage() {
   return (
     <div className="lottery-home-page">
       
-      {/* ================= ১. প্রাইস চেঞ্জের ফুল স্ক্রিন অ্যানিমেশন (শুধু Loading Draw Data) ================= */}
+      {/* ================= ১. প্রাইস চেঞ্জের ফুল স্ক্রিন অ্যানিমেশন ================= */}
       {priceLoadingText && (
         <div style={{
           position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
@@ -304,8 +305,9 @@ export default function LotteryHomePage() {
           display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center',
           zIndex: 9999
         }}>
-          <i className="fa-solid fa-ticket fa-spin" style={{ fontSize: '60px', color: '#d4af37', marginBottom: '20px' }}></i>
-          <h1 style={{ color: 'white', fontSize: '24px', fontWeight: '900', letterSpacing: '1px', textAlign: 'center' }}>
+          <i className="fa-solid fa-ticket fa-spin" style={{ fontSize: '45px', color: '#d4af37', marginBottom: '15px' }}></i>
+          {/* ✅ ফন্ট সাইজ ছোট করা হয়েছে (24px থেকে 14px) */}
+          <h1 style={{ color: 'white', fontSize: '14px', fontWeight: '900', letterSpacing: '1px', textAlign: 'center' }}>
             Loading Draw Data...
           </h1>
         </div>
