@@ -12,6 +12,11 @@ const menuItems = [
   { name: "Deposit Requests", path: "/lottery-admin/deposits", icon: "fa-arrow-down" },
   { name: "Withdraw Requests", path: "/lottery-admin/withdrawals", icon: "fa-arrow-up" },
   { name: "Draw Management", path: "/lottery-admin/draws", icon: "fa-ticket" },
+  
+  // ✅ নতুন যোগ করা ৩টি মেনু আইটেম
+  { name: "User Tickets", path: "/lottery-admin/submit-ticket", icon: "fa-headset" },
+  { name: "KYC Verifications", path: "/lottery-admin/verifications-details", icon: "fa-id-card" },
+  { name: "Push Notifications", path: "/lottery-admin/notification", icon: "fa-bell" },
 ];
 
 export default function LotteryAdminLayout({ children }: { children: React.ReactNode }) {
