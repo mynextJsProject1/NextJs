@@ -15,6 +15,10 @@ export default function LotteryLayout({ children }: { children: React.ReactNode 
   const [balance, setBalance] = useState(0);
   const [winnings, setWinnings] = useState(0);
 
+  // ✅ নতুন স্টেট: নোটিফিকেশন টোস্টের জন্য
+  const [activeNotification, setActiveNotification] = useState<{ title: string; message: string } | null>(null);
+  const [showToast, setShowToast] = useState(false);
+
   const loadBalance = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
@@ -33,6 +37,42 @@ export default function LotteryLayout({ children }: { children: React.ReactNode 
       .subscribe();
     return () => { supabase.removeChannel(channel); };
   }, [supabase]);
+
+  // ================= ✅ নতুন লজিক: রিয়েল-টাইম নোটিফিকেশন ও সাউন্ড =================
+  useEffect(() => {
+    const notificationChannel = supabase
+      .channel("lottery_notifications_realtime")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "lottery_notifications" },
+        (payload) => {
+          const newNotif = payload.new as any;
+          
+          if (newNotif.is_active) {
+            // ১. সাউন্ড বাজানো (SMS notification tone)
+            const audio = new Audio("https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3"); 
+            audio.play().catch((err) => console.log("Audio play blocked by browser:", err));
+
+            // ২. টোস্ট পপআপ দেখানো
+            setActiveNotification({ title: newNotif.title, message: newNotif.message });
+            setShowToast(true);
+
+            // ৩. ৬ সেকেন্ড পর টোস্ট বন্ধ হয়ে যাওয়া
+            const timer = setTimeout(() => {
+              setShowToast(false);
+            }, 6000);
+
+            return () => clearTimeout(timer);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(notificationChannel);
+    };
+  }, [supabase]);
+  // ======================================================================
 
   // এখানে FontAwesome এর বদলে সরাসরি SVG আইকন ব্যবহার করা হয়েছে
   const navItems = [
@@ -84,6 +124,41 @@ export default function LotteryLayout({ children }: { children: React.ReactNode 
       <main className="lottery-content">
         {children}
       </main>
+
+      {/* ✅ নতুন যোগ করা নোটিফিকেশন টোস্ট (Popup) */}
+      {showToast && activeNotification && (
+        <div style={{
+          position: 'fixed', top: '70px', left: '50%', transform: 'translateX(-50%)',
+          backgroundColor: '#2a1f3d', border: '1px solid #d4af37', borderRadius: '12px',
+          padding: '15px 20px', width: '90%', maxWidth: '400px', zIndex: 99999,
+          boxShadow: '0 10px 25px rgba(0,0,0,0.5)', animation: 'slideDown 0.4s ease-out'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+            <div style={{ backgroundColor: 'rgba(212, 175, 55, 0.2)', padding: '8px', borderRadius: '50%' }}>
+              <i className="fa-solid fa-bell" style={{ color: '#d4af37', fontSize: '18px' }}></i>
+            </div>
+            <div style={{ flex: 1 }}>
+              <h4 style={{ margin: 0, color: '#d4af37', fontSize: '15px', fontWeight: 'bold' }}>{activeNotification.title}</h4>
+              <p style={{ margin: '4px 0 0 0', color: '#fff', fontSize: '13px', lineHeight: '1.4' }}>{activeNotification.message}</p>
+            </div>
+            {/* ম্যানুয়ালি বন্ধ করার জন্য X বাটন */}
+            <button 
+              onClick={() => setShowToast(false)} 
+              style={{ background: 'transparent', border: 'none', color: '#888', cursor: 'pointer', padding: '0' }}
+            >
+              <i className="fa-solid fa-xmark"></i>
+            </button>
+          </div>
+          
+          {/* স্লাইড ডাউন অ্যানিমেশনের জন্য স্টাইল */}
+          <style>{`
+            @keyframes slideDown {
+              from { top: -50px; opacity: 0; }
+              to { top: 70px; opacity: 1; }
+            }
+          `}</style>
+        </div>
+      )}
 
       <nav className="lottery-bottom-nav">
         {navItems.map((item) => {
