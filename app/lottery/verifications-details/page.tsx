@@ -4,7 +4,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "../../../lib/supabase/client";
-import "./withdraw.css"; // আপনার CSS ফাইলের নাম যদি withdraw.css থাকে, তবে এটাই থাকবে
+import "./verifications-details.css"; // আপনার CSS ফাইলের নাম যদি verifications-details.css থাকে, তবে এটাই থাকবে
 
 export default function LotteryVerificationPage() {
   const router = useRouter();
