@@ -61,10 +61,10 @@ export default function LotteryHomePage() {
   const [selectedNumbers, setSelectedNumbers] = useState<string[]>([]);
   const [showCheckout, setShowCheckout] = useState(false);
 
-  // ✅ নতুন স্টেট: ব্যানার ইমেজের জন্য
+  // ✅ স্টেট: ব্যানার ইমেজের জন্য
   const [bannerUrl, setBannerUrl] = useState<string | null>(null);
 
-  // ✅ নতুন স্টেট: প্রাইস চেঞ্জ লোডিং অ্যানিমেশনের জন্য
+  // ✅ স্টেট: প্রাইস চেঞ্জ লোডিং অ্যানিমেশনের জন্য (এখন শুধু ট্রু/ফলস হিসেবে কাজ করবে)
   const [priceLoadingText, setPriceLoadingText] = useState<string | null>(null);
 
   // KYC State
@@ -148,7 +148,7 @@ export default function LotteryHomePage() {
 
   useEffect(() => { void loadData(); }, [loadData]);
 
-  // ================= নতুন লজিক ১: রিয়েল-টাইম আপডেট =================
+  // ================= রিয়েল-টাইম আপডেট =================
   useEffect(() => {
     const channel = supabase
       .channel("lottery_draws_realtime")
@@ -261,14 +261,13 @@ export default function LotteryHomePage() {
     }
   };
 
-  // ✅ প্রাইস চেঞ্জ হ্যান্ডলার (লোডিং অ্যানিমেশন সহ)
+  // ✅ প্রাইস চেঞ্জ হ্যান্ডলার 
   const handlePriceChange = (price: number) => {
-    if (price === selectedPrice) return; // যদি একই প্রাইসে ক্লিক করে, তবে কিছুই হবে না
+    if (price === selectedPrice) return; 
     
-    setPriceLoadingText(`${price} TK LOTTERY`); // লোডিং টেক্সট সেট করা
-    setSelectedPrice(price); // ড্র ডাটা লোড হওয়া শুরু হবে
+    setPriceLoadingText("loading"); // যেকোনো ভ্যালু দিলেই হবে, কারণ এখন আমরা এটি দিয়ে শুধু অন/অফ করব
+    setSelectedPrice(price); 
     
-    // ১.৫ সেকেন্ড পর লোডিং অ্যানিমেশন বন্ধ হবে
     setTimeout(() => {
       setPriceLoadingText(null);
     }, 1500);
@@ -278,33 +277,40 @@ export default function LotteryHomePage() {
   const isSoldByOthers = (num: string) => soldTickets.some(t => t.ticket_number === num) && !isMine(num);
   const totalWorth = allMyTickets.reduce((sum, t) => sum + (t.lottery_draws?.ticket_price || 0), 0);
 
-  if (loading && !priceLoadingText) return <div className="lottery-loading"><i className="fa-solid fa-circle-notch fa-spin"></i><span>Loading...</span></div>;
+  // ================= ২. ইউজার প্রথম পেইজে আসলে এই অ্যানিমেশনটি দেখাবে =================
+  if (loading && !priceLoadingText) return (
+    <div style={{
+      position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+      backgroundColor: '#130a24', display: 'flex', flexDirection: 'column', 
+      justifyContent: 'center', alignItems: 'center', zIndex: 9999
+    }}>
+      <i className="fa-solid fa-circle-notch fa-spin" style={{ fontSize: '50px', color: '#d4af37', marginBottom: '20px' }}></i>
+      <h2 style={{ color: 'white', fontSize: '20px', fontWeight: 'bold', letterSpacing: '1px', textAlign: 'center' }}>
+        Loading Lucky Jackpot Data..
+      </h2>
+    </div>
+  );
+  // =========================================================================================
 
   return (
     <div className="lottery-home-page">
       
-      {/* ✅ ফুল স্ক্রিন প্রাইস লোডিং অ্যানিমেশন */}
+      {/* ================= ১. প্রাইস চেঞ্জের ফুল স্ক্রিন অ্যানিমেশন (শুধু Loading Draw Data) ================= */}
       {priceLoadingText && (
         <div style={{
           position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-          backgroundColor: 'rgba(19, 10, 36, 0.95)', // সাইটের ডার্ক থিম
+          backgroundColor: 'rgba(19, 10, 36, 0.95)', 
           backdropFilter: 'blur(5px)',
           display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center',
           zIndex: 9999
         }}>
-          {/* টিকিট আইকন স্পিনার */}
           <i className="fa-solid fa-ticket fa-spin" style={{ fontSize: '60px', color: '#d4af37', marginBottom: '20px' }}></i>
-          
-          {/* ডাইনামিক টেক্সট */}
-          <h1 style={{ color: 'white', fontSize: '28px', fontWeight: '900', letterSpacing: '1px', textAlign: 'center' }}>
-            {priceLoadingText}
+          <h1 style={{ color: 'white', fontSize: '24px', fontWeight: '900', letterSpacing: '1px', textAlign: 'center' }}>
+            Loading Draw Data...
           </h1>
-          
-          <p style={{ color: '#aaa', marginTop: '10px', fontSize: '14px' }}>
-            <i className="fa-solid fa-circle-notch fa-spin"></i> Loading Draw Data...
-          </p>
         </div>
       )}
+      {/* ========================================================================================= */}
 
       <div className="main-tabs">
         <button className={activeTab === "buy" ? "active" : ""} onClick={() => setActiveTab("buy")}>Buy Tickets</button>
@@ -334,7 +340,7 @@ export default function LotteryHomePage() {
               <button 
                 key={price} 
                 className={selectedPrice === price ? "active" : ""} 
-                onClick={() => handlePriceChange(price)} // ✅ নতুন হ্যান্ডলার ব্যবহার করা হলো
+                onClick={() => handlePriceChange(price)} 
               >
                 ৳{price}
               </button>
