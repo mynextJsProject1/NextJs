@@ -11,7 +11,7 @@ type DepositTxn = {
   method_code: string;
   amount: number;
   transaction_reference: string;
-  description: string | null; // destination_details এর জায়গায় description
+  description: string | null; 
   created_at: string;
   profiles: {
     full_name: string;
@@ -22,7 +22,8 @@ type DepositTxn = {
 const methodImages: Record<string, string> = {
   bkash: "bkash.png", nagad: "nagad.png", rocket: "rocket.png", usdt: "usdt.png",
 };
-// ✅ ইমেজ পাথ ফিক্স করা হলো
+
+// ইমেজ পাথ
 const paymentImageBase = ""; 
 
 export default function LotteryAdminDepositsPage() {
@@ -39,7 +40,6 @@ export default function LotteryAdminDepositsPage() {
     setMessage("");
     
     try {
-      // ১. মেথড লোড
       const { data: methodData } = await supabase.from("payment_methods").select("method_code, method_name");
       if (methodData) {
         const methodMap: Record<string, string> = {};
@@ -47,7 +47,6 @@ export default function LotteryAdminDepositsPage() {
         setMethods(methodMap);
       }
 
-      // ২. ✅ lottery_transactions থেকে পেন্ডিং ডিপোজিট লোড করা
       const { data: txnData, error: txnError } = await supabase
         .from("lottery_transactions")
         .select("id, user_id, method_code, amount, transaction_reference, description, created_at")
@@ -58,10 +57,8 @@ export default function LotteryAdminDepositsPage() {
       if (txnError) throw txnError;
 
       if (txnData && txnData.length > 0) {
-        // ৩. ইউজারদের আইডি বের করা
         const userIds = [...new Set(txnData.map(t => t.user_id))];
 
-        // ৪. ওই ইউজারদের প্রোফাইল ডাটা আলাদাভাবে লোড করা
         const { data: profileData, error: profileError } = await supabase
           .from("profiles")
           .select("id, full_name, mobile")
@@ -69,13 +66,11 @@ export default function LotteryAdminDepositsPage() {
 
         if (profileError) throw profileError;
 
-        // ৫. ইউজারদের ডাটা একটি Map-এ সেভ করা
         const profileMap: Record<string, { full_name: string, mobile: string }> = {};
         profileData?.forEach(p => {
           profileMap[p.id] = { full_name: p.full_name, mobile: p.mobile };
         });
 
-        // ৬. ডিপোজিটের সাথে ইউজারের ডাটা মিলিয়ে নেওয়া (Merge)
         const mergedData = txnData.map(txn => ({
           ...txn,
           profiles: profileMap[txn.user_id] || null
@@ -100,7 +95,6 @@ export default function LotteryAdminDepositsPage() {
     setMessage("");
 
     try {
-      // ১. ✅ lottery_transactions এ স্ট্যাটাস completed করা
       const { error: updateError } = await supabase
         .from("lottery_transactions")
         .update({ status: "completed" })
@@ -108,7 +102,6 @@ export default function LotteryAdminDepositsPage() {
 
       if (updateError) throw updateError;
 
-      // ২. ইউজারের lottery_balance আপডেট করা
       const { data: profile, error: profileError } = await supabase
         .from("profiles")
         .select("lottery_balance")
@@ -142,7 +135,6 @@ export default function LotteryAdminDepositsPage() {
     setActionLoading(id);
     setMessage("");
 
-    // ✅ lottery_transactions এ স্ট্যাটাস rejected করা
     const { error } = await supabase
       .from("lottery_transactions")
       .update({ status: "rejected" })
@@ -175,7 +167,11 @@ export default function LotteryAdminDepositsPage() {
                   <strong className="la-amount">৳ {txn.amount}</strong>
                   <div className="la-method">
                     {methodImages[txn.method_code] && (
-                      <img src={`${paymentImageBase}/images/payment/${methodImages[txn.method_code]}`} alt="logo" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+                      <img 
+                        src={`${paymentImageBase}/images/payment/${methodImages[txn.method_code]}`} 
+                        alt="logo" 
+                        onError={(e) => { e.currentTarget.style.display = 'none'; }} 
+                      />
                     )}
                     <span>{methods[txn.method_code] || txn.method_code.toUpperCase()}</span>
                   </div>
