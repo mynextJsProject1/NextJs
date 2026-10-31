@@ -25,23 +25,27 @@
   margin: 0;
 }
 
-/* লিস্ট ডিজাইন */
+/* লিস্ট ডিজাইন (কার্ড গ্রিড সরিয়ে ফেলা হয়েছে) */
 .tx-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  /* gap: 12px;  <- গ্যাপ সরিয়ে দেওয়া হয়েছে */
 }
 
-/* ট্রানজেকশন কার্ড */
+/* ট্রানজেকশন আইটেম (বক্স ছাড়া, শুধু নিচে লম্বা দাগ) */
 .tx-card {
-  background: #1a0f2e;
-  border: 1px solid #3a1f6b;
-  border-radius: 12px;
-  padding: 15px;
+  padding: 15px 0;
   display: flex;
   gap: 12px;
   align-items: flex-start;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+  border-bottom: 1px solid #3a1f6b; /* চিকন লম্বা দাগ */
+  background: transparent;
+  box-shadow: none;
+}
+
+/* একদম শেষ ট্রানজেকশনের নিচে দাগ থাকবে না */
+.tx-card:last-child {
+  border-bottom: none;
 }
 
 .tx-icon {
