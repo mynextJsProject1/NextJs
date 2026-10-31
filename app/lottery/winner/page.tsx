@@ -191,9 +191,17 @@ export default function WinnerPage() {
                     <p style={{ margin: '4px 0 0 0', color: 'rgba(0,0,0,0.7)', fontSize: '13px', fontWeight: '600' }}>
                       📱 {user?.mobile ? maskMobile(user.mobile) : "N/A"}
                     </p>
+                    
+                    {/* ✅ Winning Ticket Number */}
                     <p style={{ margin: '2px 0 0 0', color: 'rgba(0,0,0,0.5)', fontSize: '11px' }}>
                       Winning Ticket: {ticket?.ticket_number || winner.winning_number}
                     </p>
+                    
+                    {/* ✅ নতুন যোগ করা Ticket Code */}
+                    <p style={{ margin: '2px 0 0 0', color: 'rgba(0,0,0,0.5)', fontSize: '11px', fontWeight: 'bold' }}>
+                      Ticket Code: {ticket?.ticket_code || "N/A"}
+                    </p>
+                    
                   </div>
 
                   {/* QR Code (Trust বাড়ানোর জন্য) */}
