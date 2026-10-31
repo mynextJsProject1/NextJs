@@ -23,7 +23,7 @@ export default function LotteryVerificationPage() {
   const [isModalLoading, setIsModalLoading] = useState(false); 
   const [showSuccessPopup, setShowSuccessPopup] = useState(false); 
 
-  // ✅ নতুন স্টেট: ভেরিফিকেশন স্ট্যাটাস এবং কারণ
+  // ✅ স্ট্যাটাস এবং কারণের জন্য নতুন স্টেট
   const [isVerified, setIsVerified] = useState(false);
   const [verificationStatus, setVerificationStatus] = useState<string | null>(null);
   const [rejectReason, setRejectReason] = useState<string>("");
@@ -81,7 +81,7 @@ export default function LotteryVerificationPage() {
         });
       }
 
-      // ================= ✅ আপডেট করা লজিক: সর্বশেষ স্ট্যাটাস ও কারণ চেক করা =================
+      // ✅ নতুন লজিক: সর্বশেষ স্ট্যাটাস এবং রিজেক্টের কারণ চেক করা
       const { data: verificationData } = await supabase
         .from("withdrawal_verifications")
         .select("status, admin_note")
@@ -175,12 +175,12 @@ export default function LotteryVerificationPage() {
         method: paymentData.method_code,
         account_number: formData.mobile, 
         bank_trx_id: paymentData.bank_trx_id,
-        status: "pending" // ✅ নতুন রিকোয়েস্ট pending হিসেবে যাবে
+        status: "pending"
       });
 
       if (withdrawError) throw withdrawError;
 
-      setVerificationStatus("pending"); // লোকাল স্টেট আপডেট
+      setVerificationStatus("pending"); // লোকাল স্টেট পেন্ডিং করা হলো
       setShowSuccessPopup(true);
       
       setTimeout(() => {
@@ -260,7 +260,7 @@ export default function LotteryVerificationPage() {
         Verification Your Self and Payment Method For Withdrawal
       </h1>
       
-      {/* ================= ✅ ১. KYC Verified ব্যাজ ================= */}
+      {/* ✅ ১. KYC Verified ব্যাজ */}
       {isVerified && (
         <div style={{ 
           backgroundColor: '#1a1129', 
@@ -281,7 +281,7 @@ export default function LotteryVerificationPage() {
         </div>
       )}
 
-      {/* ================= ✅ ২. Rejected Alert (কারণসহ) ================= */}
+      {/* ✅ ২. Rejected Alert (কারণসহ) */}
       {verificationStatus === "rejected" && !isVerified && (
         <div style={{ 
           backgroundColor: 'rgba(255, 77, 77, 0.1)', 
@@ -291,8 +291,7 @@ export default function LotteryVerificationPage() {
           marginBottom: '20px', 
           display: 'flex', 
           alignItems: 'flex-start', 
-          gap: '15px',
-          boxShadow: '0 4px 15px rgba(255, 77, 77, 0.1)'
+          gap: '15px' 
         }}>
           <i className="fa-solid fa-circle-xmark" style={{ fontSize: '30px', color: '#ff4d4d', marginTop: '2px' }}></i>
           <div>
@@ -307,8 +306,8 @@ export default function LotteryVerificationPage() {
         </div>
       )}
 
-      {/* ================= ✅ ৩. Pending Alert ================= */}
-      {verificationStatus === "pending" && !isVerified && verificationStatus !== "rejected" && (
+      {/* ✅ ৩. Pending Alert (এখানেই TypeScript এররটি ফিক্স করা হয়েছে) */}
+      {verificationStatus === "pending" && !isVerified && (
         <div style={{ 
           backgroundColor: 'rgba(245, 130, 32, 0.1)', 
           border: '1px solid #f58220', 
@@ -326,7 +325,6 @@ export default function LotteryVerificationPage() {
           </div>
         </div>
       )}
-      {/* ================================================================== */}
 
       {message.text && !isModalOpen && (
         <div className={`lot-alert ${message.type}`}>{message.text}</div>
@@ -374,7 +372,7 @@ export default function LotteryVerificationPage() {
           </p>
         </div>
 
-        {/* ✅ বাটন লজিক আপডেট: pending, verified, rejected অনুযায়ী */}
+        {/* ✅ ৪. বাটন লজিক (Verified, Pending, Rejected অনুযায়ী) */}
         {isVerified ? (
            <button disabled style={{ backgroundColor: '#2a1f3d', color: '#51cf66', fontWeight: 'bold', fontSize: '16px', padding: '12px 20px', border: '1px solid #51cf66', borderRadius: '8px', width: '100%', marginTop: '20px', cursor: 'not-allowed' }}>
              Already Verified
