@@ -61,6 +61,9 @@ export default function LotteryHomePage() {
   const [selectedNumbers, setSelectedNumbers] = useState<string[]>([]);
   const [showCheckout, setShowCheckout] = useState(false);
 
+  // ✅ নতুন স্টেট: ব্যানার ইমেজের জন্য
+  const [bannerUrl, setBannerUrl] = useState<string | null>(null);
+
   // KYC State
   const [hasKyc, setHasKyc] = useState(false);
   const [showKycForm, setShowKycForm] = useState(false);
@@ -80,7 +83,21 @@ export default function LotteryHomePage() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { router.replace("/signup/"); return; }
 
-      // ✅ ব্যালেন্স চেক
+      // ✅ ১. ব্যানার লোড করা
+      const { data: bannerData } = await supabase
+        .from("lottery_banners")
+        .select("image_url")
+        .eq("is_active", true)
+        .limit(1)
+        .maybeSingle();
+      
+      if (bannerData) {
+        setBannerUrl(bannerData.image_url);
+      } else {
+        setBannerUrl(null);
+      }
+
+      // ২. ব্যালেন্স চেক
       const { data: profile } = await supabase.from("profiles").select("lottery_balance, mobile, full_name").eq("id", user.id).single();
       if (profile) {
         setBalance(Number(profile.lottery_balance || 0)); 
@@ -90,7 +107,7 @@ export default function LotteryHomePage() {
       const { data: kyc } = await supabase.from("lottery_user_details").select("user_id").eq("user_id", user.id).maybeSingle();
       setHasKyc(!!kyc);
 
-      // ২. আমার সব টিকিট
+      // ৩. আমার সব টিকিট
       const { data: myTicketsData } = await supabase
         .from("lottery_tickets")
         .select("id, ticket_number, ticket_code, created_at, lottery_draws(draw_name, ticket_price)")
@@ -99,7 +116,7 @@ export default function LotteryHomePage() {
       
       if (myTicketsData) setAllMyTickets(myTicketsData as unknown as MyTicketData[]);
 
-      // ৩. চলমান ড্র
+      // ৪. চলমান ড্র
       const { data: drawData } = await supabase
         .from("lottery_draws")
         .select("*")
@@ -114,7 +131,6 @@ export default function LotteryHomePage() {
         const { data: tickets } = await supabase.from("lottery_tickets").select("ticket_number, user_id").eq("draw_id", drawData.id);
         if (tickets) {
           setSoldTickets(tickets as Ticket[]);
-          // এই ইউজার আগে কোন কোন নাম্বার কিনেছে সেগুলো আলাদা করে রাখা
           setMyTickets(tickets.filter(t => t.user_id === user.id).map(t => t.ticket_number));
         }
       } else {
@@ -144,7 +160,6 @@ export default function LotteryHomePage() {
   }, [draw]);
 
   const toggleNumber = (num: string) => {
-    // যদি নিজে আগে কিনে থাকে, তবে সিলেক্ট করতে পারবে না
     if (myTickets.includes(num)) return; 
 
     if (selectedNumbers.includes(num)) {
@@ -167,8 +182,6 @@ export default function LotteryHomePage() {
     setBuying(true);
     setMessage({ type: "", text: "" });
 
-    // 📌 এখানে আপনার RPC (Database Function) কল হচ্ছে।
-    // নিশ্চিত করুন আপনার RPC-তে lottery_transactions এ ডাটা ইনসার্ট হচ্ছে।
     const { data, error } = await supabase.rpc("buy_lottery_tickets_bulk", {
       p_draw_id: draw.id,
       p_ticket_numbers: selectedNumbers
@@ -180,7 +193,7 @@ export default function LotteryHomePage() {
     } else if (data && data.success) {
       setMessage({ type: "success", text: `${data.total_tickets} Tickets purchased successfully!` });
       setShowCheckout(false);
-      loadData(); // ডাটা রিফ্রেশ
+      loadData();
     } else {
       setMessage({ type: "error", text: data?.error || "Failed to buy tickets." });
       setShowCheckout(false);
@@ -218,12 +231,8 @@ export default function LotteryHomePage() {
     }
   };
 
-  // এই ফাংশনটি চেক করবে ইউজার আগে এই নাম্বারটি কিনেছে কি না
   const isMine = (num: string) => myTickets.includes(num);
-  
-  // এই ফাংশনটি চেক করবে পৃথিবীতে কেউ এই নাম্বারটি কিনেছে কি না (শুধু ডিজাইন দেখানোর জন্য)
   const isSoldByOthers = (num: string) => soldTickets.some(t => t.ticket_number === num) && !isMine(num);
-
   const totalWorth = allMyTickets.reduce((sum, t) => sum + (t.lottery_draws?.ticket_price || 0), 0);
 
   if (loading) return <div className="lottery-loading"><i className="fa-solid fa-circle-notch fa-spin"></i><span>Loading...</span></div>;
@@ -237,10 +246,20 @@ export default function LotteryHomePage() {
 
       {activeTab === "buy" ? (
         <>
-          <div className="jackpot-banner">
-            <div className="jackpot-label">MEGA JACKPOT</div>
-            <div className="jackpot-amount">৳ {draw ? Number(draw.jackpot_amount).toLocaleString() : "0"}</div>
-            <div className="jackpot-timer"><i className="fa-regular fa-clock"></i> Next Draw In: <strong>{timeLeft}</strong></div>
+          {/* ✅ ৩. জ্যাকপট ব্যানারে ছবি যোগ করা হলো */}
+          <div className="jackpot-banner" style={{ position: 'relative', overflow: 'hidden' }}>
+            {bannerUrl && (
+              <img 
+                src={bannerUrl} 
+                alt="Jackpot Banner" 
+                style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.4, zIndex: 0 }} 
+              />
+            )}
+            <div style={{ position: 'relative', zIndex: 1 }}>
+              <div className="jackpot-label">MEGA JACKPOT</div>
+              <div className="jackpot-amount">৳ {draw ? Number(draw.jackpot_amount).toLocaleString() : "0"}</div>
+              <div className="jackpot-timer"><i className="fa-regular fa-clock"></i> Next Draw In: <strong>{timeLeft}</strong></div>
+            </div>
           </div>
 
           <div className="price-tabs">
@@ -262,18 +281,7 @@ export default function LotteryHomePage() {
                 <span><i className="fa-solid fa-wallet"></i> Balance: <strong>৳{balance.toFixed(2)}</strong></span>
               </div>
 
-              {/* ১০০০ নাম্বার সুন্দরভাবে দেখানোর জন্য স্ক্রল এরিয়া */}
-              <div 
-                className="number-grid" 
-                style={{ 
-                  maxHeight: '350px', // সর্বোচ্চ উচ্চতা
-                  overflowY: 'auto',  // স্ক্রল বার
-                  paddingRight: '5px',
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fill, minmax(40px, 1fr))', 
-                  gap: '8px'
-                }}
-              >
+              <div className="number-grid" style={{ maxHeight: '350px', overflowY: 'auto', paddingRight: '5px', display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(40px, 1fr))', gap: '8px' }}>
                 {Array.from({ length: draw.total_tickets }, (_, i) => (i + 1).toString()).map(num => {
                   const soldByOthers = isSoldByOthers(num);
                   const mine = isMine(num);
@@ -282,11 +290,10 @@ export default function LotteryHomePage() {
                   return (
                     <button
                       key={num}
-                      // ✅ যেকোনো নাম্বার সিলেক্ট করা যাবে, শুধু নিজের কেনা নাম্বার বাদে
                       className={`num-btn ${soldByOthers ? "sold" : ""} ${mine ? "mine" : ""} ${selected ? "selected" : ""}`}
                       onClick={() => toggleNumber(num)}
                       disabled={mine} 
-                      style={soldByOthers ? { backgroundColor: '#2a1f3d', border: '1px solid #444' } : {}} // অন্যরা কিনলে হালকা কালার
+                      style={soldByOthers ? { backgroundColor: '#2a1f3d', border: '1px solid #444' } : {}}
                     >
                       {num}
                     </button>
@@ -354,7 +361,6 @@ export default function LotteryHomePage() {
         </div>
       )}
 
-      {/* Checkout Modal */}
       {showCheckout && draw && (
         <div className="lottery-modal-overlay">
           <div className="lottery-modal">
@@ -374,7 +380,6 @@ export default function LotteryHomePage() {
         </div>
       )}
 
-      {/* KYC Modal */}
       {showKycForm && (
         <div className="lottery-modal-overlay">
           <div className="lottery-modal">
