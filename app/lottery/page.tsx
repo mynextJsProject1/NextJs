@@ -145,19 +145,48 @@ export default function LotteryHomePage() {
 
   useEffect(() => { void loadData(); }, [loadData]);
 
+  // ================= নতুন লজিক ১: রিয়েল-টাইম আপডেট =================
+  useEffect(() => {
+    const channel = supabase
+      .channel("lottery_draws_realtime")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "lottery_draws" },
+        (payload) => {
+          // যখনই অ্যাডমিন নতুন ড্র তৈরি করবে বা ড্র শেষ করবে, ডাটা রিলোড হবে
+          console.log("Draw table updated, reloading data...", payload);
+          void loadData();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [supabase, loadData]);
+  // ==================================================================
+
   // টাইমার
   useEffect(() => {
     if (!draw) return;
     const timer = setInterval(() => {
       const distance = new Date(draw.draw_time).getTime() - new Date().getTime();
-      if (distance < 0) { setTimeLeft("Drawing..."); clearInterval(timer); return; }
+      if (distance < 0) { 
+        setTimeLeft("Drawing..."); 
+        clearInterval(timer); 
+        // ================= নতুন লজিক ২: টাইমার শেষ হলে অটো-রিফ্রেশ =================
+        setTimeout(() => {
+          void loadData();
+        }, 2000); // ২ সেকেন্ড পর ডাটা রিলোড হবে
+        return; 
+      }
       const h = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
       const m = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
       const s = Math.floor((distance % (1000 * 60)) / 1000);
       setTimeLeft(`${h}h ${m}m ${s}s`);
     }, 1000);
     return () => clearInterval(timer);
-  }, [draw]);
+  }, [draw, loadData]);
 
   const toggleNumber = (num: string) => {
     if (myTickets.includes(num)) return; 
