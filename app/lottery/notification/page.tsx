@@ -44,7 +44,6 @@ export default function NotificationPage() {
   useEffect(() => {
     void fetchNotifications();
 
-    // রিয়েল-টাইম লিসেনার: নতুন নোটিফিকেশন আসলে সাউন্ড বাজবে ও লিস্ট আপডেট হবে
     const channel = supabase
       .channel("realtime-notifications")
       .on(
@@ -53,7 +52,6 @@ export default function NotificationPage() {
         (payload) => {
           if (payload.new.is_active) {
             playNotificationSound();
-            // নতুন নোটিফিকেশনটি লিস্টের উপরে যোগ করা
             setNotifications((prev) => [payload.new as Notification, ...prev]);
           }
         }
@@ -87,13 +85,6 @@ export default function NotificationPage() {
 
   return (
     <div className="notif-page">
-      <div className="notif-header">
-        <h1>
-          <i className="fa-solid fa-bell"></i> Notifications
-        </h1>
-        <p>Stay updated with lottery news and alerts.</p>
-      </div>
-
       {notifications.length === 0 ? (
         <div className="notif-empty">
           <i className="fa-regular fa-bell-slash"></i>
@@ -104,9 +95,6 @@ export default function NotificationPage() {
         <div className="notif-list">
           {notifications.map((notif) => (
             <div key={notif.id} className="notif-card">
-              <div className="notif-icon">
-                <i className="fa-solid fa-bullhorn"></i>
-              </div>
               <div className="notif-content">
                 <div className="notif-top-row">
                   <h4 className="notif-title">{notif.title}</h4>
