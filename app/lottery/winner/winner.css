@@ -1,39 +1,41 @@
 /* app/lottery/winner/winner.css */
 
 .lot-winner-page {
-  padding: 15px;
-  padding-bottom: 90px;
-  background-color: #130a24; /* আপনার সাইটের ব্যাকগ্রাউন্ড কালার */
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 12px;
+  padding-bottom: 80px;
+  background-color: #130a24;
   min-height: 100vh;
 }
 
 .winner-title {
-  color: #d4af37;
+  color: #ffffff;
   text-align: center;
-  font-size: 24px;
-  margin-bottom: 20px;
+  font-size: 16px; /* আগের 24px থেকে 40% কমানো */
+  margin-bottom: 15px;
   font-weight: bold;
-  text-shadow: 0px 2px 4px rgba(0,0,0,0.5);
 }
 
 .winner-list {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 15px;
 }
 
 /* কার্ডের মূল ডিজাইন */
 .winner-card {
-  border-radius: 24px;
-  padding: 20px;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+  border-radius: 16px; /* আগের 24px থেকে কমানো */
+  padding: 15px; /* আগের 20px থেকে কমানো */
+  box-shadow: 0 6px 15px rgba(0,0,0,0.3);
   position: relative;
   overflow: hidden;
   transition: transform 0.2s ease;
 }
 
 .winner-card:hover {
-  transform: scale(1.02);
+  transform: scale(1.01);
 }
 
 /* টপ সেকশন */
@@ -41,22 +43,22 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 15px;
+  margin-bottom: 10px;
 }
 
 .draw-name-pill {
   background-color: rgba(255, 255, 255, 0.3);
-  padding: 5px 12px;
-  border-radius: 20px;
+  padding: 4px 10px;
+  border-radius: 15px;
   color: #1a1129;
   font-weight: bold;
-  font-size: 12px;
+  font-size: 10px;
 }
 
 .ticket-price-text {
   color: #fff;
   font-weight: bold;
-  font-size: 12px;
+  font-size: 10px;
 }
 
 /* মাঝখানের সেকশন (প্রাইজ পুল) */
@@ -69,35 +71,34 @@
 .prize-label {
   margin: 0;
   color: rgba(0, 0, 0, 0.6);
-  font-size: 12px;
+  font-size: 10px;
   font-weight: bold;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
 }
 
 .prize-amount {
   color: white;
-  padding: 10px 20px;
-  border-radius: 30px;
-  font-size: 26px;
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: 18px; /* আগের 26px থেকে কমানো */
   font-weight: 900;
   display: inline-block;
-  margin-top: 5px;
-  box-shadow: inset 0 2px 5px rgba(0,0,0,0.2);
+  margin-top: 4px;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
 }
 
 .money-bag-icon {
-  font-size: 55px;
-  filter: drop-shadow(0px 6px 6px rgba(0,0,0,0.4));
+  font-size: 35px; /* আগের 55px থেকে কমানো */
+  filter: drop-shadow(0px 4px 4px rgba(0,0,0,0.4));
   animation: float 2s ease-in-out infinite;
 }
 
 /* বটম সেকশন (ইউজারের তথ্য ও QR) */
 .card-bottom-row {
-  margin-top: 20px;
+  margin-top: 15px;
   background-color: rgba(255, 255, 255, 0.25);
-  border-radius: 15px;
-  padding: 12px;
+  border-radius: 10px;
+  padding: 10px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -106,58 +107,94 @@
 .winner-name {
   margin: 0;
   color: #1a1129;
-  font-size: 16px;
+  font-size: 14px; /* আগের 16px থেকে কমানো */
   font-weight: 800;
 }
 
-.winner-mobile {
-  margin: 4px 0 0 0;
+.winner-mobile,
+.winner-ticket {
+  margin: 3px 0 0 0;
   color: rgba(0, 0, 0, 0.7);
-  font-size: 13px;
+  font-size: 11px;
   font-weight: 600;
 }
 
 .winner-ticket {
-  margin: 2px 0 0 0;
   color: rgba(0, 0, 0, 0.5);
-  font-size: 11px;
+  font-size: 10px;
 }
 
 .qr-code-box {
   background-color: white;
-  padding: 6px;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  padding: 4px;
+  border-radius: 6px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
 }
 
 .qr-code-img {
-  width: 50px;
-  height: 50px;
+  width: 40px; /* আগের 50px থেকে কমানো */
+  height: 40px;
   display: block;
 }
 
-/* অ্যানিমেশন (মানি ব্যাগের জন্য) */
+/* অ্যানিমেশন */
 @keyframes float {
   0% { transform: translateY(0px); }
-  50% { transform: translateY(-10px); }
+  50% { transform: translateY(-6px); }
   100% { transform: translateY(0px); }
 }
 
-/* লোডিং স্ক্রিন */
 .loading-screen {
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100vh;
   color: #d4af37;
-  font-size: 18px;
+  font-size: 16px;
   font-weight: bold;
 }
 
-/* খালি অবস্থা (কোনো বিজয়ী না থাকলে) */
 .no-winner-box {
   text-align: center;
   color: #aaa;
   margin-top: 50px;
-  font-size: 16px;
+  font-size: 14px;
+}
+
+/* =========================================================================
+   ডেস্কটপের জন্য রেসপন্সিভ ডিজাইন
+   ========================================================================= */
+@media (min-width: 768px) {
+  .lot-winner-page {
+    max-width: 900px; /* ডেস্কটপে চওড়া হবে */
+    padding: 24px;
+  }
+  
+  .winner-title {
+    font-size: 22px;
+  }
+
+  /* ডেস্কটপে বিজয়ীদের কার্ড দুই কলামে দেখাবে */
+  .winner-list {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+  }
+
+  .winner-card {
+    padding: 20px;
+    border-radius: 20px;
+  }
+
+  .prize-amount {
+    font-size: 24px;
+  }
+
+  .money-bag-icon {
+    font-size: 45px;
+  }
+
+  .winner-name {
+    font-size: 16px;
+  }
 }
