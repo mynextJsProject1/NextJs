@@ -64,6 +64,9 @@ export default function LotteryHomePage() {
   // ✅ নতুন স্টেট: ব্যানার ইমেজের জন্য
   const [bannerUrl, setBannerUrl] = useState<string | null>(null);
 
+  // ✅ নতুন স্টেট: প্রাইস চেঞ্জ লোডিং অ্যানিমেশনের জন্য
+  const [priceLoadingText, setPriceLoadingText] = useState<string | null>(null);
+
   // KYC State
   const [hasKyc, setHasKyc] = useState(false);
   const [showKycForm, setShowKycForm] = useState(false);
@@ -153,7 +156,6 @@ export default function LotteryHomePage() {
         "postgres_changes",
         { event: "*", schema: "public", table: "lottery_draws" },
         (payload) => {
-          // যখনই অ্যাডমিন নতুন ড্র তৈরি করবে বা ড্র শেষ করবে, ডাটা রিলোড হবে
           console.log("Draw table updated, reloading data...", payload);
           void loadData();
         }
@@ -174,10 +176,9 @@ export default function LotteryHomePage() {
       if (distance < 0) { 
         setTimeLeft("Drawing..."); 
         clearInterval(timer); 
-        // ================= নতুন লজিক ২: টাইমার শেষ হলে অটো-রিফ্রেশ =================
         setTimeout(() => {
           void loadData();
-        }, 2000); // ২ সেকেন্ড পর ডাটা রিলোড হবে
+        }, 2000); 
         return; 
       }
       const h = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
@@ -260,14 +261,51 @@ export default function LotteryHomePage() {
     }
   };
 
+  // ✅ প্রাইস চেঞ্জ হ্যান্ডলার (লোডিং অ্যানিমেশন সহ)
+  const handlePriceChange = (price: number) => {
+    if (price === selectedPrice) return; // যদি একই প্রাইসে ক্লিক করে, তবে কিছুই হবে না
+    
+    setPriceLoadingText(`${price} TK LOTTERY`); // লোডিং টেক্সট সেট করা
+    setSelectedPrice(price); // ড্র ডাটা লোড হওয়া শুরু হবে
+    
+    // ১.৫ সেকেন্ড পর লোডিং অ্যানিমেশন বন্ধ হবে
+    setTimeout(() => {
+      setPriceLoadingText(null);
+    }, 1500);
+  };
+
   const isMine = (num: string) => myTickets.includes(num);
   const isSoldByOthers = (num: string) => soldTickets.some(t => t.ticket_number === num) && !isMine(num);
   const totalWorth = allMyTickets.reduce((sum, t) => sum + (t.lottery_draws?.ticket_price || 0), 0);
 
-  if (loading) return <div className="lottery-loading"><i className="fa-solid fa-circle-notch fa-spin"></i><span>Loading...</span></div>;
+  if (loading && !priceLoadingText) return <div className="lottery-loading"><i className="fa-solid fa-circle-notch fa-spin"></i><span>Loading...</span></div>;
 
   return (
     <div className="lottery-home-page">
+      
+      {/* ✅ ফুল স্ক্রিন প্রাইস লোডিং অ্যানিমেশন */}
+      {priceLoadingText && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          backgroundColor: 'rgba(19, 10, 36, 0.95)', // সাইটের ডার্ক থিম
+          backdropFilter: 'blur(5px)',
+          display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center',
+          zIndex: 9999
+        }}>
+          {/* টিকিট আইকন স্পিনার */}
+          <i className="fa-solid fa-ticket fa-spin" style={{ fontSize: '60px', color: '#d4af37', marginBottom: '20px' }}></i>
+          
+          {/* ডাইনামিক টেক্সট */}
+          <h1 style={{ color: 'white', fontSize: '28px', fontWeight: '900', letterSpacing: '1px', textAlign: 'center' }}>
+            {priceLoadingText}
+          </h1>
+          
+          <p style={{ color: '#aaa', marginTop: '10px', fontSize: '14px' }}>
+            <i className="fa-solid fa-circle-notch fa-spin"></i> Loading Draw Data...
+          </p>
+        </div>
+      )}
+
       <div className="main-tabs">
         <button className={activeTab === "buy" ? "active" : ""} onClick={() => setActiveTab("buy")}>Buy Tickets</button>
         <button className={activeTab === "my-tickets" ? "active" : ""} onClick={() => setActiveTab("my-tickets")}>My Tickets</button>
@@ -275,7 +313,7 @@ export default function LotteryHomePage() {
 
       {activeTab === "buy" ? (
         <>
-          {/* ✅ ৩. জ্যাকপট ব্যানারে ছবি যোগ করা হলো */}
+          {/* ✅ জ্যাকপট ব্যানার */}
           <div className="jackpot-banner" style={{ position: 'relative', overflow: 'hidden' }}>
             {bannerUrl && (
               <img 
@@ -293,7 +331,13 @@ export default function LotteryHomePage() {
 
           <div className="price-tabs">
             {TICKET_PRICES.map(price => (
-              <button key={price} className={selectedPrice === price ? "active" : ""} onClick={() => setSelectedPrice(price)}>৳{price}</button>
+              <button 
+                key={price} 
+                className={selectedPrice === price ? "active" : ""} 
+                onClick={() => handlePriceChange(price)} // ✅ নতুন হ্যান্ডলার ব্যবহার করা হলো
+              >
+                ৳{price}
+              </button>
             ))}
           </div>
 
