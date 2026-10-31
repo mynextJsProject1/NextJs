@@ -1,7 +1,9 @@
 /* app/lottery/lottery.css */
 .lottery-home-page {
+  width: 100%;
   max-width: 600px;
   margin: 0 auto;
+  padding: 0 8px; /* মোবাইলে দুই পাশে হালকা প্যাডিং */
 }
 
 /* Top Main Tabs */
@@ -9,19 +11,19 @@
   display: flex;
   background: #1a0f2e;
   border: 1px solid #3a1f6b;
-  border-radius: 10px;
-  padding: 4px;
-  margin-bottom: 1rem;
+  border-radius: 8px;
+  padding: 3px;
+  margin-bottom: 0.8rem;
 }
 .lottery-home-page .main-tabs button {
   flex: 1;
-  padding: 10px;
+  padding: 8px;
   border: none;
   background: transparent;
   color: #b1bad3;
   font-weight: 700;
-  font-size: 0.95rem;
-  border-radius: 8px;
+  font-size: 0.85rem; /* ফন্ট সাইজ কমানো হয়েছে */
+  border-radius: 6px;
   cursor: pointer;
 }
 .lottery-home-page .main-tabs button.active {
@@ -32,35 +34,47 @@
 /* Jackpot Banner */
 .lottery-home-page .jackpot-banner {
   background: linear-gradient(135deg, #3a0ca3, #7209b7);
-  border-radius: 16px;
-  padding: 24px 16px;
+  border-radius: 12px;
+  padding: 16px 12px; /* প্যাডিং কমানো হয়েছে */
   text-align: center;
-  margin-bottom: 1rem;
+  margin-bottom: 0.8rem;
   box-shadow: 0 4px 15px rgba(114, 9, 183, 0.3);
 }
 .lottery-home-page .jackpot-label {
-  color: #f72585; font-size: 0.8rem; font-weight: 800; letter-spacing: 2px;
-  text-transform: uppercase; margin-bottom: 8px;
+  color: #f72585; 
+  font-size: 0.65rem; /* ৪০% কমানো হয়েছে */
+  font-weight: 800; 
+  letter-spacing: 1.5px;
+  text-transform: uppercase; 
+  margin-bottom: 4px;
 }
 .lottery-home-page .jackpot-amount {
-  font-size: 2.5rem; font-weight: 900; color: #fff; margin-bottom: 8px;
+  font-size: 1.6rem; /* ২.৫ থেকে ১.৬ রেম করা হয়েছে (প্রায় ৪০% কম) */
+  font-weight: 900; 
+  color: #fff; 
+  margin-bottom: 6px;
 }
 .lottery-home-page .jackpot-timer {
-  display: inline-flex; align-items: center; gap: 6px;
-  background: rgba(0,0,0,0.3); padding: 6px 12px; border-radius: 20px;
-  color: #e0aaff; font-size: 0.8rem;
+  display: inline-flex; 
+  align-items: center; 
+  gap: 4px;
+  background: rgba(0,0,0,0.3); 
+  padding: 4px 10px; 
+  border-radius: 15px;
+  color: #e0aaff; 
+  font-size: 0.7rem; /* কমানো হয়েছে */
 }
 .lottery-home-page .jackpot-timer strong { color: #fff; }
 
 /* Price Tabs */
 .lottery-home-page .price-tabs {
-  display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; margin-bottom: 1rem;
+  display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; margin-bottom: 0.8rem;
 }
 .lottery-home-page .price-tabs::-webkit-scrollbar { display: none; }
 .lottery-home-page .price-tabs button {
-  flex: 1; padding: 10px; background: #1a0f2e;
-  border: 1px solid #3a1f6b; border-radius: 8px;
-  color: #b1bad3; font-weight: 700; font-size: 0.9rem; cursor: pointer;
+  flex: 1; padding: 8px; background: #1a0f2e;
+  border: 1px solid #3a1f6b; border-radius: 6px;
+  color: #b1bad3; font-weight: 700; font-size: 0.75rem; cursor: pointer;
   white-space: nowrap;
 }
 .lottery-home-page .price-tabs button.active {
@@ -69,43 +83,43 @@
 
 /* Alerts */
 .lottery-home-page .lottery-alert {
-  padding: 10px; border-radius: 8px; font-size: 0.85rem; margin-bottom: 1rem;
+  padding: 8px; border-radius: 6px; font-size: 0.75rem; margin-bottom: 0.8rem;
 }
 .lottery-home-page .lottery-alert.success { background: rgba(0,231,1,0.1); color: #00e701; border: 1px solid rgba(0,231,1,0.3); }
 
-/* Number Grid (১০ কলাম) */
+/* Number Grid */
 .lottery-home-page .lottery-info-row {
   display: flex; justify-content: space-between;
   background: #1a0f2e; border: 1px solid #3a1f6b;
-  padding: 12px; border-radius: 8px; font-size: 0.85rem; color: #b1bad3;
-  margin-bottom: 1rem;
+  padding: 10px; border-radius: 6px; font-size: 0.75rem; color: #b1bad3;
+  margin-bottom: 0.8rem;
 }
 .lottery-home-page .lottery-info-row strong { color: #fff; }
 
 .lottery-home-page .number-grid {
   display: grid; 
-  grid-template-columns: repeat(10, 1fr); 
+  grid-template-columns: repeat(10, 1fr); /* মোবাইলে ১০টি কলাম */
   gap: 4px; 
-  margin-bottom: 1rem;
+  margin-bottom: 0.8rem;
 }
 .lottery-home-page .num-btn {
   aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
   background: #1a0f2e; border: 1px solid #3a1f6b;
-  border-radius: 4px; color: #fff; font-weight: 700; font-size: 0.7rem;
+  border-radius: 4px; color: #fff; font-weight: 700; font-size: 0.6rem; /* ফন্ট সাইজ কমানো হয়েছে */
   cursor: pointer; transition: 0.2s; padding: 0;
 }
 .lottery-home-page .num-btn.selected {
   background: #ffd700; color: #000; border-color: #ffd700;
-  transform: scale(1.1); z-index: 1;
+  transform: scale(1.05); z-index: 1;
 }
 .lottery-home-page .num-btn.sold { background: rgba(255,77,77,0.1); color: #ff4d4d; cursor: not-allowed; opacity: 0.6; }
 .lottery-home-page .num-btn.mine { background: rgba(0,231,1,0.15); color: #00e701; border-color: #00e701; }
 
 .lottery-home-page .legend-row {
-  display: flex; justify-content: center; gap: 12px; font-size: 0.7rem; color: #b1bad3; margin-bottom: 1.5rem;
+  display: flex; justify-content: center; flex-wrap: wrap; gap: 8px; font-size: 0.65rem; color: #b1bad3; margin-bottom: 1rem;
 }
 .lottery-home-page .legend-row span { display: flex; align-items: center; gap: 4px; }
-.lottery-home-page .dot { width: 10px; height: 10px; border-radius: 50%; }
+.lottery-home-page .dot { width: 8px; height: 8px; border-radius: 50%; }
 .lottery-home-page .dot.available { background: #1a0f2e; border: 1px solid #3a1f6b; }
 .lottery-home-page .dot.sold { background: rgba(255,77,77,0.5); }
 .lottery-home-page .dot.mine { background: #00e701; }
@@ -113,68 +127,68 @@
 
 .lottery-home-page .buy-action-card {
   background: #1a0f2e; border: 1px solid #3a1f6b;
-  padding: 16px; border-radius: 12px; display: flex; flex-direction: column; gap: 12px;
+  padding: 12px; border-radius: 10px; display: flex; flex-direction: column; gap: 10px;
 }
-.lottery-home-page .buy-action-card > div { display: flex; justify-content: space-between; font-size: 0.9rem; color: #b1bad3; }
-.lottery-home-page .buy-action-card strong { color: #fff; font-size: 1.1rem; }
+.lottery-home-page .buy-action-card > div { display: flex; justify-content: space-between; font-size: 0.8rem; color: #b1bad3; }
+.lottery-home-page .buy-action-card strong { color: #fff; font-size: 0.95rem; }
 .lottery-home-page .buy-btn {
-  width: 100%; padding: 14px; background: #ffd700;
-  color: #000; border: none; border-radius: 8px; font-weight: 900; font-size: 1rem; cursor: pointer;
+  width: 100%; padding: 12px; background: #ffd700;
+  color: #000; border: none; border-radius: 6px; font-weight: 900; font-size: 0.85rem; cursor: pointer;
 }
 .lottery-home-page .buy-btn:disabled { background: #3a1f6b; color: #b1bad3; cursor: not-allowed; }
 
 /* My Tickets */
 .lottery-home-page .my-tickets-wrapper {
   background: #1a0f2e;
-  border-radius: 16px;
-  padding: 16px;
+  border-radius: 12px;
+  padding: 12px;
   border: 1px solid #3a1f6b;
 }
 
 .lottery-home-page .total-worth-card {
   background: linear-gradient(135deg, #9d4edd, #f72585);
-  border-radius: 16px;
-  padding: 20px;
+  border-radius: 12px;
+  padding: 16px;
   display: flex;
   justify-content: space-between;
   align-items: center;
   color: #fff;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
   box-shadow: 0 4px 10px rgba(0,0,0,0.2);
 }
-.lottery-home-page .total-worth-card span { font-size: 0.85rem; opacity: 0.9; }
-.lottery-home-page .total-worth-card strong { display: block; font-size: 1.8rem; font-weight: 900; margin-top: 4px; }
-.lottery-home-page .worth-icon { font-size: 2.5rem; filter: drop-shadow(0 0 10px rgba(255,215,0,0.5)); }
+.lottery-home-page .total-worth-card span { font-size: 0.75rem; opacity: 0.9; }
+.lottery-home-page .total-worth-card strong { display: block; font-size: 1.4rem; font-weight: 900; margin-top: 2px; }
+.lottery-home-page .worth-icon { font-size: 2rem; filter: drop-shadow(0 0 10px rgba(255,215,0,0.5)); }
 
-.lottery-home-page .ticket-cards-list { display: flex; flex-direction: column; gap: 16px; }
+.lottery-home-page .ticket-cards-list { display: flex; flex-direction: column; gap: 12px; }
 
 .lottery-home-page .physical-ticket {
-  background: #ffffff; border-radius: 12px; color: #333; overflow: hidden;
+  background: #ffffff; border-radius: 10px; color: #333; overflow: hidden;
   box-shadow: 0 4px 10px rgba(0,0,0,0.15);
 }
 .lottery-home-page .ticket-top, 
-.lottery-home-page .ticket-middle { display: flex; justify-content: space-between; padding: 16px; }
-.lottery-home-page .ticket-top { padding-bottom: 8px; }
-.lottery-home-page .ticket-middle { background: #f8f9fa; padding-top: 12px; padding-bottom: 12px; }
-.lottery-home-page .t-label { display: block; font-size: 0.7rem; color: #888; text-transform: uppercase; font-weight: 600; margin-bottom: 4px; }
+.lottery-home-page .ticket-middle { display: flex; justify-content: space-between; padding: 12px; }
+.lottery-home-page .ticket-top { padding-bottom: 6px; }
+.lottery-home-page .ticket-middle { background: #f8f9fa; padding-top: 10px; padding-bottom: 10px; }
+.lottery-home-page .t-label { display: block; font-size: 0.6rem; color: #888; text-transform: uppercase; font-weight: 600; margin-bottom: 2px; }
 .lottery-home-page .t-number, 
 .lottery-home-page .t-date,
 .lottery-home-page .t-draw,
-.lottery-home-page .t-price { font-size: 1rem; font-weight: 800; color: #111; }
+.lottery-home-page .t-price { font-size: 0.85rem; font-weight: 800; color: #111; }
 
 .lottery-home-page .ticket-cutout-line {
-  position: relative; display: flex; align-items: center; justify-content: center; height: 20px; margin: 0 16px;
+  position: relative; display: flex; align-items: center; justify-content: center; height: 16px; margin: 0 12px;
 }
-.lottery-home-page .circle { width: 20px; height: 20px; background: #1a0f2e; border-radius: 50%; position: absolute; }
-.lottery-home-page .circle.left { left: -26px; }
-.lottery-home-page .circle.right { right: -26px; }
+.lottery-home-page .circle { width: 16px; height: 16px; background: #1a0f2e; border-radius: 50%; position: absolute; }
+.lottery-home-page .circle.left { left: -20px; }
+.lottery-home-page .circle.right { right: -20px; }
 .lottery-home-page .dashed { flex: 1; border-top: 2px dashed #ddd; }
 
 .lottery-home-page .ticket-bottom {
-  padding: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #fff;
+  padding: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #fff;
 }
-.lottery-home-page .barcode-img { width: 80%; height: 60px; object-fit: cover; margin-bottom: 10px; }
-.lottery-home-page .download-text { font-size: 0.75rem; color: #888; display: flex; align-items: center; gap: 6px; }
+.lottery-home-page .barcode-img { width: 80%; height: 50px; object-fit: cover; margin-bottom: 8px; }
+.lottery-home-page .download-text { font-size: 0.65rem; color: #888; display: flex; align-items: center; gap: 4px; }
 
 /* Modals */
 .lottery-home-page .lottery-modal-overlay {
@@ -182,33 +196,95 @@
   display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 16px;
 }
 .lottery-home-page .lottery-modal {
-  background: #1a0f2e; border: 1px solid #3a1f6b; border-radius: 16px; padding: 24px;
-  width: 100%; max-width: 400px; color: #fff;
+  background: #1a0f2e; border: 1px solid #3a1f6b; border-radius: 12px; padding: 20px;
+  width: 100%; max-width: 380px; color: #fff;
 }
-.lottery-home-page .lottery-modal h3 { margin: 0 0 16px; font-size: 1.2rem; text-align: center; }
-.lottery-home-page .modal-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.9rem; color: #b1bad3; }
-.lottery-home-page .modal-row.total { border-top: 1px dashed #3a1f6b; padding-top: 8px; margin-top: 8px; font-size: 1.1rem; font-weight: 700; color: #fff; }
+.lottery-home-page .lottery-modal h3 { margin: 0 0 12px; font-size: 1.1rem; text-align: center; }
+.lottery-home-page .modal-row { display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 0.8rem; color: #b1bad3; }
+.lottery-home-page .modal-row.total { border-top: 1px dashed #3a1f6b; padding-top: 6px; margin-top: 6px; font-size: 1rem; font-weight: 700; color: #fff; }
 .lottery-home-page .text-gold { color: #ffd700 !important; }
-.lottery-home-page .modal-actions { display: flex; gap: 10px; margin-top: 20px; }
-.lottery-home-page .modal-actions button { flex: 1; padding: 12px; border-radius: 8px; font-weight: 700; cursor: pointer; border: none; }
+.lottery-home-page .modal-actions { display: flex; gap: 8px; margin-top: 16px; }
+.lottery-home-page .modal-actions button { flex: 1; padding: 10px; border-radius: 6px; font-weight: 700; cursor: pointer; border: none; font-size: 0.85rem; }
 .lottery-home-page .btn-cancel { background: rgba(255,255,255,0.1); color: #fff; }
 .lottery-home-page .btn-confirm { background: #ffd700; color: #000; }
-.lottery-home-page .kyc-form { display: flex; flex-direction: column; gap: 10px; }
+.lottery-home-page .kyc-form { display: flex; flex-direction: column; gap: 8px; }
 .lottery-home-page .kyc-form input, .lottery-home-page .kyc-form textarea {
-  width: 100%; background: #0f0a1a; border: 1px solid #3a1f6b; padding: 10px;
-  border-radius: 8px; color: #fff; font-size: 0.9rem; outline: none; font-family: inherit;
+  width: 100%; background: #0f0a1a; border: 1px solid #3a1f6b; padding: 8px;
+  border-radius: 6px; color: #fff; font-size: 0.85rem; outline: none; font-family: inherit;
 }
 .lottery-home-page .kyc-form input:focus, .lottery-home-page .kyc-form textarea:focus { border-color: #ffd700; }
 
 .lottery-home-page .lottery-empty {
   display: flex; flex-direction: column; align-items: center; justify-content: center;
-  padding: 40px 16px; background: #1a0f2e; border: 1px dashed #3a1f6b;
-  border-radius: 12px; color: #b1bad3; text-align: center; gap: 10px;
+  padding: 30px 12px; background: #1a0f2e; border: 1px dashed #3a1f6b;
+  border-radius: 10px; color: #b1bad3; text-align: center; gap: 8px; font-size: 0.85rem;
 }
-.lottery-home-page .lottery-empty i { font-size: 2.5rem; color: #3a1f6b; }
+.lottery-home-page .lottery-empty i { font-size: 2rem; color: #3a1f6b; }
 .lottery-home-page .lottery-loading {
   display: flex; flex-direction: column; align-items: center; justify-content: center;
-  min-height: 60vh; gap: 16px; color: #ffd700;
+  min-height: 60vh; gap: 12px; color: #ffd700;
 }
-.lottery-home-page .lottery-loading i { font-size: 3rem; }
-.lottery-home-page .lottery-loading span { color: #b1bad3; font-size: 1rem; }
+.lottery-home-page .lottery-loading i { font-size: 2.5rem; }
+.lottery-home-page .lottery-loading span { color: #b1bad3; font-size: 0.9rem; }
+
+
+/* =========================================================================
+   ডেস্কটপ এবং বড় স্ক্রিনের জন্য রেসপন্সিভ ডিজাইন (Media Queries)
+   ========================================================================= */
+@media (min-width: 768px) {
+  .lottery-home-page {
+    max-width: 900px; /* ডেস্কটপে কন্টেইনার বড় হবে */
+  }
+  
+  .lottery-home-page .jackpot-banner {
+    padding: 24px 20px;
+  }
+  
+  .lottery-home-page .jackpot-amount {
+    font-size: 2.2rem; /* ডেস্কটপে হালকা বড় হবে */
+  }
+
+  .lottery-home-page .jackpot-label {
+    font-size: 0.8rem;
+  }
+
+  .lottery-home-page .main-tabs button,
+  .lottery-home-page .price-tabs button {
+    font-size: 0.95rem;
+    padding: 10px;
+  }
+
+  .lottery-home-page .lottery-info-row {
+    font-size: 0.9rem;
+    padding: 14px;
+  }
+
+  /* ডেস্কটপে নাম্বার গ্রিডে কলাম বাড়িয়ে দেওয়া হবে, যাতে ফাঁকা জায়গা না থাকে */
+  .lottery-home-page .number-grid {
+    grid-template-columns: repeat(auto-fill, minmax(45px, 1fr)); 
+    gap: 6px;
+  }
+
+  .lottery-home-page .num-btn {
+    font-size: 0.85rem; /* ডেস্কটপে নাম্বারগুলো একটু বড় দেখাবে */
+  }
+
+  .lottery-home-page .buy-action-card {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+  }
+
+  .lottery-home-page .buy-action-card > div {
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .lottery-home-page .buy-btn {
+    width: auto;
+    min-width: 200px;
+    font-size: 1rem;
+    padding: 12px 20px;
+  }
+}
