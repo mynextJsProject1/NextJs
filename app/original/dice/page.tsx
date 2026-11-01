@@ -52,7 +52,7 @@ export default function DiceGamePage() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isGraphOpen, setIsGraphOpen] = useState(false);
   const [isFairnessOpen, setIsFairnessOpen] = useState(false);
-  const [isBetHistoryOpen, setIsBetHistoryOpen] = useState(false); // নতুন
+  const [isBetHistoryOpen, setIsBetHistoryOpen] = useState(false);
 
   // Settings এর ভেতরের স্টেট
   const [instantBet, setInstantBet] = useState(false);
@@ -132,7 +132,7 @@ export default function DiceGamePage() {
     setMultiplier(99 / newChance);
   };
 
-  // ✅ মূল বাজি ধরার লজিক (ছুটাছুটি বন্ধ করে সরাসরি রেজাল্ট দেখাবে)
+  // ✅ মূল বাজি ধরার লজিক (স্লোয়েনেস রিমুভ করা হয়েছে)
   const executeBet = async (amountToBet: number) => {
     if (amountToBet <= 0) throw new Error("Invalid bet amount.");
     if (amountToBet > balance) throw new Error("Insufficient balance.");
@@ -155,10 +155,7 @@ export default function DiceGamePage() {
 
       if (error) throw error;
 
-      // Instant Bet অন থাকলে কোনো ডিলে ছাড়াই সরাসরি রেজাল্ট দেখাবে
-      if (!instantBet) {
-        await new Promise(resolve => setTimeout(resolve, 300)); // অল্প একটু ডিলে (স্মুথনেসের জন্য)
-      }
+      // artificial delay সরিয়ে দেওয়া হয়েছে, তাই এখন একদম ফাস্ট কাজ করবে
 
       if (data) {
         setVisualSliderValue(data.roll); 
@@ -241,8 +238,23 @@ export default function DiceGamePage() {
     }
   };
 
-  // ✅ Graph এর জন্য Max Profit/Loss বের করা
-  const maxGraphProfit = Math.max(...history.map(h => Math.abs(h.profit)), 10);
+  // ✅ নতুন গ্রাফের জন্য ডাটা ক্যালকুলেশন (Cumulative Profit/Loss)
+  let cumulativeProfit = 0;
+  const graphData = history.map(h => {
+    cumulativeProfit += h.profit;
+    return cumulativeProfit;
+  });
+  const maxGraphValue = Math.max(...graphData.map(Math.abs), 10); // ডিভাইড বাই জিরো এড়াতে ১০
+  
+  // গ্রাফের লাইন পাথ তৈরি করা (0 থেকে 100 ভিউবক্সের জন্য)
+  const generateGraphPath = () => {
+    if (graphData.length === 0) return "";
+    return graphData.map((val, i) => {
+      const x = graphData.length === 1 ? 50 : (i / (graphData.length - 1)) * 100;
+      const y = 50 - (val / maxGraphValue) * 40; // ৪০ ডিলাম যাতে লাইন বর্ডারে না লাগে
+      return `${i === 0 ? 'M' : 'L'} ${x} ${y}`;
+    }).join(' ');
+  };
 
   return (
     <div className="stake-app">
@@ -506,7 +518,6 @@ export default function DiceGamePage() {
                 </div>
               </div>
               
-              {/* ✅ Bet History বাটন */}
               <button 
                 className="dice-btn-secondary" 
                 style={{ width: '100%', marginTop: '15px' }}
@@ -519,7 +530,7 @@ export default function DiceGamePage() {
         </div>
       )}
 
-      {/* ================= ✅ Bet History Modal (নতুন) ================= */}
+      {/* ================= ✅ Bet History Modal ================= */}
       {isBetHistoryOpen && (
         <div className="dice-modal-overlay" onClick={() => setIsBetHistoryOpen(false)}>
           <div className="dice-modal-content" onClick={e => e.stopPropagation()}>
@@ -561,7 +572,7 @@ export default function DiceGamePage() {
         </div>
       )}
 
-      {/* ================= ✅ Graph/Stats Modal ================= */}
+      {/* ================= ✅ Graph/Stats Modal (SVG Line Chart) ================= */}
       {isGraphOpen && (
         <div className="dice-modal-overlay" onClick={() => setIsGraphOpen(false)}>
           <div className="dice-modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '500px' }}>
@@ -573,22 +584,29 @@ export default function DiceGamePage() {
               {history.length === 0 ? (
                 <p style={{ textAlign: 'center', color: '#aaa' }}>No bets placed yet.</p>
               ) : (
-                <div className="dice-graph-container">
-                  {history.slice().reverse().map((h) => {
-                    const heightPercent = Math.min((Math.abs(h.profit) / maxGraphProfit) * 100, 100);
-                    return (
-                      <div key={h.id} className="dice-graph-bar-wrapper">
-                        <div className="dice-graph-bar-track">
-                          {h.profit >= 0 ? (
-                             <div className="dice-graph-bar win" style={{ height: `${heightPercent}%`, bottom: '50%' }}></div>
-                          ) : (
-                             <div className="dice-graph-bar lose" style={{ height: `${heightPercent}%`, top: '50%' }}></div>
-                          )}
-                          <div className="dice-graph-center-line"></div>
-                        </div>
-                      </div>
-                    );
-                  })}
+                <div style={{ position: 'relative', width: '100%', height: '200px' }}>
+                  <svg viewBox="0 0 100 100" preserveAspectRatio="none" style={{ width: '100%', height: '100%', overflow: 'visible' }}>
+                    <defs>
+                      <linearGradient id="lineGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="50%" stopColor="#00e701" />
+                        <stop offset="50%" stopColor="#ff4d4d" />
+                      </linearGradient>
+                    </defs>
+                    
+                    {/* শূন্য লাইন (Middle line) */}
+                    <line x1="0" y1="50" x2="100" y2="50" stroke="#23332b" strokeWidth="1" vectorEffect="non-scaling-stroke" />
+                    
+                    {/* লাভ-লসের গ্রাফ লাইন */}
+                    <path 
+                      d={generateGraphPath()} 
+                      fill="none" 
+                      stroke="url(#lineGradient)" 
+                      strokeWidth="3" 
+                      strokeLinejoin="round" 
+                      strokeLinecap="round"
+                      vectorEffect="non-scaling-stroke"
+                    />
+                  </svg>
                 </div>
               )}
             </div>
@@ -627,7 +645,6 @@ export default function DiceGamePage() {
                 </div>
               </div>
 
-              {/* ✅ Change Seed বাটন */}
               <div className="dice-fairness-group">
                 <button 
                   className="dice-btn-secondary" 
