@@ -595,16 +595,14 @@
   font-weight: 600;
 }
 
-/* ✅ Graph Styles */
+/* ✅ নতুন Graph Style (SVG Line Chart) */
+/* আপনার dice.css ফাইলের আগের গ্রাফ স্টাইলগুলো মুছে দিয়ে এটি দিন */
+
 .dice-graph-container {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  height: 150px;
-  gap: 6px;
-  padding-top: 20px;
-  border-bottom: 1px solid var(--dice-border);
-  margin-bottom: 10px;
+  position: relative;
+  width: 100%;
+  height: 200px;
+  padding: 10px 0;
 }
 
 .dice-graph-bar-wrapper {
