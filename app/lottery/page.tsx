@@ -1,7 +1,7 @@
 /* app/lottery/page.tsx */
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "../../lib/supabase/client";
 import "./lottery.css";
@@ -45,6 +45,7 @@ const TICKET_PRICES = [50, 100, 250, 500, 1000];
 export default function LotteryHomePage() {
   const router = useRouter();
   const supabase = useMemo(() => createClient(), []);
+  const isInitialMount = useRef(true); // ✅ প্রথমবার লোড চেক করার জন্য
 
   const [activeTab, setActiveTab] = useState<"buy" | "my-tickets">("buy");
   const [selectedPrice, setSelectedPrice] = useState(50);
@@ -74,9 +75,13 @@ export default function LotteryHomePage() {
   const [timeLeft, setTimeLeft] = useState("");
 
   const loadData = useCallback(async () => {
-    setLoading(true);
+    // ✅ শুধুমাত্র প্রথমবার পেইজ লোড হওয়ার সময় ফুল স্ক্রিন লোডিং দেখাবে
+    if (isInitialMount.current) {
+      setLoading(true);
+    }
+    
     setMessage({ type: "", text: "" });
-    setSelectedNumbers([]);
+    if (isInitialMount.current) setSelectedNumbers([]);
     
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -134,12 +139,16 @@ export default function LotteryHomePage() {
     } catch (err) {
       console.error(err);
     } finally {
-      setLoading(false);
+      if (isInitialMount.current) {
+        setLoading(false);
+        isInitialMount.current = false; // প্রথম লোড শেষ
+      }
     }
   }, [router, supabase, selectedPrice]);
 
   useEffect(() => { void loadData(); }, [loadData]);
 
+  // ✅ রিয়েল-টাইম আপডেট লিসেনার (কোনো লুপ নেই)
   useEffect(() => {
     const channel = supabase
       .channel("lottery_draws_realtime")
@@ -158,6 +167,7 @@ export default function LotteryHomePage() {
     };
   }, [supabase, loadData]);
 
+  // ✅ টাইমার (এখান থেকে লুপ সৃষ্টি করার কারণ সরিয়ে দেওয়া হয়েছে)
   useEffect(() => {
     if (!draw) return;
     const timer = setInterval(() => {
@@ -165,9 +175,7 @@ export default function LotteryHomePage() {
       if (distance < 0) { 
         setTimeLeft("Drawing..."); 
         clearInterval(timer); 
-        setTimeout(() => {
-          void loadData();
-        }, 2000); 
+        // ❌ এখানে আর loadData() কল হবে না (এটাই লুপের কারণ ছিল)
         return; 
       }
       const h = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
@@ -176,7 +184,7 @@ export default function LotteryHomePage() {
       setTimeLeft(`${h}h ${m}m ${s}s`);
     }, 1000);
     return () => clearInterval(timer);
-  }, [draw, loadData]);
+  }, [draw]); // loadData ডিপেন্ডেন্সি সরিয়ে দেওয়া হয়েছে
 
   const toggleNumber = (num: string) => {
     if (myTickets.includes(num)) return; 
@@ -265,7 +273,6 @@ export default function LotteryHomePage() {
   const isSoldByOthers = (num: string) => soldTickets.some(t => t.ticket_number === num) && !isMine(num);
   const totalWorth = allMyTickets.reduce((sum, t) => sum + (t.lottery_draws?.ticket_price || 0), 0);
 
-  // ✅ লোডিং স্টেট আপডেট: যাতে নাম্বারে ক্লিক করলে পুরো পেইজ মুছে না যায়
   if (loading && !priceLoadingText) return (
     <div style={{
       position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
