@@ -395,4 +395,27 @@
   .dice-inputs-grid { gap: 6px; }
 }
 
+
+/* ✅ Auto Bet চলাকালীন বাটন এবং ইনপুট ফিল্ডের স্টাইল */
+
+.dice-bet-btn.stop-btn {
+  background: #ff4d4d; /* লাল রঙের Stop বাটন */
+  color: #fff;
+}
+
+.dice-bet-btn.stop-btn:hover {
+  background: #e60000;
+}
+
+/* অটো চলাকালীন ইনপুটগুলো ডিজেবল দেখাবে */
+.dice-input-wrapper.disabled,
+.dice-amount-input-wrap.disabled {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.dice-bottom-tabs button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
 /* ✅ নিচের ডুপ্লিকেট কোডগুলো মুছে ফেলা হয়েছে */
