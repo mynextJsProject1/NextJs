@@ -5,7 +5,7 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Header from "../../../components/Header";
 import Footer from "../../../components/Footer";
-import GameBottomBar from "../../../components/GameBottomBar/GameBottomBar"; // ✅ নতুন কানেকশন
+import GameBottomBar from "../../../components/GameBottomBar";
 import { createClient } from "../../../lib/supabase/client";
 import "./dice.css";
 
@@ -26,8 +26,8 @@ export default function DiceGamePage() {
   const [isWin, setIsWin] = useState<boolean | null>(null);
   const [errorMsg, setErrorMsg] = useState("");
   
-  // বিট হিস্টরি
-  const [history, setHistory] = useState<{ id: string, value: number, isWin: boolean }[]>([]);
+  // বিট হিস্টরি (Profit/Loss সহ)
+  const [history, setHistory] = useState<{ id: string, value: number, isWin: boolean, profit: number, nonce: number }[]>([]);
   const [visualSliderValue, setVisualSliderValue] = useState(50.50);
 
   // ট্যাব স্টেট
@@ -43,19 +43,34 @@ export default function DiceGamePage() {
   const [stopOnProfit, setStopOnProfit] = useState("0.00");
   const [stopOnLoss, setStopOnLoss] = useState("0.00");
 
-  // ✅ Auto Betting এর জন্য
+  // Auto Betting
   const [isAutoBetting, setIsAutoBetting] = useState(false);
   const [autoStats, setAutoStats] = useState({ bets: 0, profit: 0 });
   const isAutoRef = useRef(false);
 
-  // ✅ নতুন স্টেটসমূহ (Settings, Graph, Fairness)
+  // ✅ Settings, Graph, Fairness এর জন্য স্টেট
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isGraphOpen, setIsGraphOpen] = useState(false);
   const [isFairnessOpen, setIsFairnessOpen] = useState(false);
+  const [isBetHistoryOpen, setIsBetHistoryOpen] = useState(false); // নতুন
 
   // Settings এর ভেতরের স্টেট
   const [instantBet, setInstantBet] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
+
+  // Fairness Seed State
+  const [clientSeed, setClientSeed] = useState("my_client_seed_123");
+  const [serverSeedHash, setServerSeedHash] = useState("a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0");
+  const [nonce, setNonce] = useState(1);
+
+  // সাউন্ড প্লে ফাংশন
+  const playDiceSound = () => {
+    if (soundEnabled) {
+      const audio = new Audio("https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3");
+      audio.volume = 0.5;
+      audio.play().catch(e => console.log("Audio play blocked by browser:", e));
+    }
+  };
 
   useEffect(() => {
     const fetchBalance = async () => {
@@ -117,6 +132,7 @@ export default function DiceGamePage() {
     setMultiplier(99 / newChance);
   };
 
+  // ✅ মূল বাজি ধরার লজিক (ছুটাছুটি বন্ধ করে সরাসরি রেজাল্ট দেখাবে)
   const executeBet = async (amountToBet: number) => {
     if (amountToBet <= 0) throw new Error("Invalid bet amount.");
     if (amountToBet > balance) throw new Error("Insufficient balance.");
@@ -125,10 +141,9 @@ export default function DiceGamePage() {
     setResult(null);
     setIsWin(null);
     setErrorMsg("");
-
-    const animationInterval = setInterval(() => {
-      setVisualSliderValue(Math.random() * 100);
-    }, 50);
+    
+    // সাউন্ড বাজানো
+    playDiceSound();
 
     try {
       const { data, error } = await supabase.rpc("play_dice_bet", {
@@ -140,19 +155,30 @@ export default function DiceGamePage() {
 
       if (error) throw error;
 
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      clearInterval(animationInterval);
+      // Instant Bet অন থাকলে কোনো ডিলে ছাড়াই সরাসরি রেজাল্ট দেখাবে
+      if (!instantBet) {
+        await new Promise(resolve => setTimeout(resolve, 300)); // অল্প একটু ডিলে (স্মুথনেসের জন্য)
+      }
 
       if (data) {
         setVisualSliderValue(data.roll); 
         setResult(data.roll);
         setIsWin(data.is_win);
         setBalance(data.new_balance);
-        setHistory(prev => [...prev, { id: Date.now().toString(), value: data.roll, isWin: data.is_win }].slice(-20)); 
+        
+        // হিস্টরিতে প্রফিট এবং ননস সেভ করা
+        setHistory(prev => [...prev, { 
+          id: Date.now().toString(), 
+          value: data.roll, 
+          isWin: data.is_win, 
+          profit: data.profit,
+          nonce: nonce
+        }].slice(-20));
+        
+        setNonce(prev => prev + 1);
       }
       return data;
     } catch (err: any) {
-      clearInterval(animationInterval);
       setErrorMsg(err.message || "Failed to place bet.");
       throw err;
     } finally {
@@ -208,15 +234,15 @@ export default function DiceGamePage() {
       }
 
       if (isAutoRef.current) {
-        setTimeout(() => runAutoLoop(nextBet, newCount, newProfit), 200);
+        setTimeout(() => runAutoLoop(nextBet, newCount, newProfit), 300);
       }
     } catch (err) {
       toggleAutoBet(); 
     }
   };
 
-  // ✅ Graph এর জন্য সর্বোচ্চ ভ্যালু বের করা (চার্ট স্কেল করার জন্য)
-  const maxGraphValue = Math.max(...history.map(h => h.value), 100);
+  // ✅ Graph এর জন্য Max Profit/Loss বের করা
+  const maxGraphProfit = Math.max(...history.map(h => Math.abs(h.profit)), 10);
 
   return (
     <div className="stake-app">
@@ -361,7 +387,6 @@ export default function DiceGamePage() {
 
             {activeTab === "auto" && (
               <div className="dice-auto-settings">
-                
                 {isAutoBetting && (
                   <div style={{ background: "rgba(0, 231, 1, 0.1)", border: "1px solid #00e701", padding: "10px", borderRadius: "8px", marginBottom: "15px", display: "flex", justifyContent: "space-between" }}>
                     <span style={{ color: "#fff", fontSize: "13px" }}>Bets: <strong>{autoStats.bets}</strong></span>
@@ -442,7 +467,6 @@ export default function DiceGamePage() {
               <button className={activeTab === "advanced" ? "active" : ""} onClick={() => setActiveTab("advanced")} disabled={isAutoBetting}>Advanced</button>
             </div>
 
-            {/* ✅ GameBottomBar কানেক্ট করা হলো */}
             <GameBottomBar 
               onSettingsClick={() => setIsSettingsOpen(true)}
               onStatsClick={() => setIsGraphOpen(true)}
@@ -470,7 +494,7 @@ export default function DiceGamePage() {
             </div>
             <div className="dice-modal-body">
               <div className="dice-setting-row">
-                <span>Instant Bet</span>
+                <span>Instant Bet (Turbo)</span>
                 <div className={`toggle-switch ${instantBet ? "active" : ""}`} onClick={() => setInstantBet(!instantBet)}>
                   <div className="toggle-knob"></div>
                 </div>
@@ -481,6 +505,57 @@ export default function DiceGamePage() {
                   <div className="toggle-knob"></div>
                 </div>
               </div>
+              
+              {/* ✅ Bet History বাটন */}
+              <button 
+                className="dice-btn-secondary" 
+                style={{ width: '100%', marginTop: '15px' }}
+                onClick={() => { setIsSettingsOpen(false); setIsBetHistoryOpen(true); }}
+              >
+                View Bet History
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ================= ✅ Bet History Modal (নতুন) ================= */}
+      {isBetHistoryOpen && (
+        <div className="dice-modal-overlay" onClick={() => setIsBetHistoryOpen(false)}>
+          <div className="dice-modal-content" onClick={e => e.stopPropagation()}>
+            <div className="dice-modal-header">
+              <h3>Bet History</h3>
+              <button onClick={() => setIsBetHistoryOpen(false)}>✕</button>
+            </div>
+            <div className="dice-modal-body" style={{ maxHeight: '400px', overflowY: 'auto' }}>
+              {history.length === 0 ? (
+                <p style={{ textAlign: 'center', color: '#aaa' }}>No bets placed yet.</p>
+              ) : (
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', color: '#fff' }}>
+                  <thead>
+                    <tr style={{ borderBottom: '1px solid #23332b', textAlign: 'left' }}>
+                      <th style={{ padding: '8px 4px' }}>Nonce</th>
+                      <th style={{ padding: '8px 4px' }}>Roll</th>
+                      <th style={{ padding: '8px 4px' }}>Result</th>
+                      <th style={{ padding: '8px 4px', textAlign: 'right' }}>Profit</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {history.slice().reverse().map((h) => (
+                      <tr key={h.id} style={{ borderBottom: '1px dashed #23332b' }}>
+                        <td style={{ padding: '8px 4px', color: '#a0aab2' }}>{h.nonce}</td>
+                        <td style={{ padding: '8px 4px' }}>{h.value.toFixed(2)}</td>
+                        <td style={{ padding: '8px 4px', color: h.isWin ? '#00e701' : '#ff4d4d' }}>
+                          {h.isWin ? 'Win' : 'Loss'}
+                        </td>
+                        <td style={{ padding: '8px 4px', textAlign: 'right', color: h.profit > 0 ? '#00e701' : '#ff4d4d' }}>
+                          {h.profit > 0 ? '+' : ''}{h.profit.toFixed(2)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
             </div>
           </div>
         </div>
@@ -491,7 +566,7 @@ export default function DiceGamePage() {
         <div className="dice-modal-overlay" onClick={() => setIsGraphOpen(false)}>
           <div className="dice-modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '500px' }}>
             <div className="dice-modal-header">
-              <h3>Dice Graph</h3>
+              <h3>Profit / Loss Graph</h3>
               <button onClick={() => setIsGraphOpen(false)}>✕</button>
             </div>
             <div className="dice-modal-body">
@@ -499,15 +574,21 @@ export default function DiceGamePage() {
                 <p style={{ textAlign: 'center', color: '#aaa' }}>No bets placed yet.</p>
               ) : (
                 <div className="dice-graph-container">
-                  {history.slice().reverse().map((h, i) => (
-                    <div key={h.id} className="dice-graph-bar-wrapper">
-                      <div 
-                        className={`dice-graph-bar ${h.isWin ? 'win' : 'lose'}`} 
-                        style={{ height: `${(h.value / maxGraphValue) * 100}%` }}
-                      ></div>
-                      <span className="dice-graph-label">{h.value.toFixed(0)}</span>
-                    </div>
-                  ))}
+                  {history.slice().reverse().map((h) => {
+                    const heightPercent = Math.min((Math.abs(h.profit) / maxGraphProfit) * 100, 100);
+                    return (
+                      <div key={h.id} className="dice-graph-bar-wrapper">
+                        <div className="dice-graph-bar-track">
+                          {h.profit >= 0 ? (
+                             <div className="dice-graph-bar win" style={{ height: `${heightPercent}%`, bottom: '50%' }}></div>
+                          ) : (
+                             <div className="dice-graph-bar lose" style={{ height: `${heightPercent}%`, top: '50%' }}></div>
+                          )}
+                          <div className="dice-graph-center-line"></div>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -531,21 +612,39 @@ export default function DiceGamePage() {
               <div className="dice-fairness-group">
                 <label>Server Seed (Hashed)</label>
                 <div className="dice-fairness-input">
-                  <code>a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0</code>
+                  <code>{serverSeedHash}</code>
                 </div>
               </div>
 
               <div className="dice-fairness-group">
                 <label>Client Seed (Editable)</label>
                 <div className="dice-fairness-input">
-                  <input type="text" defaultValue="my_client_seed_123" />
+                  <input 
+                    type="text" 
+                    value={clientSeed} 
+                    onChange={(e) => setClientSeed(e.target.value)} 
+                  />
                 </div>
+              </div>
+
+              {/* ✅ Change Seed বাটন */}
+              <div className="dice-fairness-group">
+                <button 
+                  className="dice-btn-secondary" 
+                  style={{ width: '100%' }}
+                  onClick={() => {
+                    const newSeed = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+                    setClientSeed(newSeed);
+                  }}
+                >
+                  Change Seed
+                </button>
               </div>
 
               <div className="dice-fairness-group">
                 <label>Nonce</label>
                 <div className="dice-fairness-input">
-                  <code>{history.length + 1}</code>
+                  <code>{nonce}</code>
                 </div>
               </div>
             </div>
