@@ -6,7 +6,7 @@ html, body {
   margin: 0;
   padding: 0;
   width: 100%;
-  overflow-x: hidden; /* স্ক্রলবারের কারণে যাতে পাশে কাটা না পড়ে */
+  overflow-x: hidden;
 }
 
 .stake-app, .stake-main {
@@ -16,8 +16,8 @@ html, body {
 
 /* ✅ পুরো স্ক্রিনের প্যারেন্ট কন্টেইনার */
 .dice-game-container {
-  --dice-bg: #18221E;         /* মেইন ব্যাকগ্রাউন্ড Deep Forest Green */
-  --dice-card: #1c2a24;       /* কার্ডের ব্যাকগ্রাউন্ড (সামান্য হালকা) */
+  --dice-bg: #18221E;         
+  --dice-card: #1c2a24;       
   --dice-input-bg: #111815;   
   --dice-border: #2b4236;     
   --dice-text: #ffffff;       
@@ -31,17 +31,19 @@ html, body {
   color: var(--dice-text);
   font-family: inherit;
   
-  /* ✅ ডেস্কটপে কন্টেইনারকে মাঝখানে রাখার জন্য */
   display: flex;
   flex-direction: column;
   align-items: center; 
-  padding-bottom: 80px;
+  
+  /* ✅ ৭০% গ্যাপ কমানো হয়েছে (৮০ থেকে ২৪ পিক্সেল) */
+  padding-bottom: 24px; 
 }
 
-/* ✅ মেইন কার্ড (মার্জিন ২০ থেকে ১০ পিক্সেল করা হয়েছে) */
+/* ✅ মেইন কার্ড (উপর-নিচের গ্যাপ ৭০% কমানো হয়েছে) */
 .dice-main-area {
   padding: 15px; 
-  margin: 10px auto; /* ✅ ৫০% মার্জিন কমানো হয়েছে */
+  /* ✅ ১০ পিক্সেল থেকে কমিয়ে ৩ পিক্সেল করা হয়েছে */
+  margin: 3px auto; 
   max-width: 600px; 
   width: calc(100% - 30px); 
   border: 1px solid var(--dice-border); 
@@ -99,10 +101,10 @@ html, body {
   to { transform: translateX(0); opacity: 1; }
 }
 
-/* ✅ ৩. স্লাইডার সেকশন (উপরের মার্জিন ৬০ থেকে ৩০ পিক্সেল করা হয়েছে) */
+/* ✅ ৩. স্লাইডার সেকশন */
 .dice-slider-section {
   margin-bottom: 20px;
-  margin-top: 30px; /* ✅ ৫০% ফাঁকা জায়গা কমানো হয়েছে */
+  margin-top: 30px; 
   position: relative;
 }
 
@@ -397,7 +399,8 @@ html, body {
 /* মোবাইলের জন্য রেসপন্সিভ */
 @media (max-width: 500px) {
   .dice-main-area {
-    margin: 10px auto;
+    /* ✅ মোবাইলেও গ্যাপ ৭০% কমানো হয়েছে */
+    margin: 3px auto; 
     padding: 12px;
     width: calc(100% - 20px);
   }
