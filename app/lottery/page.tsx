@@ -61,10 +61,9 @@ export default function LotteryHomePage() {
   const [selectedNumbers, setSelectedNumbers] = useState<string[]>([]);
   const [showCheckout, setShowCheckout] = useState(false);
 
-  // ✅ নতুন স্টেট: ব্যানার ইমেজের জন্য
   const [bannerUrl, setBannerUrl] = useState<string | null>(null);
+  const [priceLoadingText, setPriceLoadingText] = useState<string | null>(null);
 
-  // KYC State
   const [hasKyc, setHasKyc] = useState(false);
   const [showKycForm, setShowKycForm] = useState(false);
   const [kycData, setKycData] = useState<KycData>({
@@ -83,7 +82,6 @@ export default function LotteryHomePage() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { router.replace("/signup/"); return; }
 
-      // ✅ ১. ব্যানার লোড করা
       const { data: bannerData } = await supabase
         .from("lottery_banners")
         .select("image_url")
@@ -97,7 +95,6 @@ export default function LotteryHomePage() {
         setBannerUrl(null);
       }
 
-      // ২. ব্যালেন্স চেক
       const { data: profile } = await supabase.from("profiles").select("lottery_balance, mobile, full_name").eq("id", user.id).single();
       if (profile) {
         setBalance(Number(profile.lottery_balance || 0)); 
@@ -107,7 +104,6 @@ export default function LotteryHomePage() {
       const { data: kyc } = await supabase.from("lottery_user_details").select("user_id").eq("user_id", user.id).maybeSingle();
       setHasKyc(!!kyc);
 
-      // ৩. আমার সব টিকিট
       const { data: myTicketsData } = await supabase
         .from("lottery_tickets")
         .select("id, ticket_number, ticket_code, created_at, lottery_draws(draw_name, ticket_price)")
@@ -116,7 +112,6 @@ export default function LotteryHomePage() {
       
       if (myTicketsData) setAllMyTickets(myTicketsData as unknown as MyTicketData[]);
 
-      // ৪. চলমান ড্র
       const { data: drawData } = await supabase
         .from("lottery_draws")
         .select("*")
@@ -145,7 +140,6 @@ export default function LotteryHomePage() {
 
   useEffect(() => { void loadData(); }, [loadData]);
 
-  // ================= নতুন লজিক ১: রিয়েল-টাইম আপডেট =================
   useEffect(() => {
     const channel = supabase
       .channel("lottery_draws_realtime")
@@ -153,7 +147,6 @@ export default function LotteryHomePage() {
         "postgres_changes",
         { event: "*", schema: "public", table: "lottery_draws" },
         (payload) => {
-          // যখনই অ্যাডমিন নতুন ড্র তৈরি করবে বা ড্র শেষ করবে, ডাটা রিলোড হবে
           console.log("Draw table updated, reloading data...", payload);
           void loadData();
         }
@@ -164,9 +157,7 @@ export default function LotteryHomePage() {
       supabase.removeChannel(channel);
     };
   }, [supabase, loadData]);
-  // ==================================================================
 
-  // টাইমার
   useEffect(() => {
     if (!draw) return;
     const timer = setInterval(() => {
@@ -174,10 +165,9 @@ export default function LotteryHomePage() {
       if (distance < 0) { 
         setTimeLeft("Drawing..."); 
         clearInterval(timer); 
-        // ================= নতুন লজিক ২: টাইমার শেষ হলে অটো-রিফ্রেশ =================
         setTimeout(() => {
           void loadData();
-        }, 2000); // ২ সেকেন্ড পর ডাটা রিলোড হবে
+        }, 2000); 
         return; 
       }
       const h = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
@@ -260,22 +250,60 @@ export default function LotteryHomePage() {
     }
   };
 
+  const handlePriceChange = (price: number) => {
+    if (price === selectedPrice) return; 
+    
+    setPriceLoadingText("loading"); 
+    setSelectedPrice(price); 
+    
+    setTimeout(() => {
+      setPriceLoadingText(null);
+    }, 1500);
+  };
+
   const isMine = (num: string) => myTickets.includes(num);
   const isSoldByOthers = (num: string) => soldTickets.some(t => t.ticket_number === num) && !isMine(num);
   const totalWorth = allMyTickets.reduce((sum, t) => sum + (t.lottery_draws?.ticket_price || 0), 0);
 
-  if (loading) return <div className="lottery-loading"><i className="fa-solid fa-circle-notch fa-spin"></i><span>Loading...</span></div>;
+  // ✅ লোডিং স্টেট আপডেট: যাতে নাম্বারে ক্লিক করলে পুরো পেইজ মুছে না যায়
+  if (loading && !priceLoadingText) return (
+    <div style={{
+      position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+      backgroundColor: '#130a24', display: 'flex', flexDirection: 'column', 
+      justifyContent: 'center', alignItems: 'center', zIndex: 9999
+    }}>
+      <i className="fa-solid fa-circle-notch fa-spin" style={{ fontSize: '40px', color: '#d4af37', marginBottom: '15px' }}></i>
+      <h2 style={{ color: 'white', fontSize: '12px', fontWeight: 'bold', letterSpacing: '1px', textAlign: 'center' }}>
+        Loading Lucky Jackpot Data..
+      </h2>
+    </div>
+  );
 
   return (
     <div className="lottery-home-page">
+      
+      {priceLoadingText && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          backgroundColor: 'rgba(19, 10, 36, 0.95)', 
+          backdropFilter: 'blur(5px)',
+          display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center',
+          zIndex: 9999
+        }}>
+          <i className="fa-solid fa-ticket fa-spin" style={{ fontSize: '45px', color: '#d4af37', marginBottom: '15px' }}></i>
+          <h1 style={{ color: 'white', fontSize: '14px', fontWeight: '900', letterSpacing: '1px', textAlign: 'center' }}>
+            Loading Draw Data...
+          </h1>
+        </div>
+      )}
+
       <div className="main-tabs">
-        <button className={activeTab === "buy" ? "active" : ""} onClick={() => setActiveTab("buy")}>Buy Tickets</button>
-        <button className={activeTab === "my-tickets" ? "active" : ""} onClick={() => setActiveTab("my-tickets")}>My Tickets</button>
+        <button type="button" className={activeTab === "buy" ? "active" : ""} onClick={() => setActiveTab("buy")}>Buy Tickets</button>
+        <button type="button" className={activeTab === "my-tickets" ? "active" : ""} onClick={() => setActiveTab("my-tickets")}>My Tickets</button>
       </div>
 
       {activeTab === "buy" ? (
         <>
-          {/* ✅ ৩. জ্যাকপট ব্যানারে ছবি যোগ করা হলো */}
           <div className="jackpot-banner" style={{ position: 'relative', overflow: 'hidden' }}>
             {bannerUrl && (
               <img 
@@ -293,7 +321,14 @@ export default function LotteryHomePage() {
 
           <div className="price-tabs">
             {TICKET_PRICES.map(price => (
-              <button key={price} className={selectedPrice === price ? "active" : ""} onClick={() => setSelectedPrice(price)}>৳{price}</button>
+              <button 
+                type="button"
+                key={price} 
+                className={selectedPrice === price ? "active" : ""} 
+                onClick={() => handlePriceChange(price)} 
+              >
+                ৳{price}
+              </button>
             ))}
           </div>
 
@@ -318,6 +353,7 @@ export default function LotteryHomePage() {
                   
                   return (
                     <button
+                      type="button"
                       key={num}
                       className={`num-btn ${soldByOthers ? "sold" : ""} ${mine ? "mine" : ""} ${selected ? "selected" : ""}`}
                       onClick={() => toggleNumber(num)}
@@ -347,6 +383,7 @@ export default function LotteryHomePage() {
                   <strong className="text-gold">৳ {draw.ticket_price * selectedNumbers.length}</strong>
                 </div>
                 <button 
+                  type="button"
                   className="buy-btn" 
                   onClick={() => { if (!hasKyc) setShowKycForm(true); else handleProceedToCheckout(); }} 
                   disabled={selectedNumbers.length === 0 || buying || balance < (draw.ticket_price * selectedNumbers.length)}
@@ -402,8 +439,8 @@ export default function LotteryHomePage() {
             <div className="modal-row"><span>Balance After Payment:</span> <strong className="text-green">৳{(balance - (draw.ticket_price * selectedNumbers.length)).toFixed(2)}</strong></div>
             
             <div className="modal-actions">
-              <button className="btn-cancel" onClick={() => setShowCheckout(false)}>Cancel</button>
-              <button className="btn-confirm" onClick={handleConfirmBuy} disabled={buying}>{buying ? "Processing..." : "Confirm & Pay"}</button>
+              <button type="button" className="btn-cancel" onClick={() => setShowCheckout(false)}>Cancel</button>
+              <button type="button" className="btn-confirm" onClick={handleConfirmBuy} disabled={buying}>{buying ? "Processing..." : "Confirm & Pay"}</button>
             </div>
           </div>
         </div>
