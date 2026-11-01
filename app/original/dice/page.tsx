@@ -5,7 +5,7 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Header from "../../../components/Header";
 import Footer from "../../../components/Footer";
-import GameBottomBar from "../../../components/GameBottomBar";
+import GameBottomBar from "../../../components/GameBottomBar/GameBottomBar";
 import { createClient } from "../../../lib/supabase/client";
 import "./dice.css";
 
