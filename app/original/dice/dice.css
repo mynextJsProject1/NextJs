@@ -389,3 +389,20 @@
   .dice-input-wrapper i, .dice-input-wrapper span { font-size: 0.75rem; }
   .dice-inputs-grid { gap: 6px; }
 }
+
+/* ১. এই ক্লাসে margin-top কমিয়ে 30px করে দিন */
+.dice-slider-section {
+  margin-bottom: 20px;
+  margin-top: 30px; /* আগে 50px ছিল, এখন 30px */
+}
+
+/* ২. হিস্টরি কন্টেইনার যেন খালি থাকলে জায়গা না নেয় */
+.dice-history-wrapper {
+  display: flex;
+  justify-content: flex-end;
+  width: 100%;
+  margin-bottom: 10px; /* 15px থেকে কমানো হলো */
+  margin-top: 0; 
+  min-height: 30px; /* যাতে হিস্টরি থাকলে ঠিকমতো জায়গা নেয় */
+  overflow: hidden;
+}
