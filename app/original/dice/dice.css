@@ -17,32 +17,10 @@
   width: 100%;
 }
 
-/* রেজাল্ট বক্স */
-.dice-result-container {
-  height: 60px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin-bottom: 10px;
-}
-
-.dice-result-box {
-  background: #1a2c38;
-  border: 2px solid #ff4d4d;
-  color: #fff;
-  padding: 8px 16px;
-  border-radius: 8px;
-  font-size: 18px;
-  font-weight: bold;
-  animation: popIn 0.3s ease-out;
-}
-
-.dice-result-box.win { border-color: #00e701; color: #00e701; }
-.dice-result-box.lose { border-color: #ff4d4d; color: #ff4d4d; }
-
-/* স্লাইডার */
+/* স্লাইডার সেকশন */
 .dice-slider-section {
   margin-bottom: 24px;
+  margin-top: 50px; /* রেজাল্ট বক্সের জন্য জায়গা */
 }
 
 .dice-slider-track {
@@ -66,7 +44,46 @@
   transition: background 0.1s;
 }
 
-/* ✅ ভিজুয়াল স্লাইডার (রোলিং অ্যানিমেশন) */
+/* ✅ ভাসমান রেজাল্ট বক্স (স্লাইডারের উপরে যেটি ঘুরবে) */
+.dice-floating-result {
+  position: absolute;
+  top: -55px;
+  transform: translateX(-50%);
+  background: #1a2c38;
+  border: 2px solid #ff4d4d;
+  color: #ff4d4d;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 18px;
+  font-weight: bold;
+  z-index: 10;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+  transition: left 0.05s linear;
+}
+
+.dice-floating-result.win {
+  border-color: #00e701;
+  color: #00e701;
+}
+
+/* ✅ নিচের দিকের তীর (বক্সের সাথে যুক্ত) */
+.dice-floating-result .arrow-down {
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-top: 8px solid #ff4d4d;
+}
+
+.dice-floating-result.win .arrow-down {
+  border-top-color: #00e701;
+}
+
+/* ✅ ভিজুয়াল স্লাইডার (সাদা গোল চিহ্নটি সম্পূর্ণ লুকানো হয়েছে) */
 .dice-visual-slider {
   width: 100%;
   position: absolute;
@@ -76,24 +93,18 @@
   z-index: 2;
   -webkit-appearance: none;
   background: transparent;
-  pointer-events: none; /* ইউজার ক্লিক করতে পারবে না */
+  pointer-events: none;
 }
 
 .dice-visual-slider::-webkit-slider-thumb {
   -webkit-appearance: none;
   height: 24px;
   width: 24px;
-  border-radius: 50%;
-  background: transparent; /* অ্যানিমেশনের সময় একটি ভুতুড়ে বল */
-  border: 2px solid #fff;
+  background: transparent !important; /* গোল চিহ্ন লুকানো */
+  border: none !important;
 }
 
-.dice-visual-slider.animating::-webkit-slider-thumb {
-  background: rgba(255, 255, 255, 0.5);
-  box-shadow: 0 0 15px rgba(255, 255, 255, 0.8);
-}
-
-/* ✅ মূল স্লাইডার (ইউজার যেটা ধরে টানবে) */
+/* ✅ মূল স্লাইডার (পার্পল রঙের) */
 .dice-main-slider {
   width: 100%;
   position: relative;
@@ -111,17 +122,6 @@
   cursor: pointer;
   box-shadow: 0 0 10px rgba(0,0,0,0.5);
   border: 3px solid #fff;
-}
-
-/* ✅ চিকন তীর (রেজাল্ট স্লাইডারের উপরে) */
-.dice-result-arrow {
-  position: absolute;
-  top: -12px;
-  transform: translateX(-50%);
-  color: #ffd700;
-  font-size: 20px;
-  z-index: 4;
-  animation: fadeIn 0.3s ease;
 }
 
 .dice-slider-numbers {
@@ -293,9 +293,7 @@
   color: #fff;
 }
 
-/* ========================================= */
-/* ✅ Auto Mode UI (২য় ছবির ডিজাইন) */
-/* ========================================= */
+/* Auto Mode UI */
 .dice-auto-settings {
   display: flex;
   flex-direction: column;
@@ -376,16 +374,6 @@
   border-radius: 4px;
   outline: none;
   font-weight: bold;
-}
-
-@keyframes popIn {
-  0% { transform: scale(0.8); opacity: 0; }
-  100% { transform: scale(1); opacity: 1; }
-}
-
-@keyframes fadeIn {
-  0% { opacity: 0; }
-  100% { opacity: 1; }
 }
 
 @media (max-width: 500px) {
