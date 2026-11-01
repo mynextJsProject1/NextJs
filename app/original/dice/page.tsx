@@ -25,13 +25,13 @@ export default function DiceGamePage() {
   const [isWin, setIsWin] = useState<boolean | null>(null);
   const [errorMsg, setErrorMsg] = useState("");
   
-  // ভিজুয়াল স্লাইডার (রোলিং এর সময় স্লাইডার মুভ করার জন্য)
+  // ভিজুয়াল স্লাইডার (বক্সটি এখানে মুভ করবে)
   const [visualSliderValue, setVisualSliderValue] = useState(50.50);
 
   // ট্যাব স্টেট
   const [activeTab, setActiveTab] = useState<"manual" | "auto" | "advanced">("manual");
 
-  // ✅ Auto Mode State (২য় ছবির জন্য)
+  // Auto Mode State
   const [autoBetCount, setAutoBetCount] = useState("0");
   const [isAdvanced, setIsAdvanced] = useState(false);
   const [onWinMode, setOnWinMode] = useState<"reset" | "increase">("reset");
@@ -41,7 +41,6 @@ export default function DiceGamePage() {
   const [stopOnProfit, setStopOnProfit] = useState("0.00");
   const [stopOnLoss, setStopOnLoss] = useState("0.00");
 
-  // ✅ পেইজ লোড হলে আসল ব্যালেন্স আনা
   useEffect(() => {
     const fetchBalance = async () => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -53,7 +52,6 @@ export default function DiceGamePage() {
     void fetchBalance();
   }, [supabase]);
 
-  // ✅ স্লাইডার পরিবর্তন
   const handleSliderChange = (value: number) => {
     setRollOver(value);
     setVisualSliderValue(value);
@@ -62,7 +60,6 @@ export default function DiceGamePage() {
     setMultiplier(99 / newChance); 
   };
 
-  // ✅ Over/Under টগল
   const handleToggleMode = () => {
     setIsOver(!isOver);
     const newChance = !isOver ? 100 - rollOver : rollOver;
@@ -70,7 +67,6 @@ export default function DiceGamePage() {
     setMultiplier(99 / newChance);
   };
 
-  // ✅ Multiplier এডিট
   const handleMultiplierChange = (val: number) => {
     setMultiplier(val);
     if (val <= 1) return;
@@ -81,7 +77,6 @@ export default function DiceGamePage() {
     setVisualSliderValue(newRollOver);
   };
 
-  // ✅ Chance এডিট (নতুন)
   const handleChanceChange = (val: number) => {
     if (val <= 0 || val >= 100) return;
     setChance(val);
@@ -92,7 +87,6 @@ export default function DiceGamePage() {
     setVisualSliderValue(newRollOver);
   };
 
-  // ✅ Roll Over/Under এডিট (নতুন)
   const handleRollOverChange = (val: number) => {
     if (val <= 0 || val >= 100) return;
     setRollOver(val);
@@ -102,7 +96,7 @@ export default function DiceGamePage() {
     setMultiplier(99 / newChance);
   };
 
-  // ✅ আসল গেম লজিক (Supabase RPC কল) + অ্যানিমেশন
+  // ✅ আসল গেম লজিক
   const handleRoll = async () => {
     const amount = Number(betAmount);
     if (amount <= 0) return;
@@ -116,11 +110,9 @@ export default function DiceGamePage() {
     setIsWin(null);
     setErrorMsg("");
 
-    // ভিজুয়াল অ্যানিমেশন (স্লাইডারকে ডানে-বামে ঘোরানো)
-    let animationCount = 0;
+    // ভিজুয়াল অ্যানিমেশন
     const animationInterval = setInterval(() => {
       setVisualSliderValue(Math.random() * 100);
-      animationCount++;
     }, 50);
 
     try {
@@ -133,11 +125,10 @@ export default function DiceGamePage() {
 
       if (error) throw error;
 
-      // ১.৫ সেকেন্ড পর অ্যানিমেশন বন্ধ হবে এবং রেজাল্ট দেখাবে
       setTimeout(() => {
         clearInterval(animationInterval);
         if (data) {
-          setVisualSliderValue(data.roll); // স্লাইডার রেজাল্টের জায়গায় থামবে
+          setVisualSliderValue(data.roll); 
           setResult(data.roll);
           setIsWin(data.is_win);
           setBalance(data.new_balance);
@@ -152,7 +143,6 @@ export default function DiceGamePage() {
     }
   };
 
-  // Auto ট্যাবের ইনপুট হ্যান্ডলার (পরে RPC-তে যুক্ত হবে)
   const handleAutoStart = () => {
     alert("Auto betting will start in the backend update!");
   };
@@ -171,46 +161,40 @@ export default function DiceGamePage() {
               </div>
             )}
 
-            {/* রেজাল্ট বক্স ও অ্যানিমেশন */}
-            <div className="dice-result-container">
-              {result !== null && (
-                <div className={`dice-result-box ${isWin ? "win" : "lose"}`}>
-                  {result.toFixed(2)}
-                </div>
-              )}
-            </div>
-
-            {/* স্লাইডার সেকশন */}
+            {/* ✅ স্লাইডার সেকশন (রেজাল্ট বক্স এখন এখানে থাকবে) */}
             <div className="dice-slider-section">
               <div className="dice-slider-track">
+                
+                {/* ✅ ভাসমান রেজাল্ট বক্স (রোলিং এবং রেজাল্টের সময় এখানে দেখা যাবে) */}
+                {(isRolling || result !== null) && (
+                  <div 
+                    className={`dice-floating-result ${isWin === true ? 'win' : isWin === false ? 'lose' : ''}`}
+                    style={{ left: `${visualSliderValue}%` }}
+                  >
+                    {visualSliderValue.toFixed(2)}
+                    <div className="arrow-down"></div>
+                  </div>
+                )}
+
                 <div className="dice-track-fill" style={{
                   background: isOver 
                     ? `linear-gradient(to right, #ff4d4d ${rollOver}%, #00e701 ${rollOver}%)`
                     : `linear-gradient(to right, #00e701 ${rollOver}%, #ff4d4d ${rollOver}%)`
                 }} />
                 
-                {/* ✅ ভিজুয়াল স্লাইডার (রোলিং এর সময় মুভ করার জন্য) */}
                 <input 
                   type="range" min="0" max="100" step="0.01"
                   value={visualSliderValue}
                   readOnly
-                  className={`dice-visual-slider ${isRolling ? "animating" : ""}`}
+                  className="dice-visual-slider"
                 />
 
-                {/* ✅ ইউজারের টার্গেট স্লাইডার (ক্লিক করে সেট করার জন্য) */}
                 <input 
                   type="range" min="2" max="98" step="0.01"
                   value={rollOver}
                   onChange={(e) => handleSliderChange(Number(e.target.value))}
                   className="dice-main-slider"
                 />
-
-                {/* ✅ চিকন তীর (রোলিং শেষ হলে যেখানে থামবে) */}
-                {result !== null && !isRolling && (
-                  <div className="dice-result-arrow" style={{ left: `${result}%` }}>
-                    <i className="fa-solid fa-caret-down"></i>
-                  </div>
-                )}
               </div>
 
               <div className="dice-slider-numbers">
@@ -255,7 +239,7 @@ export default function DiceGamePage() {
               {isRolling ? "Rolling..." : activeTab === "manual" ? "Bet" : "Start Auto"}
             </button>
 
-            {/* ম্যানুয়াল ট্যাবে থাকলে বেট অ্যামাউন্ট দেখাবে */}
+            {/* ম্যানুয়াল ট্যাব */}
             {activeTab !== "auto" && (
               <div className="dice-amount-section">
                 <div className="dice-amount-group">
@@ -289,7 +273,7 @@ export default function DiceGamePage() {
               </div>
             )}
 
-            {/* ================= ✅ Auto Mode UI (২য় ছবির মতো) ================= */}
+            {/* অটো মোড UI */}
             {activeTab === "auto" && (
               <div className="dice-auto-settings">
                 <div className="dice-input-group">
@@ -357,7 +341,7 @@ export default function DiceGamePage() {
               </div>
             )}
 
-            {/* বটম ট্যাব */}
+            {/* ট্যাব */}
             <div className="dice-bottom-tabs">
               <button className={activeTab === "manual" ? "active" : ""} onClick={() => setActiveTab("manual")}>Manual</button>
               <button className={activeTab === "auto" ? "active" : ""} onClick={() => setActiveTab("auto")}>Auto</button>
