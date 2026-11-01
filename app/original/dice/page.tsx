@@ -26,8 +26,8 @@ export default function DiceGamePage() {
   const [isWin, setIsWin] = useState<boolean | null>(null);
   const [errorMsg, setErrorMsg] = useState("");
   
-  // বিট হিস্টরি (Profit/Loss সহ)
-  const [history, setHistory] = useState<{ id: string, value: number, isWin: boolean, profit: number, nonce: number }[]>([]);
+  // বিট হিস্টরি (Graph এর জন্য betAmount যুক্ত করা হয়েছে)
+  const [history, setHistory] = useState<{ id: string, value: number, isWin: boolean, profit: number, nonce: number, betAmount: number }[]>([]);
   const [visualSliderValue, setVisualSliderValue] = useState(50.50);
 
   // ট্যাব স্টেট
@@ -52,7 +52,7 @@ export default function DiceGamePage() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isGraphOpen, setIsGraphOpen] = useState(false);
   const [isFairnessOpen, setIsFairnessOpen] = useState(false);
-  const [isBetHistoryOpen, setIsBetHistoryOpen] = useState(false);
+  const [isBetHistoryOpen, setIsBetHistoryOpen] = useState(false); 
 
   // Settings এর ভেতরের স্টেট
   const [instantBet, setInstantBet] = useState(false);
@@ -62,6 +62,7 @@ export default function DiceGamePage() {
   const [clientSeed, setClientSeed] = useState("my_client_seed_123");
   const [serverSeedHash, setServerSeedHash] = useState("a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0");
   const [nonce, setNonce] = useState(1);
+  const [isSeedVerified, setIsSeedVerified] = useState(false);
 
   // সাউন্ড প্লে ফাংশন
   const playDiceSound = () => {
@@ -132,7 +133,7 @@ export default function DiceGamePage() {
     setMultiplier(99 / newChance);
   };
 
-  // ✅ মূল বাজি ধরার লজিক (স্লোয়েনেস রিমুভ করা হয়েছে)
+  // ✅ মূল বাজি ধরার লজিক (Instant Bet এর জন্য ডিলে সরানো হয়েছে)
   const executeBet = async (amountToBet: number) => {
     if (amountToBet <= 0) throw new Error("Invalid bet amount.");
     if (amountToBet > balance) throw new Error("Insufficient balance.");
@@ -142,7 +143,6 @@ export default function DiceGamePage() {
     setIsWin(null);
     setErrorMsg("");
     
-    // সাউন্ড বাজানো
     playDiceSound();
 
     try {
@@ -155,21 +155,20 @@ export default function DiceGamePage() {
 
       if (error) throw error;
 
-      // artificial delay সরিয়ে দেওয়া হয়েছে, তাই এখন একদম ফাস্ট কাজ করবে
-
+      // ✅ কোনো ডিলে ছাড়াই সরাসরি রেজাল্ট দেখাবে
       if (data) {
         setVisualSliderValue(data.roll); 
         setResult(data.roll);
         setIsWin(data.is_win);
         setBalance(data.new_balance);
         
-        // হিস্টরিতে প্রফিট এবং ননস সেভ করা
         setHistory(prev => [...prev, { 
           id: Date.now().toString(), 
           value: data.roll, 
           isWin: data.is_win, 
           profit: data.profit,
-          nonce: nonce
+          nonce: nonce,
+          betAmount: amountToBet // Graph এর জন্য সেভ করা হলো
         }].slice(-20));
         
         setNonce(prev => prev + 1);
@@ -230,6 +229,9 @@ export default function DiceGamePage() {
         nextBet = currentBet + (currentBet * Number(onLossValue) / 100);
       }
 
+      // ✅ Auto Bet এর ইনপুট বক্সে লাইভ নাম্বার আপডেট হবে
+      setBetAmount(nextBet.toFixed(2));
+
       if (isAutoRef.current) {
         setTimeout(() => runAutoLoop(nextBet, newCount, newProfit), 300);
       }
@@ -238,22 +240,46 @@ export default function DiceGamePage() {
     }
   };
 
-  // ✅ নতুন গ্রাফের জন্য ডাটা ক্যালকুলেশন (Cumulative Profit/Loss)
-  let cumulativeProfit = 0;
-  const graphData = history.map(h => {
-    cumulativeProfit += h.profit;
-    return cumulativeProfit;
-  });
-  const maxGraphValue = Math.max(...graphData.map(Math.abs), 10); // ডিভাইড বাই জিরো এড়াতে ১০
-  
-  // গ্রাফের লাইন পাথ তৈরি করা (0 থেকে 100 ভিউবক্সের জন্য)
-  const generateGraphPath = () => {
-    if (graphData.length === 0) return "";
-    return graphData.map((val, i) => {
-      const x = graphData.length === 1 ? 50 : (i / (graphData.length - 1)) * 100;
-      const y = 50 - (val / maxGraphValue) * 40; // ৪০ ডিলাম যাতে লাইন বর্ডারে না লাগে
-      return `${i === 0 ? 'M' : 'L'} ${x} ${y}`;
-    }).join(' ');
+  // ✅ Graph Stats Calculation
+  const totalWagered = history.reduce((sum, item) => sum + item.betAmount, 0);
+  const totalProfit = history.reduce((sum, item) => sum + item.profit, 0);
+  const wins = history.filter(h => h.isWin).length;
+  const losses = history.filter(h => !h.isWin).length;
+
+  // ✅ Graph SVG Line Drawing
+  const generateGraph = () => {
+    if (history.length === 0) return null;
+    
+    let cumulativeProfit = 0;
+    const points = history.map(h => {
+      cumulativeProfit += h.profit;
+      return cumulativeProfit;
+    });
+
+    const maxVal = Math.max(...points.map(Math.abs), 10); 
+    const width = 400;
+    const height = 150;
+    const stepX = width / Math.max(points.length - 1, 1);
+
+    let linePath = `M 0 ${height / 2} `;
+    points.forEach((p, i) => {
+      const x = i * stepX;
+      const y = (height / 2) - (p / maxVal) * (height / 2 - 10);
+      linePath += `L ${x} ${y} `;
+    });
+
+    return (
+      <svg viewBox={`0 0 ${width} ${height}`} style={{ width: '100%', height: '100%', overflow: 'visible' }}>
+        <line x1="0" y1={height / 2} x2={width} y2={height / 2} stroke="#23332b" strokeWidth="2" />
+        <path d={linePath} fill="none" stroke="url(#lineGrad)" strokeWidth="3" strokeLinejoin="round" />
+        <defs>
+          <linearGradient id="lineGrad" x1="0" x2="0" y1="0" y2="1">
+            <stop offset="50%" stopColor="#ff4d4d" />
+            <stop offset="50%" stopColor="#00e701" />
+          </linearGradient>
+        </defs>
+      </svg>
+    );
   };
 
   return (
@@ -572,43 +598,47 @@ export default function DiceGamePage() {
         </div>
       )}
 
-      {/* ================= ✅ Graph/Stats Modal (SVG Line Chart) ================= */}
+      {/* ================= ✅ Graph/Stats Modal (Updated Design) ================= */}
       {isGraphOpen && (
         <div className="dice-modal-overlay" onClick={() => setIsGraphOpen(false)}>
           <div className="dice-modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '500px' }}>
             <div className="dice-modal-header">
-              <h3>Profit / Loss Graph</h3>
+              <h3>Stats & Graph</h3>
               <button onClick={() => setIsGraphOpen(false)}>✕</button>
             </div>
             <div className="dice-modal-body">
-              {history.length === 0 ? (
-                <p style={{ textAlign: 'center', color: '#aaa' }}>No bets placed yet.</p>
-              ) : (
-                <div style={{ position: 'relative', width: '100%', height: '200px' }}>
-                  <svg viewBox="0 0 100 100" preserveAspectRatio="none" style={{ width: '100%', height: '100%', overflow: 'visible' }}>
-                    <defs>
-                      <linearGradient id="lineGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="50%" stopColor="#00e701" />
-                        <stop offset="50%" stopColor="#ff4d4d" />
-                      </linearGradient>
-                    </defs>
-                    
-                    {/* শূন্য লাইন (Middle line) */}
-                    <line x1="0" y1="50" x2="100" y2="50" stroke="#23332b" strokeWidth="1" vectorEffect="non-scaling-stroke" />
-                    
-                    {/* লাভ-লসের গ্রাফ লাইন */}
-                    <path 
-                      d={generateGraphPath()} 
-                      fill="none" 
-                      stroke="url(#lineGradient)" 
-                      strokeWidth="3" 
-                      strokeLinejoin="round" 
-                      strokeLinecap="round"
-                      vectorEffect="non-scaling-stroke"
-                    />
-                  </svg>
+              
+              {/* Stats Grid */}
+              <div className="dice-stats-grid">
+                <div className="dice-stat-item">
+                  <span className="dice-stat-label">Profit</span>
+                  <span className={`dice-stat-value ${totalProfit >= 0 ? 'text-green' : 'text-red'}`}>
+                    {totalProfit >= 0 ? "+" : ""}{totalProfit.toFixed(2)}
+                  </span>
                 </div>
-              )}
+                <div className="dice-stat-item">
+                  <span className="dice-stat-label">Wagered</span>
+                  <span className="dice-stat-value">{totalWagered.toFixed(2)}</span>
+                </div>
+                <div className="dice-stat-item">
+                  <span className="dice-stat-label">Wins</span>
+                  <span className="dice-stat-value text-green">{wins}</span>
+                </div>
+                <div className="dice-stat-item">
+                  <span className="dice-stat-label">Losses</span>
+                  <span className="dice-stat-value text-red">{losses}</span>
+                </div>
+              </div>
+
+              {/* Graph Area */}
+              <div className="dice-graph-area">
+                {history.length === 0 ? (
+                  <div style={{ textAlign: 'center', color: '#a0aab2', padding: '50px 0' }}>No bets placed yet</div>
+                ) : (
+                  generateGraph()
+                )}
+              </div>
+
             </div>
           </div>
         </div>
@@ -640,7 +670,7 @@ export default function DiceGamePage() {
                   <input 
                     type="text" 
                     value={clientSeed} 
-                    onChange={(e) => setClientSeed(e.target.value)} 
+                    onChange={(e) => { setClientSeed(e.target.value); setIsSeedVerified(false); }} 
                   />
                 </div>
               </div>
@@ -648,13 +678,23 @@ export default function DiceGamePage() {
               <div className="dice-fairness-group">
                 <button 
                   className="dice-btn-secondary" 
-                  style={{ width: '100%' }}
+                  style={{ width: '100%', marginBottom: '10px' }}
                   onClick={() => {
                     const newSeed = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
                     setClientSeed(newSeed);
+                    setIsSeedVerified(false);
                   }}
                 >
                   Change Seed
+                </button>
+
+                {/* ✅ নতুন Verify Seed বাটন */}
+                <button 
+                  className={`dice-btn-secondary ${isSeedVerified ? 'verified' : ''}`} 
+                  style={{ width: '100%', background: isSeedVerified ? '#00e701' : '', color: isSeedVerified ? '#000' : '' }}
+                  onClick={() => setIsSeedVerified(true)}
+                >
+                  {isSeedVerified ? "Seed Verified ✓" : "Verify Seed"}
                 </button>
               </div>
 
