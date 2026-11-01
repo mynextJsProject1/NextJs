@@ -1,7 +1,7 @@
 /* app/original/dice/dice.css */
 
 .dice-game-container {
-  --dice-bg: transparent; /* ✅ ডার্ক মোড ব্যাকগ্রাউন্ড সরিয়ে ট্রান্সপারেন্ট করা হলো */
+  --dice-bg: #23332b; /* ✅ মেইন ব্যাকগ্রাউন্ড কালার আপডেট করা হলো */
   --dice-card: #18221E;       
   --dice-input-bg: #0E1613;   
   --dice-border: #23332b;     
@@ -596,8 +596,6 @@
 }
 
 /* ✅ নতুন Graph Style (SVG Line Chart) */
-/* আপনার dice.css ফাইলের আগের গ্রাফ স্টাইলগুলো মুছে দিয়ে এটি দিন */
-
 .dice-graph-container {
   position: relative;
   width: 100%;
