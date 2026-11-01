@@ -1,7 +1,7 @@
 /* app/original/dice/dice.css */
 
 .dice-game-container {
-  --dice-bg: #131a16;         
+  --dice-bg: transparent; /* ✅ ডার্ক মোড ব্যাকগ্রাউন্ড সরিয়ে ট্রান্সপারেন্ট করা হলো */
   --dice-card: #18221E;       
   --dice-input-bg: #0E1613;   
   --dice-border: #23332b;     
@@ -19,17 +19,17 @@
   padding-bottom: 60px;
 }
 
-/* ✅ ১. flex: 1 সরিয়ে দেওয়া হয়েছে এবং height: fit-content করা হয়েছে */
+/* ✅ ১. কার্ডের কালার সেট করা হলো */
 .dice-main-area {
   padding: 15px; 
-  margin: 10px 15px 20px 15px; /* নিচের 3rem কমানো হয়েছে */
+  margin: 10px 15px 20px 15px; 
   max-width: 600px;
   width: calc(100% - 30px);
   border: 1px solid var(--dice-border); 
   border-radius: 12px; 
-  background-color: #131a16; 
+  background-color: var(--dice-card); /* ✅ এখানে কার্ডের আলাদা কালার সেট হলো */
   box-sizing: border-box;
-  height: fit-content; /* কন্টেন্ট শেষ হলেই বর্ডার শেষ হবে */
+  height: fit-content; 
 }
 
 @media (min-width: 600px) {
@@ -76,7 +76,7 @@
 }
 
 .dice-history-item.lose {
-  background: var(--dice-card);
+  background: var(--dice-input-bg); /* লুজ হলে ইনপুট বক্সের কালার */
   color: var(--dice-text);
   border: 1px solid var(--dice-border);
 }
@@ -86,7 +86,7 @@
   to { transform: translateX(0); opacity: 1; }
 }
 
-/* ✅ ৩. margin-top বাড়িয়ে 60px করা হয়েছে যাতে রেজাল্ট বক্স হিস্টরির সাথে না লাগে */
+/* ✅ ৩. স্লাইডার সেকশন */
 .dice-slider-section {
   margin-bottom: 20px;
   margin-top: 60px; 
@@ -96,7 +96,7 @@
 .dice-slider-track {
   position: relative;
   height: 20px; 
-  background: var(--dice-card);
+  background: var(--dice-input-bg);
   border: 1px solid var(--dice-border);
   border-radius: 10px;
   display: flex;
@@ -120,7 +120,7 @@
   position: absolute;
   top: -35px;
   transform: translateX(-50%);
-  background: var(--dice-card);
+  background: var(--dice-input-bg);
   border: 1px solid var(--dice-border);
   color: var(--dice-text);
   padding: 4px 12px; 
@@ -153,7 +153,7 @@
   height: 0;
   border-left: 4px solid transparent;
   border-right: 4px solid transparent;
-  border-top: 5px solid var(--dice-card);
+  border-top: 5px solid var(--dice-input-bg);
 }
 
 .dice-floating-result.win .arrow-down { border-top-color: var(--dice-accent); }
@@ -324,7 +324,7 @@
 
 .dice-amount-input-wrap input {
   flex: 1;
-  min-width: 0; /* ✅ ইনপুট ছোট হতে দেবে */
+  min-width: 0; 
   background: transparent;
   border: none;
   color: var(--dice-text);
@@ -356,7 +356,7 @@
 /* ট্যাব */
 .dice-bottom-tabs {
   display: flex;
-  background: var(--dice-card);
+  background: var(--dice-input-bg);
   border: 1px solid var(--dice-border);
   border-radius: 8px;
   padding: 4px;
@@ -399,7 +399,7 @@
 /* ✅ Auto Bet চলাকালীন বাটন এবং ইনপুট ফিল্ডের স্টাইল */
 
 .dice-bet-btn.stop-btn {
-  background: #ff4d4d; /* লাল রঙের Stop বাটন */
+  background: #ff4d4d; 
   color: #fff;
 }
 
@@ -407,7 +407,6 @@
   background: #e60000;
 }
 
-/* অটো চলাকালীন ইনপুটগুলো ডিজেবল দেখাবে */
 .dice-input-wrapper.disabled,
 .dice-amount-input-wrap.disabled {
   opacity: 0.6;
@@ -418,7 +417,6 @@
   opacity: 0.5;
   cursor: not-allowed;
 }
-/* ✅ নিচের ডুপ্লিকেট কোডগুলো মুছে ফেলা হয়েছে */
 
 /* ========================================= */
 /* ✅ Auto Mode UI স্টাইল */
@@ -429,7 +427,7 @@
   flex-direction: column;
   gap: 15px;
   margin-bottom: 20px;
-  background: var(--dice-card);
+  background: var(--dice-input-bg); /* ইনপুট এরিয়ার কালার */
   padding: 15px;
   border-radius: 8px;
   border: 1px solid var(--dice-border);
@@ -506,7 +504,7 @@
 
 .adv-inputs select {
   flex: 1;
-  background: var(--dice-input-bg);
+  background: var(--dice-card);
   border: 1px solid var(--dice-border);
   color: var(--dice-text);
   padding: 0 10px;
@@ -514,23 +512,6 @@
   outline: none;
   font-size: 0.85rem;
 }
-
-/* অটো চলাকালীন ডিজেবল স্টাইল */
-.dice-input-wrapper.disabled,
-.dice-amount-input-wrap.disabled {
-  opacity: 0.6;
-  pointer-events: none;
-}
-
-.dice-bet-btn.stop-btn {
-  background: #ff4d4d;
-  color: #fff;
-}
-
-.dice-bet-btn.stop-btn:hover {
-  background: #e60000;
-}
-
 
 /* ========================================= */
 /* ✅ Modal Base Styles (Settings, Graph, Fairness) */
@@ -549,8 +530,8 @@
 }
 
 .dice-modal-content {
-  background: #18221E; /* var(--dice-card) */
-  border: 1px solid #23332b; /* var(--dice-border) */
+  background: var(--dice-card); 
+  border: 1px solid var(--dice-border); 
   border-radius: 12px;
   width: 100%;
   max-width: 400px;
@@ -566,7 +547,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 16px;
-  border-bottom: 1px solid #23332b;
+  border-bottom: 1px solid var(--dice-border);
 }
 
 .dice-modal-header h3 {
@@ -601,7 +582,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 12px 0;
-  border-bottom: 1px dashed #23332b;
+  border-bottom: 1px dashed var(--dice-border);
 }
 
 .dice-setting-row:last-child {
@@ -622,7 +603,7 @@
   height: 150px;
   gap: 6px;
   padding-top: 20px;
-  border-bottom: 1px solid #23332b;
+  border-bottom: 1px solid var(--dice-border);
   margin-bottom: 10px;
 }
 
@@ -644,16 +625,16 @@
 }
 
 .dice-graph-bar.win {
-  background: #00E701; /* var(--dice-accent) */
+  background: var(--dice-accent); 
 }
 
 .dice-graph-bar.lose {
-  background: #ff4d4d; /* var(--dice-danger) */
+  background: var(--dice-danger);
 }
 
 .dice-graph-label {
   font-size: 0.6rem;
-  color: #a0aab2;
+  color: var(--dice-muted);
   margin-top: 6px;
   white-space: nowrap;
 }
@@ -665,21 +646,21 @@
 
 .dice-fairness-group label {
   display: block;
-  color: #a0aab2;
+  color: var(--dice-muted);
   font-size: 0.8rem;
   margin-bottom: 6px;
   font-weight: 600;
 }
 
 .dice-fairness-input {
-  background: #0E1613; /* var(--dice-input-bg) */
-  border: 1px solid #23332b;
+  background: var(--dice-input-bg);
+  border: 1px solid var(--dice-border);
   border-radius: 8px;
   padding: 10px;
 }
 
 .dice-fairness-input code {
-  color: #00E701;
+  color: var(--dice-accent); 
   font-size: 0.8rem;
   word-break: break-all;
   font-family: monospace;
