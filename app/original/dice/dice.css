@@ -1,6 +1,5 @@
 /* app/original/dice/dice.css */
 
-/* ✅ মেইন পেজের গ্লোবাল কালার ফিক্স */
 html, body {
   background-color: #18221E !important;
   margin: 0;
@@ -14,7 +13,6 @@ html, body {
   width: 100%;
 }
 
-/* ✅ পুরো স্ক্রিনের প্যারেন্ট কন্টেইনার */
 .dice-game-container {
   --dice-bg: #18221E;         
   --dice-card: #1c2a24;       
@@ -37,7 +35,6 @@ html, body {
   padding-bottom: 10px; 
 }
 
-/* ✅ মেইন কার্ড */
 .dice-main-area {
   padding: 8px; 
   margin: 2px auto; 
@@ -50,14 +47,13 @@ html, body {
   height: fit-content; 
 }
 
-/* ✅ ২. হিস্টরি সেকশন */
 .dice-history-wrapper {
   display: flex;
   justify-content: flex-end;
   width: 100%;
   margin-bottom: 0; 
   margin-top: 0; 
-  min-height: 22px; /* হিস্টরি পিলের জন্য ন্যূনতম জায়গা */
+  min-height: 22px;
   overflow: hidden;
   position: relative;
   z-index: 1;
@@ -100,10 +96,9 @@ html, body {
   to { transform: translateX(0); opacity: 1; }
 }
 
-/* ✅ ৩. স্লাইডার সেকশন (এখানে গ্যাপ বাড়ানো হলো যাতে রেজাল্ট বক্স হিস্টরির সাথে না লাগে) */
 .dice-slider-section {
   margin-bottom: 10px; 
-  margin-top: 45px; /* ✅ ১২ থেকে ৪৫ পিক্সেল করা হলো (রেজাল্ট বক্সের জায়গা) */
+  margin-top: 45px; 
   position: relative;
   z-index: 2;
 }
@@ -130,10 +125,9 @@ html, body {
   transition: background 0.1s;
 }
 
-/* ✅ ৪. রেজাল্ট বক্স */
 .dice-floating-result {
   position: absolute;
-  top: -35px; /* স্লাইডার থেকে উপরে ভেসে থাকবে */
+  top: -35px; 
   transform: translateX(-50%);
   background: var(--dice-input-bg);
   border: 1px solid var(--dice-border);
@@ -174,7 +168,6 @@ html, body {
 .dice-floating-result.win .arrow-down { border-top-color: var(--dice-accent); }
 .dice-floating-result.lose .arrow-down { border-top-color: var(--dice-danger); }
 
-/* স্লাইডার হ্যান্ডেল */
 .dice-visual-slider {
   width: 100%;
   position: absolute;
@@ -223,7 +216,6 @@ html, body {
   font-weight: 600;
 }
 
-/* ইনপুট গ্রিড */
 .dice-inputs-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -265,7 +257,6 @@ html, body {
   font-size: 0.85rem;
 }
 
-/* বেট বাটন */
 .dice-bet-btn {
   width: 100%;
   padding: 10px;
@@ -284,7 +275,6 @@ html, body {
 .dice-bet-btn:hover { background: #00c701; } 
 .dice-bet-btn.rolling { opacity: 0.7; cursor: not-allowed; }
 
-/* অ্যামাউন্ট সেকশন */
 .dice-amount-section {
   display: flex;
   flex-direction: column;
@@ -309,7 +299,6 @@ html, body {
   font-size: 0.75rem;
 }
 
-/* ✅ ৫. বাটন বাইরে যাওয়া ফিক্স */
 .dice-amount-input-wrap {
   background: var(--dice-input-bg);
   border: 1px solid var(--dice-border);
@@ -368,7 +357,6 @@ html, body {
 
 .dice-quick-btns button:hover { background: #365244; }
 
-/* ট্যাব */
 .dice-bottom-tabs {
   display: flex;
   background: var(--dice-input-bg);
@@ -396,7 +384,6 @@ html, body {
   color: var(--dice-text);
 }
 
-/* মোবাইলের জন্য রেসপন্সিভ */
 @media (max-width: 500px) {
   .dice-main-area {
     margin: 2px auto; 
@@ -409,9 +396,6 @@ html, body {
   .dice-input-wrapper i, .dice-input-wrapper span { font-size: 0.75rem; }
   .dice-inputs-grid { gap: 6px; }
 }
-
-
-/* ✅ Auto Bet চলাকালীন বাটন এবং ইনপুট ফিল্ডের স্টাইল */
 
 .dice-bet-btn.stop-btn {
   background: #ff4d4d; 
@@ -432,10 +416,6 @@ html, body {
   opacity: 0.5;
   cursor: not-allowed;
 }
-
-/* ========================================= */
-/* ✅ Auto Mode UI স্টাইল */
-/* ========================================= */
 
 .dice-auto-settings {
   display: flex;
@@ -461,7 +441,6 @@ html, body {
   font-weight: 600;
 }
 
-/* টগল সুইচ বাটন */
 .toggle-switch {
   width: 46px;
   height: 24px;
@@ -491,7 +470,6 @@ html, body {
   transform: translateX(22px);
 }
 
-/* অ্যাডভান্সড অপশন */
 .advanced-options {
   display: flex;
   flex-direction: column;
@@ -528,9 +506,6 @@ html, body {
   font-size: 0.85rem;
 }
 
-/* ========================================= */
-/* ✅ Modal Base Styles (Settings, Graph, Fairness) */
-/* ========================================= */
 .dice-modal-overlay {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
@@ -561,7 +536,7 @@ html, body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px;
+  padding: 12px 16px;
   border-bottom: 1px solid var(--dice-border);
 }
 
@@ -591,7 +566,6 @@ html, body {
   overflow-y: auto;
 }
 
-/* ✅ Settings Row */
 .dice-setting-row {
   display: flex;
   justify-content: space-between;
@@ -610,47 +584,63 @@ html, body {
   font-weight: 600;
 }
 
-/* ✅ নতুন Graph Style (SVG Line Chart) */
-.dice-graph-container {
-  position: relative;
-  width: 100%;
-  height: 200px;
-  padding: 10px 0;
+/* ✅ নতুন Graph Style (আপনার দেওয়া ছবির মতো এবং ৬০% ছোট) */
+.dice-stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px; /* ১৫ থেকে ৮ পিক্সেল */
+  background: var(--dice-input-bg);
+  padding: 8px; /* ১৫ থেকে ৮ পিক্সেল */
+  border-radius: 6px;
+  border: 1px solid var(--dice-border);
+  margin-bottom: 8px; /* ১৫ থেকে ৮ পিক্সেল */
 }
 
-.dice-graph-bar-wrapper {
-  flex: 1;
+.dice-stat-item {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: flex-end;
-  height: 100%;
-  min-width: 0;
+  gap: 2px;
 }
 
-.dice-graph-bar {
-  width: 100%;
-  max-width: 20px;
-  border-radius: 4px 4px 0 0;
-  transition: height 0.3s ease;
-}
-
-.dice-graph-bar.win {
-  background: var(--dice-accent); 
-}
-
-.dice-graph-bar.lose {
-  background: var(--dice-danger);
-}
-
-.dice-graph-label {
-  font-size: 0.6rem;
+.dice-stat-label {
   color: var(--dice-muted);
-  margin-top: 6px;
-  white-space: nowrap;
+  font-size: 0.65rem; /* ০.৭৫ থেকে ০.৬৫ রেম */
+  font-weight: 600;
 }
 
-/* ✅ Fairness Styles */
+.dice-stat-value {
+  color: var(--dice-text);
+  font-size: 0.9rem; /* ১.১ থেকে ০.৯ রেম */
+  font-weight: 700;
+}
+
+.dice-stat-value.text-green { color: var(--dice-accent); }
+.dice-stat-value.text-red { color: var(--dice-danger); }
+
+.dice-graph-area {
+  background: var(--dice-card);
+  border: 1px solid var(--dice-border);
+  border-radius: 6px;
+  height: 100px; /* ১৮০ থেকে ১০০ পিক্সেল (কার্ড ৬০% ছোট) */
+  position: relative;
+  display: block; /* স্ক্রলিং এর জন্য */
+  overflow-x: auto; /* পিসির মতো ডানে-বামে মুভ করা যাবে */
+  overflow-y: hidden;
+  padding: 5px;
+}
+
+/* স্ক্রলবার ডিজাইন (যাতে সুন্দর দেখায়) */
+.dice-graph-area::-webkit-scrollbar {
+  height: 4px;
+}
+.dice-graph-area::-webkit-scrollbar-track {
+  background: transparent;
+}
+.dice-graph-area::-webkit-scrollbar-thumb {
+  background: var(--dice-border);
+  border-radius: 4px;
+}
+
 .dice-fairness-group {
   margin-bottom: 16px;
 }
@@ -686,7 +676,6 @@ html, body {
   outline: none;
 }
 
-/* অ্যানিমেশন */
 @keyframes modalFadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
@@ -696,9 +685,6 @@ html, body {
   from { transform: translateY(20px); opacity: 0; }
   to { transform: translateY(0); opacity: 1; }
 }
-
-
-/* ✅ নতুন: Bet History Button & Center Line Graph */
 
 .dice-btn-secondary {
   background: var(--dice-border);
@@ -716,7 +702,6 @@ html, body {
   background: #365244;
 }
 
-/* Graph Bar Track (Profit/Loss এর জন্য) */
 .dice-graph-bar-track {
   position: relative;
   width: 100%;
@@ -755,58 +740,6 @@ html, body {
   border-radius: 0 0 4px 4px;
 }
 
-/* ✅ নতুন Graph এবং Stats ডিজাইন */
-.dice-stats-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 15px;
-  background: var(--dice-input-bg);
-  padding: 15px;
-  border-radius: 8px;
-  border: 1px solid var(--dice-border);
-  margin-bottom: 15px;
-}
-
-.dice-stat-item {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.dice-stat-label {
-  color: var(--dice-muted);
-  font-size: 0.75rem;
-  font-weight: 600;
-}
-
-.dice-stat-value {
-  color: var(--dice-text);
-  font-size: 1.1rem;
-  font-weight: 700;
-}
-
-.dice-stat-value.text-green { color: var(--dice-accent); }
-.dice-stat-value.text-red { color: var(--dice-danger); }
-
-.dice-graph-area {
-  background: var(--dice-card);
-  border: 1px solid var(--dice-border);
-  border-radius: 8px;
-  height: 180px;
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  padding: 10px;
-}
-
-.dice-graph-area svg {
-  width: 100%;
-  height: 100%;
-}
-
-/* Verify Seed Button Active State */
 .dice-btn-secondary.verified {
   background: var(--dice-accent) !important;
   color: #000 !important;
