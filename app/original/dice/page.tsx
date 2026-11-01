@@ -28,6 +28,9 @@ export default function DiceGamePage() {
   const [history, setHistory] = useState<{ id: string, value: number, isWin: boolean, profit: number, nonce: number, betAmount: number }[]>([]);
   const [visualSliderValue, setVisualSliderValue] = useState(50.50);
 
+  // ✅ নতুন: হিস্টরি অটো-স্ক্রল করার জন্য রেফ
+  const historyContainerRef = useRef<HTMLDivElement>(null);
+
   const [activeTab, setActiveTab] = useState<"manual" | "auto" | "advanced">("manual");
 
   // Auto Mode State
@@ -76,6 +79,13 @@ export default function DiceGamePage() {
     void fetchBalance();
     return () => { isAutoRef.current = false; };
   }, [supabase]);
+
+  // ✅ নতুন ইফেক্ট: হিস্টরি আপডেট হলে অটোমেটিক ডান দিকে (সর্বশেষ রেজাল্টে) স্ক্রল হবে
+  useEffect(() => {
+    if (historyContainerRef.current) {
+      historyContainerRef.current.scrollLeft = historyContainerRef.current.scrollWidth;
+    }
+  }, [history]);
 
   const handleSliderChange = (value: number) => {
     setRollOver(value);
@@ -234,7 +244,7 @@ export default function DiceGamePage() {
   const wins = history.filter(h => h.isWin).length;
   const losses = history.filter(h => !h.isWin).length;
 
-  // ✅ Graph Chart Logic (সংশোধিত)
+  // ✅ Graph Chart Logic
   const generateGraph = () => {
     if (history.length === 0) return null;
     
@@ -245,12 +255,11 @@ export default function DiceGamePage() {
     });
 
     const maxVal = Math.max(...points.map(Math.abs), 10); 
-    const width = Math.max(400, points.length * 60); // ডাটা বাড়লে গ্রাফ লম্বা হবে (স্ক্রল হবে)
-    const height = 100; // গ্রাফের উচ্চতা
+    const width = Math.max(400, points.length * 60); 
+    const height = 100; 
     const stepX = (width - 40) / Math.max(points.length - 1, 1);
     const getY = (val: number) => (height / 2) - (val / maxVal) * (height / 2 - 10);
 
-    // প্রতিটি পয়েন্টের জন্য আলাদা লাইন সেগমেন্ট তৈরি করা
     const segments = [];
     for (let i = 0; i < points.length - 1; i++) {
       const x1 = 20 + i * stepX;
@@ -258,7 +267,6 @@ export default function DiceGamePage() {
       const x2 = 20 + (i + 1) * stepX;
       const y2 = getY(points[i + 1]);
       
-      // যদি পরবর্তী পয়েন্ট আগের পয়েন্টের চেয়ে বড় হয় (লাভ) তবে সবুজ, নাহলে লাল
       const color = points[i + 1] >= points[i] ? "#00E701" : "#ff4d4d";
       
       segments.push(
@@ -268,9 +276,7 @@ export default function DiceGamePage() {
 
     return (
       <svg viewBox={`0 0 ${width} ${height}`} style={{ width: `${width}px`, height: '100%', display: 'block' }}>
-        {/* জিরো লাইন */}
         <line x1="0" y1={height / 2} x2={width} y2={height / 2} stroke="#23332b" strokeWidth="1" strokeDasharray="4 4" />
-        {/* লাভ-লসের লাইন */}
         {segments}
       </svg>
     );
@@ -285,7 +291,8 @@ export default function DiceGamePage() {
           <div className="dice-main-area">
             
             <div className="dice-history-wrapper">
-              <div className="dice-history-container">
+              {/* ✅ ref যুক্ত করা হলো অটো স্ক্রলিং এর জন্য */}
+              <div className="dice-history-container" ref={historyContainerRef}>
                 {history.map((item) => (
                   <div key={item.id} className={`dice-history-item ${item.isWin ? 'win' : 'lose'}`}>
                     {item.value.toFixed(2)}
@@ -592,10 +599,9 @@ export default function DiceGamePage() {
         </div>
       )}
 
-      {/* ================= ✅ Graph/Stats Modal (Updated Design) ================= */}
+      {/* ================= ✅ Graph/Stats Modal ================= */}
       {isGraphOpen && (
         <div className="dice-modal-overlay" onClick={() => setIsGraphOpen(false)}>
-          {/* ✅ maxWidth কমিয়ে ২৪০px করা হয়েছে (কার্ড ৫০% ছোট) */}
           <div className="dice-modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '240px' }}>
             <div className="dice-modal-header">
               <h3 style={{ fontSize: '0.85rem' }}>Stats & Graph</h3>
@@ -603,7 +609,6 @@ export default function DiceGamePage() {
             </div>
             <div className="dice-modal-body" style={{ padding: '8px' }}>
               
-              {/* Stats Grid */}
               <div className="dice-stats-grid">
                 <div className="dice-stat-item">
                   <span className="dice-stat-label">Profit</span>
@@ -625,7 +630,6 @@ export default function DiceGamePage() {
                 </div>
               </div>
 
-              {/* Graph Area */}
               <div className="dice-graph-area">
                 {history.length === 0 ? (
                   <div style={{ textAlign: 'center', color: '#a0aab2', padding: '20px 0', fontSize: '10px' }}>No bets placed yet</div>
