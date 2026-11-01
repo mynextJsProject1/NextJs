@@ -1,9 +1,8 @@
 /* app/original/dice/dice.css */
 
-/* ✅ পুরো স্ক্রিনের প্যারেন্ট কন্টেইনার */
 .dice-game-container {
-  --dice-bg: #18221E;         /* ✅ মেইন ব্যাকগ্রাউন্ড Deep Forest Green */
-  --dice-card: #1c2a24;       /* ✅ কার্ডের ব্যাকগ্রাউন্ড (সামান্য হালকা যাতে বোঝা যায়) */
+  --dice-bg: #18221E;         
+  --dice-card: #1c2a24;       
   --dice-input-bg: #111815;   
   --dice-border: #2b4236;     
   --dice-text: #ffffff;       
@@ -11,21 +10,26 @@
   --dice-accent: #00E701;     
   --dice-danger: #ff4d4d;     
 
-  background-color: var(--dice-bg) !important;
-  min-height: 100vh;
-  /* প্যারেন্টের কালো জায়গা ঢাকার জন্য ১০০ ভিউপোর্ট উইডথ */
-  width: 100vw; 
   position: relative;
-  left: 50%;
-  right: 50%;
-  margin-left: -50vw;
-  margin-right: -50vw;
-  
+  min-height: 100vh;
+  width: 100%;
   color: var(--dice-text);
   font-family: inherit;
   display: flex;
   flex-direction: column;
   padding-bottom: 60px;
+}
+
+/* ✅ ম্যাজিক ট্রিক: পুরো স্ক্রিনের পেছনে ব্যাকগ্রাউন্ড কালার ফিক্স করা হলো */
+.dice-game-container::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--dice-bg);
+  z-index: -1;
 }
 
 /* ✅ মেইন কার্ড */
