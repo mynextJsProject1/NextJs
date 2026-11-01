@@ -42,10 +42,10 @@ export default function DiceGamePage() {
   const [stopOnProfit, setStopOnProfit] = useState("0.00");
   const [stopOnLoss, setStopOnLoss] = useState("0.00");
 
-  // ✅ নতুন স্টেট: Auto Betting এর জন্য
+  // ✅ Auto Betting এর জন্য
   const [isAutoBetting, setIsAutoBetting] = useState(false);
   const [autoStats, setAutoStats] = useState({ bets: 0, profit: 0 });
-  const isAutoRef = useRef(false); // লুপ কন্ট্রোল করার জন্য
+  const isAutoRef = useRef(false);
 
   useEffect(() => {
     const fetchBalance = async () => {
@@ -56,8 +56,6 @@ export default function DiceGamePage() {
       }
     };
     void fetchBalance();
-
-    // কম্পোনেন্ট আনমাউন্ট হলে অটো বেট বন্ধ হয়ে যাবে
     return () => { isAutoRef.current = false; };
   }, [supabase]);
 
@@ -109,7 +107,6 @@ export default function DiceGamePage() {
     setMultiplier(99 / newChance);
   };
 
-  // ✅ ১. মূল বাজি ধরার ফাংশন (ম্যানুয়াল এবং অটো উভয়ের জন্য ব্যবহার হবে)
   const executeBet = async (amountToBet: number) => {
     if (amountToBet <= 0) throw new Error("Invalid bet amount.");
     if (amountToBet > balance) throw new Error("Insufficient balance.");
@@ -133,7 +130,6 @@ export default function DiceGamePage() {
 
       if (error) throw error;
 
-      // ১.৫ সেকেন্ড অ্যানিমেশন
       await new Promise(resolve => setTimeout(resolve, 1500));
       clearInterval(animationInterval);
 
@@ -154,12 +150,10 @@ export default function DiceGamePage() {
     }
   };
 
-  // ✅ ২. ম্যানুয়াল বাজি
   const handleManualRoll = async () => {
     await executeBet(Number(betAmount)).catch(() => {});
   };
 
-  // ✅ ৩. অটো বেট টগল (চালু/বন্ধ)
   const toggleAutoBet = () => {
     if (isAutoRef.current) {
       isAutoRef.current = false;
@@ -169,15 +163,13 @@ export default function DiceGamePage() {
       isAutoRef.current = true;
       setIsAutoBetting(true);
       setAutoStats({ bets: 0, profit: 0 });
-      runAutoLoop(Number(betAmount), 0, 0); // লুপ শুরু
+      runAutoLoop(Number(betAmount), 0, 0); 
     }
   };
 
-  // ✅ ৪. অটো বেট লুপ (Recursive)
   const runAutoLoop = async (currentBet: number, currentCount: number, currentProfit: number) => {
     if (!isAutoRef.current) return;
 
-    // স্টপ কন্ডিশন চেক
     const maxBets = Number(autoBetCount);
     const profitLimit = Number(stopOnProfit);
     const lossLimit = Number(stopOnLoss);
@@ -198,20 +190,18 @@ export default function DiceGamePage() {
       const newProfit = currentProfit + data.profit;
       setAutoStats({ bets: newCount, profit: newProfit });
       
-      // On Win / On Loss লজিক
-      let nextBet = Number(betAmount); // ডিফল্ট: Reset
+      let nextBet = Number(betAmount); 
       if (data.is_win && onWinMode === "increase") {
         nextBet = currentBet + (currentBet * Number(onWinValue) / 100);
       } else if (!data.is_win && onLossMode === "increase") {
         nextBet = currentBet + (currentBet * Number(onLossValue) / 100);
       }
 
-      // পরবর্তী বাজি ধরার জন্য সামান্য দেরি (UI আপডেট হওয়ার জন্য)
       if (isAutoRef.current) {
         setTimeout(() => runAutoLoop(nextBet, newCount, newProfit), 200);
       }
     } catch (err) {
-      toggleAutoBet(); // এরর হলে বন্ধ করে দেবে
+      toggleAutoBet(); 
     }
   };
 
@@ -270,7 +260,7 @@ export default function DiceGamePage() {
                   value={rollOver}
                   onChange={(e) => handleSliderChange(Number(e.target.value))}
                   className="dice-main-slider"
-                  disabled={isAutoBetting} // ✅ অটো চলাকালীন ডিজেবল
+                  disabled={isAutoBetting} 
                 />
               </div>
 
@@ -317,7 +307,6 @@ export default function DiceGamePage() {
               </div>
             </div>
 
-            {/* ✅ বেট বাটন (ম্যানুয়াল / অটো) */}
             <button 
               className={`dice-bet-btn ${isRolling && !isAutoBetting ? "rolling" : ""} ${isAutoBetting ? "stop-btn" : ""}`} 
               onClick={activeTab === "manual" ? handleManualRoll : toggleAutoBet} 
@@ -326,45 +315,42 @@ export default function DiceGamePage() {
               {isAutoBetting ? "Stop Auto" : isRolling ? "Rolling..." : activeTab === "manual" ? "Bet" : "Start Auto"}
             </button>
 
-            {/* ম্যানুয়াল ট্যাব */}
-            {activeTab !== "auto" && (
-              <div className="dice-amount-section">
-                <div className="dice-amount-group">
-                  <div className="dice-label-row">
-                    <label>Bet Amount</label>
-                    <span className="dice-currency">Balance: {balance.toFixed(2)} BDT</span>
-                  </div>
-                  <div className={`dice-amount-input-wrap ${isAutoBetting ? 'disabled' : ''}`}>
-                    <div className="dice-currency-icon">
-                      <i className="fa-solid fa-bangladeshi-taka-sign"></i>
-                    </div>
-                    <input type="number" value={betAmount} onChange={(e) => setBetAmount(e.target.value)} placeholder="0.00" disabled={isAutoBetting} />
-                    <div className="dice-quick-btns">
-                      <button type="button" onClick={() => setBetAmount((Number(betAmount) / 2).toFixed(2))} disabled={isAutoBetting}>½</button>
-                      <button type="button" onClick={() => setBetAmount((Number(betAmount) * 2).toFixed(2))} disabled={isAutoBetting}>2x</button>
-                    </div>
-                  </div>
+            {/* ✅ Bet Amount সবসময় দেখা যাবে (Auto ও Manual দুই জায়গায়) */}
+            <div className="dice-amount-section">
+              <div className="dice-amount-group">
+                <div className="dice-label-row">
+                  <label>Bet Amount</label>
+                  <span className="dice-currency">Balance: {balance.toFixed(2)} BDT</span>
                 </div>
-                <div className="dice-amount-group">
-                  <div className="dice-label-row">
-                    <label>Profit</label>
-                    <span className="dice-currency">0.00000000 BDT</span>
+                <div className={`dice-amount-input-wrap ${isAutoBetting ? 'disabled' : ''}`}>
+                  <div className="dice-currency-icon">
+                    <i className="fa-solid fa-bangladeshi-taka-sign"></i>
                   </div>
-                  <div className={`dice-amount-input-wrap ${isAutoBetting ? 'disabled' : ''}`}>
-                    <div className="dice-currency-icon">
-                      <i className="fa-solid fa-bangladeshi-taka-sign"></i>
-                    </div>
-                    <input type="number" value={(Number(betAmount) * multiplier - Number(betAmount)).toFixed(2)} readOnly placeholder="0.00" />
+                  <input type="number" value={betAmount} onChange={(e) => setBetAmount(e.target.value)} placeholder="0.00" disabled={isAutoBetting} />
+                  <div className="dice-quick-btns">
+                    <button type="button" onClick={() => setBetAmount((Number(betAmount) / 2).toFixed(2))} disabled={isAutoBetting}>½</button>
+                    <button type="button" onClick={() => setBetAmount((Number(betAmount) * 2).toFixed(2))} disabled={isAutoBetting}>2x</button>
                   </div>
                 </div>
               </div>
-            )}
+              <div className="dice-amount-group">
+                <div className="dice-label-row">
+                  <label>Profit</label>
+                  <span className="dice-currency">0.00000000 BDT</span>
+                </div>
+                <div className={`dice-amount-input-wrap ${isAutoBetting ? 'disabled' : ''}`}>
+                  <div className="dice-currency-icon">
+                    <i className="fa-solid fa-bangladeshi-taka-sign"></i>
+                  </div>
+                  <input type="number" value={(Number(betAmount) * multiplier - Number(betAmount)).toFixed(2)} readOnly placeholder="0.00" />
+                </div>
+              </div>
+            </div>
 
-            {/* অটো মোড UI */}
+            {/* অটো মোড UI (Bet Amount এর নিচে) */}
             {activeTab === "auto" && (
               <div className="dice-auto-settings">
                 
-                {/* ✅ Auto Stats (চলাকালীন সময়ে দেখাবে) */}
                 {isAutoBetting && (
                   <div style={{ background: "rgba(0, 231, 1, 0.1)", border: "1px solid #00e701", padding: "10px", borderRadius: "8px", marginBottom: "15px", display: "flex", justifyContent: "space-between" }}>
                     <span style={{ color: "#fff", fontSize: "13px" }}>Bets: <strong>{autoStats.bets}</strong></span>
