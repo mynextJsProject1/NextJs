@@ -133,7 +133,6 @@ export default function DiceGamePage() {
     setMultiplier(99 / newChance);
   };
 
-  // ✅ মূল বাজি ধরার লজিক (Instant Bet এর জন্য ডিলে সরানো হয়েছে)
   const executeBet = async (amountToBet: number) => {
     if (amountToBet <= 0) throw new Error("Invalid bet amount.");
     if (amountToBet > balance) throw new Error("Insufficient balance.");
@@ -155,7 +154,6 @@ export default function DiceGamePage() {
 
       if (error) throw error;
 
-      // ✅ কোনো ডিলে ছাড়াই সরাসরি রেজাল্ট দেখাবে
       if (data) {
         setVisualSliderValue(data.roll); 
         setResult(data.roll);
@@ -168,7 +166,7 @@ export default function DiceGamePage() {
           isWin: data.is_win, 
           profit: data.profit,
           nonce: nonce,
-          betAmount: amountToBet // Graph এর জন্য সেভ করা হলো
+          betAmount: amountToBet
         }].slice(-20));
         
         setNonce(prev => prev + 1);
@@ -229,7 +227,6 @@ export default function DiceGamePage() {
         nextBet = currentBet + (currentBet * Number(onLossValue) / 100);
       }
 
-      // ✅ Auto Bet এর ইনপুট বক্সে লাইভ নাম্বার আপডেট হবে
       setBetAmount(nextBet.toFixed(2));
 
       if (isAutoRef.current) {
@@ -246,7 +243,7 @@ export default function DiceGamePage() {
   const wins = history.filter(h => h.isWin).length;
   const losses = history.filter(h => !h.isWin).length;
 
-  // ✅ Graph SVG Line Drawing
+  // ✅ Graph SVG Line Drawing (স্ক্রল করার জন্য প্রস্থ বাড়ানো হয়েছে)
   const generateGraph = () => {
     if (history.length === 0) return null;
     
@@ -257,7 +254,7 @@ export default function DiceGamePage() {
     });
 
     const maxVal = Math.max(...points.map(Math.abs), 10); 
-    const width = 400;
+    const width = 1000; // ✅ পিসির মতো মুভ করার জন্য চওড়া করা হলো
     const height = 150;
     const stepX = width / Math.max(points.length - 1, 1);
 
@@ -269,7 +266,7 @@ export default function DiceGamePage() {
     });
 
     return (
-      <svg viewBox={`0 0 ${width} ${height}`} style={{ width: '100%', height: '100%', overflow: 'visible' }}>
+      <svg viewBox={`0 0 ${width} ${height}`} style={{ width: `${width}px`, height: '100%', minWidth: '100%' }}>
         <line x1="0" y1={height / 2} x2={width} y2={height / 2} stroke="#23332b" strokeWidth="2" />
         <path d={linePath} fill="none" stroke="url(#lineGrad)" strokeWidth="3" strokeLinejoin="round" />
         <defs>
@@ -601,12 +598,13 @@ export default function DiceGamePage() {
       {/* ================= ✅ Graph/Stats Modal (Updated Design) ================= */}
       {isGraphOpen && (
         <div className="dice-modal-overlay" onClick={() => setIsGraphOpen(false)}>
-          <div className="dice-modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '500px' }}>
+          {/* ✅ maxWidth কমিয়ে ৩০০px করা হয়েছে (কার্ড ৬০% ছোট) */}
+          <div className="dice-modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '300px' }}>
             <div className="dice-modal-header">
               <h3>Stats & Graph</h3>
               <button onClick={() => setIsGraphOpen(false)}>✕</button>
             </div>
-            <div className="dice-modal-body">
+            <div className="dice-modal-body" style={{ padding: '10px' }}>
               
               {/* Stats Grid */}
               <div className="dice-stats-grid">
@@ -633,7 +631,7 @@ export default function DiceGamePage() {
               {/* Graph Area */}
               <div className="dice-graph-area">
                 {history.length === 0 ? (
-                  <div style={{ textAlign: 'center', color: '#a0aab2', padding: '50px 0' }}>No bets placed yet</div>
+                  <div style={{ textAlign: 'center', color: '#a0aab2', padding: '30px 0', fontSize: '12px' }}>No bets placed yet</div>
                 ) : (
                   generateGraph()
                 )}
@@ -688,7 +686,6 @@ export default function DiceGamePage() {
                   Change Seed
                 </button>
 
-                {/* ✅ নতুন Verify Seed বাটন */}
                 <button 
                   className={`dice-btn-secondary ${isSeedVerified ? 'verified' : ''}`} 
                   style={{ width: '100%', background: isSeedVerified ? '#00e701' : '', color: isSeedVerified ? '#000' : '' }}
