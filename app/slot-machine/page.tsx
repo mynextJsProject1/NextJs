@@ -3,19 +3,12 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import styles from './page.module.css';
 
-// গেমের সিম্বল এবং সেটিংস
+// গেমের সিম্বল (পরে চাইলে ইমোজির বদলে ইমেজ বসাতে পারবেন)
 const SYMBOLS = ['🍒', '🍋', '🔔', '💎', '7️⃣'];
 const REEL_COUNT = 3;
-const SPIN_DURATION = 2000; // ২ সেকেন্ড
-
-interface SpinResult {
-  reels: string[];
-  winAmount: number;
-  isWin: boolean;
-}
+const SPIN_DURATION = 2000;
 
 export default function SlotMachinePage() {
-  // স্টেট ম্যানেজমেন্ট
   const [balance, setBalance] = useState<number>(1374224.62); 
   const [bet, setBet] = useState<number>(10.00);
   const [isSpinning, setIsSpinning] = useState<boolean>(false);
@@ -23,10 +16,8 @@ export default function SlotMachinePage() {
   const [lastWin, setLastWin] = useState<number>(0);
   const [message, setMessage] = useState<string>('Place your bet and spin to win!');
   
-  // মেমরি লিক রোধ করার জন্য রেফারেন্স
   const spinIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  // কম্পোনেন্ট আনমাউন্ট হলে ইন্টারভাল ক্লিয়ার করা
   useEffect(() => {
     return () => {
       if (spinIntervalRef.current) clearInterval(spinIntervalRef.current);
@@ -43,22 +34,17 @@ export default function SlotMachinePage() {
     setIsSpinning(true);
     setMessage('Spinning...');
     setLastWin(0);
-    
-    // ব্যালেন্স কাটা (পরবর্তীতে এটি Supabase API-তে যাবে)
     setBalance((prev) => prev - bet);
 
-    // অ্যানিমেশনের জন্য র‍্যান্ডম সিম্বল দেখানো
     spinIntervalRef.current = setInterval(() => {
       setCurrentSymbols(Array.from({ length: REEL_COUNT }, () => 
         SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)]
       ));
     }, 80);
 
-    // স্পিন শেষ হওয়া এবং ফলাফল নির্ধারণ
     setTimeout(() => {
       if (spinIntervalRef.current) clearInterval(spinIntervalRef.current);
 
-      // এখানে ভবিষ্যতে Supabase RPC থেকে আসল ফলাফল আসবে
       const finalReels = Array.from({ length: REEL_COUNT }, () => 
         SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)]
       );
@@ -83,7 +69,6 @@ export default function SlotMachinePage() {
   return (
     <div className={styles.container}>
       <div className={styles.machine}>
-        {/* ইনার বর্ডার */}
         <div className={styles.innerBorder}>
           
           {/* হেডার: ব্যালেন্স */}
@@ -91,13 +76,25 @@ export default function SlotMachinePage() {
             <span>Balance: <strong>{balance.toFixed(2)} BDT</strong></span>
           </div>
 
-          {/* রিলস */}
-          <div className={styles.reels}>
-            {currentSymbols.map((symbol, index) => (
-              <div key={index} className={`${styles.reel} ${isSpinning ? styles.spinning : ''}`}>
-                <span className={styles.symbol}>{symbol}</span>
-              </div>
-            ))}
+          {/* 🎰 রিল কন্টেইনার (ফ্রেম সহ) */}
+          <div className={styles.reelFrameContainer}>
+            
+            {/* ১. ঘূর্ণায়মান সিম্বল (ফ্রেমের নিচে থাকবে) */}
+            <div className={styles.reelsBackground}>
+              {currentSymbols.map((symbol, index) => (
+                <div key={index} className={`${styles.reel} ${isSpinning ? styles.spinning : ''}`}>
+                  <span className={styles.symbol}>{symbol}</span>
+                </div>
+              ))}
+            </div>
+
+            {/* ২. আপনার আপলোড করা ফ্রেম (সবার উপরে থাকবে) */}
+            <img 
+              src="/images/slot-frame.png" 
+              alt="Slot Frame" 
+              className={styles.frameImage} 
+            />
+            
           </div>
 
           {/* মেসেজ বোর্ড */}
