@@ -1,6 +1,6 @@
 /* app/original/dice/dice.css */
 
-/* ✅ মেইন পেজের গ্লোবাল কালার ফিক্স (ডেস্কটপ ও মোবাইলের জন্য) */
+/* ✅ মেইন পেজের গ্লোবাল কালার ফিক্স */
 html, body {
   background-color: #18221E !important;
   margin: 0;
@@ -34,17 +34,15 @@ html, body {
   display: flex;
   flex-direction: column;
   align-items: center; 
-  
-  /* ✅ ৮০% গ্যাপ কমানো হয়েছে */
   padding-bottom: 10px; 
 }
 
-/* ✅ মেইন কার্ড (সব দিকের প্যাডিং ও মার্জিন ৮০% কমানো হয়েছে) */
+/* ✅ মেইন কার্ড */
 .dice-main-area {
-  padding: 8px; /* ১৫ থেকে ৮ পিক্সেল */
-  margin: 2px auto; /* ৩ থেকে ২ পিক্সেল */
+  padding: 8px; 
+  margin: 2px auto; 
   max-width: 600px; 
-  width: calc(100% - 12px); /* পাশের গ্যাপ কমানো হয়েছে */
+  width: calc(100% - 12px); 
   border: 1px solid var(--dice-border); 
   border-radius: 12px; 
   background-color: var(--dice-card); 
@@ -57,10 +55,12 @@ html, body {
   display: flex;
   justify-content: flex-end;
   width: 100%;
-  margin-bottom: 0px; /* ৫ থেকে ০ */
+  margin-bottom: 0; 
   margin-top: 0; 
-  min-height: 20px; 
+  min-height: 22px; /* হিস্টরি পিলের জন্য ন্যূনতম জায়গা */
   overflow: hidden;
+  position: relative;
+  z-index: 1;
 }
 
 .dice-history-container {
@@ -100,11 +100,12 @@ html, body {
   to { transform: translateX(0); opacity: 1; }
 }
 
-/* ✅ ৩. স্লাইডার সেকশন (উপরের গ্যাপ ৩০ থেকে ১২ পিক্সেল করা হয়েছে) */
+/* ✅ ৩. স্লাইডার সেকশন (এখানে গ্যাপ বাড়ানো হলো যাতে রেজাল্ট বক্স হিস্টরির সাথে না লাগে) */
 .dice-slider-section {
-  margin-bottom: 10px; /* ২০ থেকে ১০ */
-  margin-top: 12px; /* ৩০ থেকে ১২ */
+  margin-bottom: 10px; 
+  margin-top: 45px; /* ✅ ১২ থেকে ৪৫ পিক্সেল করা হলো (রেজাল্ট বক্সের জায়গা) */
   position: relative;
+  z-index: 2;
 }
 
 .dice-slider-track {
@@ -132,7 +133,7 @@ html, body {
 /* ✅ ৪. রেজাল্ট বক্স */
 .dice-floating-result {
   position: absolute;
-  top: -30px; /* ৩৫ থেকে ৩০ পিক্সেল (যাতে উপরে না কাটে) */
+  top: -35px; /* স্লাইডার থেকে উপরে ভেসে থাকবে */
   transform: translateX(-50%);
   background: var(--dice-input-bg);
   border: 1px solid var(--dice-border);
@@ -227,7 +228,7 @@ html, body {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 6px;
-  margin-bottom: 10px; /* ২০ থেকে ১০ */
+  margin-bottom: 10px; 
 }
 
 .dice-input-group label {
@@ -245,7 +246,7 @@ html, body {
   display: flex;
   align-items: center;
   padding: 0 8px;
-  height: 36px; /* ৪০ থেকে ৩৬ */
+  height: 36px; 
 }
 
 .dice-input-wrapper input {
@@ -276,8 +277,8 @@ html, body {
   font-weight: 800;
   cursor: pointer;
   transition: background 0.2s;
-  margin-bottom: 10px; /* ২০ থেকে ১০ */
-  min-height: 40px; /* ৪৪ থেকে ৪০ */
+  margin-bottom: 10px; 
+  min-height: 40px; 
 }
 
 .dice-bet-btn:hover { background: #00c701; } 
@@ -287,7 +288,7 @@ html, body {
 .dice-amount-section {
   display: flex;
   flex-direction: column;
-  gap: 10px; /* ১৫ থেকে ১০ */
+  gap: 10px; 
   margin-bottom: 10px;
 }
 
@@ -754,7 +755,7 @@ html, body {
   border-radius: 0 0 4px 4px;
 }
 
-/* ✅ নতুন Graph এবং Stats ডিজাইন (আপনার দেওয়া ছবির মতো) */
+/* ✅ নতুন Graph এবং Stats ডিজাইন */
 .dice-stats-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
