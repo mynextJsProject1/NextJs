@@ -22,6 +22,7 @@ export default function DiceGamePage() {
   const [isRolling, setIsRolling] = useState(false);
   const [result, setResult] = useState<number | null>(null);
   const [isWin, setIsWin] = useState<boolean | null>(null);
+  const [rollingNumber, setRollingNumber] = useState<number>(0); // ✅ নাম্বার ঘোরানোর জন্য নতুন স্টেট
   const [errorMsg, setErrorMsg] = useState("");
   
   const [activeTab, setActiveTab] = useState<"manual" | "auto" | "advanced">("manual");
@@ -38,6 +39,7 @@ export default function DiceGamePage() {
     void fetchBalance();
   }, [supabase]);
 
+  // ✅ স্লাইডার পরিবর্তন হলে
   const handleSliderChange = (value: number) => {
     setRollOver(value);
     const newChance = isOver ? 100 - value : value;
@@ -45,6 +47,7 @@ export default function DiceGamePage() {
     setMultiplier(99 / newChance); 
   };
 
+  // ✅ Over/Under টগল করা
   const handleToggleMode = () => {
     setIsOver(!isOver);
     const newChance = !isOver ? 100 - rollOver : rollOver;
@@ -52,15 +55,43 @@ export default function DiceGamePage() {
     setMultiplier(99 / newChance);
   };
 
-  const handleMultiplierChange = (val: number) => {
-    setMultiplier(val);
-    if (val <= 1) return;
-    const newChance = 99 / val;
+  // ✅ Roll Over (Under) ম্যানুয়ালি চেঞ্জ করা
+  const handleRollOverChange = (val: number) => {
+    let newRoll = val;
+    if (newRoll < 2) newRoll = 2;
+    if (newRoll > 98) newRoll = 98;
+    
+    setRollOver(newRoll);
+    const newChance = isOver ? 100 - newRoll : newRoll;
     setChance(newChance);
-    setRollOver(isOver ? 100 - newChance : newChance);
+    setMultiplier(99 / newChance);
   };
 
-  // ✅ আসল গেম লজিক (Supabase RPC কল)
+  // ✅ Chance ম্যানুয়ালি চেঞ্জ করা
+  const handleChanceChange = (val: number) => {
+    let newChance = val;
+    if (newChance < 1) newChance = 1;
+    if (newChance > 98) newChance = 98;
+
+    setChance(newChance);
+    const newRoll = isOver ? 100 - newChance : newChance;
+    setRollOver(newRoll);
+    setMultiplier(99 / newChance);
+  };
+
+  // ✅ Multiplier ম্যানুয়ালি চেঞ্জ করা
+  const handleMultiplierChange = (val: number) => {
+    let newMultiplier = val;
+    if (newMultiplier < 1.01) newMultiplier = 1.01;
+
+    setMultiplier(newMultiplier);
+    const newChance = 99 / newMultiplier;
+    setChance(newChance);
+    const newRoll = isOver ? 100 - newChance : newChance;
+    setRollOver(newRoll);
+  };
+
+  // ✅ আসল গেম লজিক (Supabase RPC কল) এবং অ্যানিমেশন
   const handleRoll = async () => {
     const amount = Number(betAmount);
     if (amount <= 0) return;
@@ -74,6 +105,11 @@ export default function DiceGamePage() {
     setIsWin(null);
     setErrorMsg("");
 
+    // ✅ রোলিং অ্যানিমেশন (নাম্বার দ্রুত পরিবর্তন হওয়া)
+    const rollInterval = setInterval(() => {
+      setRollingNumber(Math.random() * 100);
+    }, 50);
+
     try {
       const { data, error } = await supabase.rpc("play_dice_bet", {
         p_bet_amount: amount,
@@ -81,6 +117,10 @@ export default function DiceGamePage() {
         p_is_over: isOver,
         p_multiplier: multiplier
       });
+
+      // ডাটাবেস থেকে রেসপন্স আসতে একটু দেরি হলে অ্যানিমেশন দেখানোর জন্য (কমপক্ষে ১ সেকেন্ড)
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      clearInterval(rollInterval);
 
       if (error) throw error;
 
@@ -90,6 +130,7 @@ export default function DiceGamePage() {
         setBalance(data.new_balance);
       }
     } catch (err: any) {
+      clearInterval(rollInterval);
       setErrorMsg(err.message || "Failed to place bet.");
     } finally {
       setIsRolling(false);
@@ -104,25 +145,30 @@ export default function DiceGamePage() {
         <div className="dice-game-container">
           <div className="dice-main-area">
             
-            {/* এরর মেসেজ */}
             {errorMsg && (
               <div style={{ background: "rgba(255,77,77,0.1)", color: "#ff4d4d", padding: "10px", borderRadius: "6px", marginBottom: "15px", fontSize: "13px", textAlign: "center" }}>
                 {errorMsg}
               </div>
             )}
 
-            {/* রেজাল্ট বক্স */}
+            {/* ✅ রেজাল্ট বক্স (অ্যানিমেশন ও ফাইনাল রেজাল্ট) */}
             <div className="dice-result-container">
-              {result !== null && (
-                <div className={`dice-result-box ${isWin ? "win" : "lose"}`}>
-                  {result.toFixed(2)}
+              {(isRolling || result !== null) && (
+                <div className={`dice-result-box ${isWin === true ? "win" : isWin === false ? "lose" : ""}`}>
+                  {isRolling ? rollingNumber.toFixed(2) : result?.toFixed(2)}
                 </div>
               )}
             </div>
 
-            {/* স্লাইডার */}
+            {/* ✅ স্লাইডার সেকশন (স্লাইডারের উপরে চিকন অ্যারো) */}
             <div className="dice-slider-section">
               <div className="dice-slider-track">
+                {/* অ্যারো বা মার্কার */}
+                <div 
+                  className="dice-target-arrow" 
+                  style={{ left: `calc(${rollOver}% - 5px)` }} 
+                />
+                
                 <div className="dice-track-fill" style={{
                   background: isOver 
                     ? `linear-gradient(to right, #ff4d4d ${rollOver}%, #00e701 ${rollOver}%)`
@@ -135,25 +181,37 @@ export default function DiceGamePage() {
               </div>
             </div>
 
-            {/* ইনপুট গ্রিড */}
+            {/* ✅ ইনপুট গ্রিড (এখন এডিটেবল) */}
             <div className="dice-inputs-grid">
               <div className="dice-input-group">
                 <label>Multiplier</label>
                 <div className="dice-input-wrapper">
-                  <input type="number" value={multiplier.toFixed(4)} onChange={(e) => handleMultiplierChange(Number(e.target.value))} />
+                  <input 
+                    type="number" 
+                    value={multiplier.toFixed(4)} 
+                    onChange={(e) => handleMultiplierChange(Number(e.target.value))} 
+                  />
                 </div>
               </div>
               <div className="dice-input-group">
                 <label>Roll {isOver ? "Over" : "Under"}</label>
-                <div className="dice-input-wrapper" onClick={handleToggleMode} style={{ cursor: "pointer" }}>
-                  <input type="number" value={rollOver.toFixed(2)} readOnly style={{ cursor: "pointer" }} />
-                  <i className="fa-solid fa-rotate"></i>
+                <div className="dice-input-wrapper">
+                  <input 
+                    type="number" 
+                    value={rollOver.toFixed(2)} 
+                    onChange={(e) => handleRollOverChange(Number(e.target.value))}
+                  />
+                  <i className="fa-solid fa-rotate" onClick={handleToggleMode} style={{ cursor: "pointer", padding: "4px" }}></i>
                 </div>
               </div>
               <div className="dice-input-group">
                 <label>Chance</label>
                 <div className="dice-input-wrapper">
-                  <input type="number" value={chance.toFixed(4)} readOnly />
+                  <input 
+                    type="number" 
+                    value={chance.toFixed(4)} 
+                    onChange={(e) => handleChanceChange(Number(e.target.value))}
+                  />
                   <span>%</span>
                 </div>
               </div>
