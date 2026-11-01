@@ -17,10 +17,55 @@
   width: 100%;
 }
 
+/* ✅ নতুন: বিট হিস্টরি স্টাইল */
+.dice-history-wrapper {
+  display: flex;
+  justify-content: flex-end;
+  width: 100%;
+  margin-bottom: 20px;
+  overflow: hidden; /* স্ক্রল বার লুকানোর জন্য */
+}
+
+.dice-history-container {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 5px 0;
+  scrollbar-width: none; /* Firefox */
+}
+
+.dice-history-container::-webkit-scrollbar {
+  display: none; /* Chrome/Safari */
+}
+
+.dice-history-item {
+  flex-shrink: 0;
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-weight: bold;
+  font-size: 14px;
+  animation: slideInFromRight 0.3s ease-out;
+}
+
+.dice-history-item.win {
+  background: #00e701;
+  color: #000;
+}
+
+.dice-history-item.lose {
+  background: #2f4553;
+  color: #fff;
+}
+
+@keyframes slideInFromRight {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
 /* স্লাইডার সেকশন */
 .dice-slider-section {
   margin-bottom: 24px;
-  margin-top: 60px; /* জায়গা বাড়ানো হলো */
+  margin-top: 60px; /* রেজাল্ট বক্সের জন্য জায়গা */
 }
 
 .dice-slider-track {
@@ -49,20 +94,19 @@
   position: absolute;
   top: -55px;
   transform: translateX(-50%);
-  background: #2f4553; /* ছবির মতো ডার্ক গ্রে */
+  background: #2f4553;
   color: #fff;
   padding: 10px 24px;
-  border-radius: 30px; /* পিল শেপ */
+  border-radius: 30px;
   font-size: 18px;
   font-weight: bold;
   z-index: 10;
   box-shadow: 0 4px 10px rgba(0,0,0,0.5);
   border: none;
-  /* অ্যানিমেশনের জন্য transition সরানো হলো */
 }
 
 .dice-floating-result.win {
-  background: #00e701; /* সবুজ */
+  background: #00e701;
   color: #000;
 }
 
@@ -132,18 +176,18 @@
   font-weight: bold;
 }
 
-/* ✅ ৩টি ইনপুট পাশাপাশি */
+/* ✅ ৩টি ইনপুট পাশাপাশি (শুধু একবার ব্যবহার করা হলো) */
 .dice-inputs-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr); /* সবসময় ৩ কলাম */
-  gap: 8px; /* গ্যাপ কমানো হয়েছে */
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
   margin-bottom: 20px;
 }
 
 .dice-input-group label {
   display: block;
   color: #fff;
-  font-size: 12px; /* ফন্ট একটু ছোট */
+  font-size: 12px;
   margin-bottom: 6px;
   white-space: nowrap;
 }
@@ -163,7 +207,7 @@
   border: none;
   color: #fff;
   padding: 12px 0;
-  font-size: 13px; /* ফন্ট ছোট */
+  font-size: 13px;
   outline: none;
   font-weight: bold;
 }
@@ -293,60 +337,7 @@
   color: #fff;
 }
 
-/* ✅ নতুন: বিট হিস্টরি স্টাইল */
-.dice-history-wrapper {
-  display: flex;
-  justify-content: flex-end;
-  width: 100%;
-  margin-bottom: 20px;
-  overflow: hidden; /* স্ক্রল বার লুকানোর জন্য */
-}
-
-.dice-history-container {
-  display: flex;
-  gap: 8px;
-  overflow-x: auto;
-  padding: 5px 0;
-  scrollbar-width: none; /* Firefox */
-}
-
-.dice-history-container::-webkit-scrollbar {
-  display: none; /* Chrome/Safari */
-}
-
-.dice-history-item {
-  flex-shrink: 0;
-  padding: 6px 16px;
-  border-radius: 20px;
-  font-weight: bold;
-  font-size: 14px;
-  animation: slideInFromRight 0.3s ease-out;
-}
-
-.dice-history-item.win {
-  background: #00e701;
-  color: #000;
-}
-
-.dice-history-item.lose {
-  background: #2f4553;
-  color: #fff;
-}
-
-@keyframes slideInFromRight {
-  from { transform: translateX(100%); opacity: 0; }
-  to { transform: translateX(0); opacity: 1; }
-}
-
-/* ✅ ৩টি বক্স পাশাপাশি রাখার জন্য CSS আপডেট */
-.dice-inputs-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr); /* সবসময় ৩টি কলাম */
-  gap: 8px;
-  margin-bottom: 20px;
-}
-
-/* মোবাইলে ফন্ট ছোট করে দিলাম যাতে ৩টি বক্স পাশাপাশি ফিট হয় */
+/* ✅ মোবাইলের জন্য রেসপন্সিভ */
 @media (max-width: 500px) {
   .dice-input-group label { font-size: 11px; }
   .dice-input-wrapper input { font-size: 12px; padding: 10px 0; }
