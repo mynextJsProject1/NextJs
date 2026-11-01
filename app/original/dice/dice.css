@@ -1,6 +1,6 @@
 /* app/original/dice/dice.css */
 
-/* ✅ মেইন পেজের গ্লোবাল কালার ফিক্স (ডেস্কটপ ও মোবাইলের জন্য) */
+/* ✅ মেইন পেজের গ্লোবাল কালার ফিক্স */
 html, body {
   background-color: #18221E !important;
   margin: 0;
@@ -35,19 +35,21 @@ html, body {
   flex-direction: column;
   align-items: center; 
   
-  /* ✅ ৭০% গ্যাপ কমানো হয়েছে (৮০ থেকে ২৪ পিক্সেল) */
-  padding-bottom: 24px; 
+  /* নিচের গ্যাপ কমানো হয়েছে */
+  padding-bottom: 10px; 
 }
 
-/* ✅ মেইন কার্ড (উপর-নিচের গ্যাপ ৭০% কমানো হয়েছে) */
+/* ✅ মেইন কার্ড (বর্ডার থেকে কন্টেন্টের গ্যাপ ৭০% কমানো হয়েছে) */
 .dice-main-area {
-  padding: 15px; 
-  /* ✅ ১০ পিক্সেল থেকে কমিয়ে ৩ পিক্সেল করা হয়েছে */
-  margin: 3px auto; 
+  /* প্যাডিং ১৫ পিক্সেল থেকে ৫ পিক্সেল করা হয়েছে */
+  padding: 5px; 
+  /* উপরে-নিচে গ্যাপ শূন্য করা হয়েছে */
+  margin: 0 auto; 
   max-width: 600px; 
-  width: calc(100% - 30px); 
+  /* কার্ডের চওড়া একটু বাড়ানো হয়েছে যাতে পাশের ফাঁকা জায়গা কমে */
+  width: calc(100% - 10px); 
   border: 1px solid var(--dice-border); 
-  border-radius: 12px; 
+  border-radius: 8px; 
   background-color: var(--dice-card); 
   box-sizing: border-box;
   height: fit-content; 
@@ -101,10 +103,10 @@ html, body {
   to { transform: translateX(0); opacity: 1; }
 }
 
-/* ✅ ৩. স্লাইডার সেকশন */
+/* ✅ ৩. স্লাইডার সেকশন (উপরের ও নিচের গ্যাপ কমানো হয়েছে) */
 .dice-slider-section {
-  margin-bottom: 20px;
-  margin-top: 30px; 
+  margin-bottom: 8px; /* ২০ থেকে ৮ করা হলো */
+  margin-top: 10px; /* ৩০ থেকে ১০ করা হলো */
   position: relative;
 }
 
@@ -217,25 +219,25 @@ html, body {
 .dice-slider-numbers {
   display: flex;
   justify-content: space-between;
-  margin-top: 6px;
+  margin-top: 4px;
   color: var(--dice-muted);
   font-size: 0.7rem;
   font-weight: 600;
 }
 
-/* ইনপুট গ্রিড */
+/* ইনপুট গ্রিড (নিচের গ্যাপ কমানো হয়েছে) */
 .dice-inputs-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-  margin-bottom: 20px;
+  gap: 6px;
+  margin-bottom: 8px; /* ২০ থেকে ৮ করা হলো */
 }
 
 .dice-input-group label {
   display: block;
   color: var(--dice-muted);
   font-size: 0.8rem;
-  margin-bottom: 6px;
+  margin-bottom: 4px;
   white-space: nowrap;
 }
 
@@ -245,8 +247,8 @@ html, body {
   border-radius: 8px;
   display: flex;
   align-items: center;
-  padding: 0 10px;
-  height: 40px;
+  padding: 0 8px;
+  height: 36px;
 }
 
 .dice-input-wrapper input {
@@ -265,37 +267,37 @@ html, body {
   font-size: 0.85rem;
 }
 
-/* বেট বাটন */
+/* বেট বাটন (নিচের গ্যাপ কমানো হয়েছে) */
 .dice-bet-btn {
   width: 100%;
-  padding: 12px;
+  padding: 10px;
   background: var(--dice-accent); 
   color: #000; 
   border: none;
-  border-radius: 8px;
+  border-radius: 6px;
   font-size: 0.95rem;
   font-weight: 800;
   cursor: pointer;
   transition: background 0.2s;
-  margin-bottom: 20px;
-  min-height: 44px;
+  margin-bottom: 8px; /* ২০ থেকে ৮ করা হলো */
+  min-height: 38px;
 }
 
 .dice-bet-btn:hover { background: #00c701; } 
 .dice-bet-btn.rolling { opacity: 0.7; cursor: not-allowed; }
 
-/* অ্যামাউন্ট সেকশন */
+/* অ্যামাউন্ট সেকশন (গ্যাপ কমানো হয়েছে) */
 .dice-amount-section {
   display: flex;
   flex-direction: column;
-  gap: 15px;
-  margin-bottom: 20px;
+  gap: 6px; /* ১৫ থেকে ৬ করা হলো */
+  margin-bottom: 8px; /* ২০ থেকে ৮ করা হলো */
 }
 
 .dice-label-row {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 6px;
+  margin-bottom: 4px;
 }
 
 .dice-label-row label {
@@ -313,26 +315,26 @@ html, body {
 .dice-amount-input-wrap {
   background: var(--dice-input-bg);
   border: 1px solid var(--dice-border);
-  border-radius: 8px;
+  border-radius: 6px;
   display: flex;
   align-items: center;
-  padding: 0 10px;
-  height: 44px;
+  padding: 0 8px;
+  height: 38px;
   width: 100%; 
   box-sizing: border-box; 
 }
 
 .dice-currency-icon {
   background: var(--dice-accent);
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   border-radius: 50%;
   display: flex;
   justify-content: center;
   align-items: center;
   color: #000;
   font-size: 10px;
-  margin-right: 10px;
+  margin-right: 8px;
   font-weight: bold;
   flex-shrink: 0;
 }
@@ -343,14 +345,14 @@ html, body {
   background: transparent;
   border: none;
   color: var(--dice-text);
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   outline: none;
   font-weight: 700;
 }
 
 .dice-quick-btns {
   display: flex;
-  gap: 5px;
+  gap: 4px;
   flex-shrink: 0;
 }
 
@@ -358,9 +360,9 @@ html, body {
   background: var(--dice-border);
   border: none;
   color: var(--dice-text);
-  width: 36px;
-  height: 36px;
-  border-radius: 6px;
+  width: 32px;
+  height: 32px;
+  border-radius: 4px;
   cursor: pointer;
   font-weight: bold;
   font-size: 0.75rem;
@@ -373,21 +375,21 @@ html, body {
   display: flex;
   background: var(--dice-input-bg);
   border: 1px solid var(--dice-border);
-  border-radius: 8px;
-  padding: 4px;
+  border-radius: 6px;
+  padding: 3px;
   margin: 0;
 }
 
 .dice-bottom-tabs button {
   flex: 1;
-  padding: 10px 12px;
+  padding: 8px 10px;
   background: transparent;
   border: none;
   color: var(--dice-muted);
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
-  border-radius: 6px;
+  border-radius: 4px;
   transition: all 0.2s ease;
 }
 
@@ -399,21 +401,18 @@ html, body {
 /* মোবাইলের জন্য রেসপন্সিভ */
 @media (max-width: 500px) {
   .dice-main-area {
-    /* ✅ মোবাইলেও গ্যাপ ৭০% কমানো হয়েছে */
-    margin: 3px auto; 
-    padding: 12px;
-    width: calc(100% - 20px);
+    margin: 0 auto; 
+    padding: 4px; /* মোবাইলেও প্যাডিং কমানো হলো */
+    width: calc(100% - 8px);
   }
   .dice-input-group label { font-size: 0.75rem; }
   .dice-input-wrapper input { font-size: 0.8rem; }
-  .dice-input-wrapper { padding: 0 6px; height: 38px; }
+  .dice-input-wrapper { padding: 0 6px; height: 34px; }
   .dice-input-wrapper i, .dice-input-wrapper span { font-size: 0.75rem; }
-  .dice-inputs-grid { gap: 6px; }
+  .dice-inputs-grid { gap: 4px; }
 }
 
-
 /* ✅ Auto Bet চলাকালীন বাটন এবং ইনপুট ফিল্ডের স্টাইল */
-
 .dice-bet-btn.stop-btn {
   background: #ff4d4d; 
   color: #fff;
@@ -437,15 +436,14 @@ html, body {
 /* ========================================= */
 /* ✅ Auto Mode UI স্টাইল */
 /* ========================================= */
-
 .dice-auto-settings {
   display: flex;
   flex-direction: column;
-  gap: 15px;
-  margin-bottom: 20px;
+  gap: 10px;
+  margin-bottom: 10px;
   background: var(--dice-input-bg); 
-  padding: 15px;
-  border-radius: 8px;
+  padding: 10px;
+  border-radius: 6px;
   border: 1px solid var(--dice-border);
 }
 
@@ -453,7 +451,7 @@ html, body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: 5px;
+  margin-top: 2px;
 }
 
 .auto-advanced-toggle label {
@@ -496,16 +494,16 @@ html, body {
 .advanced-options {
   display: flex;
   flex-direction: column;
-  gap: 15px;
-  margin-top: 10px;
-  padding-top: 15px;
+  gap: 10px;
+  margin-top: 5px;
+  padding-top: 10px;
   border-top: 1px solid var(--dice-border);
 }
 
 .adv-row {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 
 .adv-row label {
@@ -515,7 +513,7 @@ html, body {
 
 .adv-inputs {
   display: flex;
-  gap: 10px;
+  gap: 8px;
 }
 
 .adv-inputs select {
@@ -523,8 +521,8 @@ html, body {
   background: var(--dice-card);
   border: 1px solid var(--dice-border);
   color: var(--dice-text);
-  padding: 0 10px;
-  border-radius: 8px;
+  padding: 0 8px;
+  border-radius: 6px;
   outline: none;
   font-size: 0.85rem;
 }
@@ -700,7 +698,6 @@ html, body {
 
 
 /* ✅ নতুন: Bet History Button & Center Line Graph */
-
 .dice-btn-secondary {
   background: var(--dice-border);
   color: #ffffff;
@@ -760,18 +757,18 @@ html, body {
 .dice-stats-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 15px;
+  gap: 10px;
   background: var(--dice-input-bg);
-  padding: 15px;
+  padding: 10px;
   border-radius: 8px;
   border: 1px solid var(--dice-border);
-  margin-bottom: 15px;
+  margin-bottom: 10px;
 }
 
 .dice-stat-item {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
 }
 
 .dice-stat-label {
@@ -793,13 +790,13 @@ html, body {
   background: var(--dice-card);
   border: 1px solid var(--dice-border);
   border-radius: 8px;
-  height: 180px;
+  height: 150px;
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  padding: 10px;
+  padding: 5px;
 }
 
 .dice-graph-area svg {
