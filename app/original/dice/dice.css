@@ -20,7 +20,7 @@
 /* স্লাইডার সেকশন */
 .dice-slider-section {
   margin-bottom: 24px;
-  margin-top: 50px; /* রেজাল্ট বক্সের জন্য জায়গা */
+  margin-top: 60px; /* জায়গা বাড়ানো হলো */
 }
 
 .dice-slider-track {
@@ -44,46 +44,45 @@
   transition: background 0.1s;
 }
 
-/* ✅ ভাসমান রেজাল্ট বক্স (স্লাইডারের উপরে যেটি ঘুরবে) */
+/* ✅ ভাসমান রেজাল্ট বক্স (পিল শেপ) */
 .dice-floating-result {
   position: absolute;
   top: -55px;
   transform: translateX(-50%);
-  background: #1a2c38;
-  border: 2px solid #ff4d4d;
-  color: #ff4d4d;
-  padding: 8px 16px;
-  border-radius: 8px;
+  background: #2f4553; /* ছবির মতো ডার্ক গ্রে */
+  color: #fff;
+  padding: 10px 24px;
+  border-radius: 30px; /* পিল শেপ */
   font-size: 18px;
   font-weight: bold;
   z-index: 10;
   box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-  transition: left 0.05s linear;
+  border: none;
+  /* অ্যানিমেশনের জন্য transition সরানো হলো */
 }
 
 .dice-floating-result.win {
-  border-color: #00e701;
-  color: #00e701;
+  background: #00e701; /* সবুজ */
+  color: #000;
 }
 
-/* ✅ নিচের দিকের তীর (বক্সের সাথে যুক্ত) */
 .dice-floating-result .arrow-down {
   position: absolute;
-  bottom: -8px;
+  bottom: -6px;
   left: 50%;
   transform: translateX(-50%);
   width: 0;
   height: 0;
-  border-left: 8px solid transparent;
-  border-right: 8px solid transparent;
-  border-top: 8px solid #ff4d4d;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-top: 6px solid #2f4553;
 }
 
 .dice-floating-result.win .arrow-down {
   border-top-color: #00e701;
 }
 
-/* ✅ ভিজুয়াল স্লাইডার (সাদা গোল চিহ্নটি সম্পূর্ণ লুকানো হয়েছে) */
+/* ✅ ভিজুয়াল স্লাইডার (লুকানো) */
 .dice-visual-slider {
   width: 100%;
   position: absolute;
@@ -100,11 +99,11 @@
   -webkit-appearance: none;
   height: 24px;
   width: 24px;
-  background: transparent !important; /* গোল চিহ্ন লুকানো */
+  background: transparent !important;
   border: none !important;
 }
 
-/* ✅ মূল স্লাইডার (পার্পল রঙের) */
+/* ✅ মূল স্লাইডার */
 .dice-main-slider {
   width: 100%;
   position: relative;
@@ -133,19 +132,20 @@
   font-weight: bold;
 }
 
-/* ইনপুট গ্রিড */
+/* ✅ ৩টি ইনপুট পাশাপাশি */
 .dice-inputs-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 12px;
+  grid-template-columns: repeat(3, 1fr); /* সবসময় ৩ কলাম */
+  gap: 8px; /* গ্যাপ কমানো হয়েছে */
   margin-bottom: 20px;
 }
 
 .dice-input-group label {
   display: block;
   color: #fff;
-  font-size: 13px;
-  margin-bottom: 8px;
+  font-size: 12px; /* ফন্ট একটু ছোট */
+  margin-bottom: 6px;
+  white-space: nowrap;
 }
 
 .dice-input-wrapper {
@@ -154,7 +154,7 @@
   border-radius: 4px;
   display: flex;
   align-items: center;
-  padding: 0 10px;
+  padding: 0 8px;
 }
 
 .dice-input-wrapper input {
@@ -163,7 +163,7 @@
   border: none;
   color: #fff;
   padding: 12px 0;
-  font-size: 14px;
+  font-size: 13px; /* ফন্ট ছোট */
   outline: none;
   font-weight: bold;
 }
@@ -171,7 +171,7 @@
 .dice-input-wrapper i, 
 .dice-input-wrapper span {
   color: #b1bad3;
-  font-size: 14px;
+  font-size: 13px;
 }
 
 /* বেট বাটন */
@@ -291,92 +291,4 @@
 .dice-bottom-tabs button.active {
   background: #2f4553;
   color: #fff;
-}
-
-/* Auto Mode UI */
-.dice-auto-settings {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  margin-bottom: 24px;
-  background: #1a2c38;
-  padding: 16px;
-  border-radius: 8px;
-}
-
-.auto-advanced-toggle {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin: 10px 0;
-}
-
-.auto-advanced-toggle label {
-  color: #fff;
-  font-weight: bold;
-  font-size: 14px;
-}
-
-.toggle-switch {
-  width: 50px;
-  height: 28px;
-  background: #2f4553;
-  border-radius: 20px;
-  position: relative;
-  cursor: pointer;
-  transition: 0.3s;
-}
-
-.toggle-switch.active { background: #00e701; }
-
-.toggle-knob {
-  width: 22px;
-  height: 22px;
-  background: #fff;
-  border-radius: 50%;
-  position: absolute;
-  top: 3px;
-  left: 3px;
-  transition: 0.3s;
-}
-
-.toggle-switch.active .toggle-knob { left: 25px; }
-
-.advanced-options {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  border-top: 1px solid #2f4553;
-  padding-top: 16px;
-}
-
-.adv-row {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.adv-row label {
-  color: #b1bad3;
-  font-size: 13px;
-}
-
-.adv-inputs {
-  display: flex;
-  gap: 10px;
-}
-
-.adv-inputs select {
-  background: #2f4553;
-  color: #fff;
-  border: none;
-  padding: 10px;
-  border-radius: 4px;
-  outline: none;
-  font-weight: bold;
-}
-
-@media (max-width: 500px) {
-  .dice-inputs-grid { grid-template-columns: 1fr 1fr; }
-  .dice-input-group:last-child { grid-column: span 2; }
 }
