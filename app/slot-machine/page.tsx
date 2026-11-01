@@ -1,72 +1,97 @@
 'use client';
 
-import React, { useState, useCallback } from 'react';
-import styles from './slot-machine.css;
+import React, { useState, useCallback, useRef, useEffect } from 'react';
+import styles from './page.module.css';
 
+// গেমের সিম্বল এবং সেটিংস
 const SYMBOLS = ['🍒', '🍋', '🔔', '💎', '7️⃣'];
 const REEL_COUNT = 3;
-const SPIN_DURATION = 1500;
+const SPIN_DURATION = 2000; // ২ সেকেন্ড
 
-const SlotMachine: React.FC = () => {
-  const [balance, setBalance] = useState<number>(1374224.62); // আপনার স্ক্রিনশটের ব্যালেন্স
+interface SpinResult {
+  reels: string[];
+  winAmount: number;
+  isWin: boolean;
+}
+
+export default function SlotMachinePage() {
+  // স্টেট ম্যানেজমেন্ট
+  const [balance, setBalance] = useState<number>(1374224.62); 
   const [bet, setBet] = useState<number>(10.00);
   const [isSpinning, setIsSpinning] = useState<boolean>(false);
-  const [currentSymbols, setCurrentSymbols] = useState<string[]>(
-    Array(REEL_COUNT).fill(SYMBOLS[0])
-  );
+  const [currentSymbols, setCurrentSymbols] = useState<string[]>(Array(REEL_COUNT).fill('7️⃣'));
   const [lastWin, setLastWin] = useState<number>(0);
-  const [message, setMessage] = useState<string>('আপনার ভাগ্য পরীক্ষা করুন!');
+  const [message, setMessage] = useState<string>('Place your bet and spin to win!');
+  
+  // মেমরি লিক রোধ করার জন্য রেফারেন্স
+  const spinIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  const spin = useCallback(async () => {
-    if (isSpinning || balance < bet) {
-      if (balance < bet) setMessage('পর্যাপ্ত ব্যালেন্স নেই!');
+  // কম্পোনেন্ট আনমাউন্ট হলে ইন্টারভাল ক্লিয়ার করা
+  useEffect(() => {
+    return () => {
+      if (spinIntervalRef.current) clearInterval(spinIntervalRef.current);
+    };
+  }, []);
+
+  const handleSpin = useCallback(() => {
+    if (isSpinning) return;
+    if (balance < bet) {
+      setMessage('Insufficient balance!');
       return;
     }
 
     setIsSpinning(true);
-    setMessage('ঘুরছে...');
+    setMessage('Spinning...');
     setLastWin(0);
+    
+    // ব্যালেন্স কাটা (পরবর্তীতে এটি Supabase API-তে যাবে)
     setBalance((prev) => prev - bet);
 
-    const spinInterval = setInterval(() => {
+    // অ্যানিমেশনের জন্য র‍্যান্ডম সিম্বল দেখানো
+    spinIntervalRef.current = setInterval(() => {
       setCurrentSymbols(Array.from({ length: REEL_COUNT }, () => 
         SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)]
       ));
-    }, 100);
+    }, 80);
 
+    // স্পিন শেষ হওয়া এবং ফলাফল নির্ধারণ
     setTimeout(() => {
-      clearInterval(spinInterval);
+      if (spinIntervalRef.current) clearInterval(spinIntervalRef.current);
+
+      // এখানে ভবিষ্যতে Supabase RPC থেকে আসল ফলাফল আসবে
       const finalReels = Array.from({ length: REEL_COUNT }, () => 
         SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)]
       );
       
       setCurrentSymbols(finalReels);
+
       const isWin = finalReels[0] === finalReels[1] && finalReels[1] === finalReels[2];
       const winAmount = isWin ? bet * 10 : 0; 
 
       if (isWin) {
         setBalance((prev) => prev + winAmount);
         setLastWin(winAmount);
-        setMessage(`🎉 আপনি জিতেছেন ${winAmount.toFixed(2)} কয়েন!`);
+        setMessage(`🎉 You won ${winAmount.toFixed(2)} BDT!`);
       } else {
-        setMessage('😢 আবার চেষ্টা করুন!');
+        setMessage('😢 Try again!');
       }
+
       setIsSpinning(false);
     }, SPIN_DURATION);
   }, [isSpinning, balance, bet]);
 
   return (
     <div className={styles.container}>
-      {/* মেইন মেশিন কন্টেইনার */}
       <div className={styles.machine}>
-        
-        {/* ইনার বর্ডার কন্টেইনার */}
+        {/* ইনার বর্ডার */}
         <div className={styles.innerBorder}>
           
+          {/* হেডার: ব্যালেন্স */}
           <div className={styles.header}>
             <span>Balance: <strong>{balance.toFixed(2)} BDT</strong></span>
           </div>
 
+          {/* রিলস */}
           <div className={styles.reels}>
             {currentSymbols.map((symbol, index) => (
               <div key={index} className={`${styles.reel} ${isSpinning ? styles.spinning : ''}`}>
@@ -75,11 +100,13 @@ const SlotMachine: React.FC = () => {
             ))}
           </div>
 
+          {/* মেসেজ বোর্ড */}
           <div className={styles.messageBoard}>
             <p>{message}</p>
             {lastWin > 0 && <p className={styles.winText}>Profit: {lastWin.toFixed(2)} BDT</p>}
           </div>
 
+          {/* কন্ট্রোল এরিয়া */}
           <div className={styles.controls}>
             <div className={styles.inputGroup}>
               <label>Bet Amount</label>
@@ -92,17 +119,29 @@ const SlotMachine: React.FC = () => {
                   min="1"
                   className={styles.betInput}
                 />
-                <button className={styles.quickBet}>½</button>
-                <button className={styles.quickBet}>2x</button>
+                <button 
+                  className={styles.quickBet} 
+                  onClick={() => setBet(prev => Math.max(1, prev / 2))}
+                  disabled={isSpinning}
+                >
+                  ½
+                </button>
+                <button 
+                  className={styles.quickBet} 
+                  onClick={() => setBet(prev => prev * 2)}
+                  disabled={isSpinning}
+                >
+                  2x
+                </button>
               </div>
             </div>
             
             <button
-              onClick={spin}
-              disabled={isSpinning}
+              onClick={handleSpin}
+              disabled={isSpinning || balance < bet}
               className={styles.spinButton}
             >
-              {isSpinning ? 'Spinning...' : 'BET'}
+              {isSpinning ? 'SPINNING...' : 'BET'}
             </button>
           </div>
 
@@ -110,6 +149,4 @@ const SlotMachine: React.FC = () => {
       </div>
     </div>
   );
-};
-
-export default SlotMachine;
+}
