@@ -20,17 +20,14 @@ export default function DiceGamePage() {
   const [multiplier, setMultiplier] = useState(2.0000);
   const [chance, setChance] = useState(49.5000);
 
-  // রোল অ্যানিমেশন ও রেজাল্ট
   const [isRolling, setIsRolling] = useState(false);
   const [result, setResult] = useState<number | null>(null);
   const [isWin, setIsWin] = useState<boolean | null>(null);
   const [errorMsg, setErrorMsg] = useState("");
   
-  // বিট হিস্টরি (Graph এর জন্য betAmount যুক্ত করা হয়েছে)
   const [history, setHistory] = useState<{ id: string, value: number, isWin: boolean, profit: number, nonce: number, betAmount: number }[]>([]);
   const [visualSliderValue, setVisualSliderValue] = useState(50.50);
 
-  // ট্যাব স্টেট
   const [activeTab, setActiveTab] = useState<"manual" | "auto" | "advanced">("manual");
 
   // Auto Mode State
@@ -43,28 +40,23 @@ export default function DiceGamePage() {
   const [stopOnProfit, setStopOnProfit] = useState("0.00");
   const [stopOnLoss, setStopOnLoss] = useState("0.00");
 
-  // Auto Betting
   const [isAutoBetting, setIsAutoBetting] = useState(false);
   const [autoStats, setAutoStats] = useState({ bets: 0, profit: 0 });
   const isAutoRef = useRef(false);
 
-  // ✅ Settings, Graph, Fairness এর জন্য স্টেট
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isGraphOpen, setIsGraphOpen] = useState(false);
   const [isFairnessOpen, setIsFairnessOpen] = useState(false);
   const [isBetHistoryOpen, setIsBetHistoryOpen] = useState(false); 
 
-  // Settings এর ভেতরের স্টেট
   const [instantBet, setInstantBet] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
 
-  // Fairness Seed State
   const [clientSeed, setClientSeed] = useState("my_client_seed_123");
   const [serverSeedHash, setServerSeedHash] = useState("a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0");
   const [nonce, setNonce] = useState(1);
   const [isSeedVerified, setIsSeedVerified] = useState(false);
 
-  // সাউন্ড প্লে ফাংশন
   const playDiceSound = () => {
     if (soundEnabled) {
       const audio = new Audio("https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3");
@@ -237,13 +229,12 @@ export default function DiceGamePage() {
     }
   };
 
-  // ✅ Graph Stats Calculation
   const totalWagered = history.reduce((sum, item) => sum + item.betAmount, 0);
   const totalProfit = history.reduce((sum, item) => sum + item.profit, 0);
   const wins = history.filter(h => h.isWin).length;
   const losses = history.filter(h => !h.isWin).length;
 
-  // ✅ Graph SVG Line Drawing (স্ক্রল করার জন্য প্রস্থ বাড়ানো হয়েছে)
+  // ✅ Graph Chart Logic (সংশোধিত)
   const generateGraph = () => {
     if (history.length === 0) return null;
     
@@ -254,27 +245,33 @@ export default function DiceGamePage() {
     });
 
     const maxVal = Math.max(...points.map(Math.abs), 10); 
-    const width = 1000; // ✅ পিসির মতো মুভ করার জন্য চওড়া করা হলো
-    const height = 150;
-    const stepX = width / Math.max(points.length - 1, 1);
+    const width = Math.max(400, points.length * 60); // ডাটা বাড়লে গ্রাফ লম্বা হবে (স্ক্রল হবে)
+    const height = 100; // গ্রাফের উচ্চতা
+    const stepX = (width - 40) / Math.max(points.length - 1, 1);
+    const getY = (val: number) => (height / 2) - (val / maxVal) * (height / 2 - 10);
 
-    let linePath = `M 0 ${height / 2} `;
-    points.forEach((p, i) => {
-      const x = i * stepX;
-      const y = (height / 2) - (p / maxVal) * (height / 2 - 10);
-      linePath += `L ${x} ${y} `;
-    });
+    // প্রতিটি পয়েন্টের জন্য আলাদা লাইন সেগমেন্ট তৈরি করা
+    const segments = [];
+    for (let i = 0; i < points.length - 1; i++) {
+      const x1 = 20 + i * stepX;
+      const y1 = getY(points[i]);
+      const x2 = 20 + (i + 1) * stepX;
+      const y2 = getY(points[i + 1]);
+      
+      // যদি পরবর্তী পয়েন্ট আগের পয়েন্টের চেয়ে বড় হয় (লাভ) তবে সবুজ, নাহলে লাল
+      const color = points[i + 1] >= points[i] ? "#00E701" : "#ff4d4d";
+      
+      segments.push(
+        <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke={color} strokeWidth="3" />
+      );
+    }
 
     return (
-      <svg viewBox={`0 0 ${width} ${height}`} style={{ width: `${width}px`, height: '100%', minWidth: '100%' }}>
-        <line x1="0" y1={height / 2} x2={width} y2={height / 2} stroke="#23332b" strokeWidth="2" />
-        <path d={linePath} fill="none" stroke="url(#lineGrad)" strokeWidth="3" strokeLinejoin="round" />
-        <defs>
-          <linearGradient id="lineGrad" x1="0" x2="0" y1="0" y2="1">
-            <stop offset="50%" stopColor="#ff4d4d" />
-            <stop offset="50%" stopColor="#00e701" />
-          </linearGradient>
-        </defs>
+      <svg viewBox={`0 0 ${width} ${height}`} style={{ width: `${width}px`, height: '100%', display: 'block' }}>
+        {/* জিরো লাইন */}
+        <line x1="0" y1={height / 2} x2={width} y2={height / 2} stroke="#23332b" strokeWidth="1" strokeDasharray="4 4" />
+        {/* লাভ-লসের লাইন */}
+        {segments}
       </svg>
     );
   };
@@ -598,13 +595,13 @@ export default function DiceGamePage() {
       {/* ================= ✅ Graph/Stats Modal (Updated Design) ================= */}
       {isGraphOpen && (
         <div className="dice-modal-overlay" onClick={() => setIsGraphOpen(false)}>
-          {/* ✅ maxWidth কমিয়ে ৩০০px করা হয়েছে (কার্ড ৬০% ছোট) */}
-          <div className="dice-modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '300px' }}>
+          {/* ✅ maxWidth কমিয়ে ২৪০px করা হয়েছে (কার্ড ৫০% ছোট) */}
+          <div className="dice-modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '240px' }}>
             <div className="dice-modal-header">
-              <h3>Stats & Graph</h3>
-              <button onClick={() => setIsGraphOpen(false)}>✕</button>
+              <h3 style={{ fontSize: '0.85rem' }}>Stats & Graph</h3>
+              <button onClick={() => setIsGraphOpen(false)} style={{ fontSize: '1rem' }}>✕</button>
             </div>
-            <div className="dice-modal-body" style={{ padding: '10px' }}>
+            <div className="dice-modal-body" style={{ padding: '8px' }}>
               
               {/* Stats Grid */}
               <div className="dice-stats-grid">
@@ -631,7 +628,7 @@ export default function DiceGamePage() {
               {/* Graph Area */}
               <div className="dice-graph-area">
                 {history.length === 0 ? (
-                  <div style={{ textAlign: 'center', color: '#a0aab2', padding: '30px 0', fontSize: '12px' }}>No bets placed yet</div>
+                  <div style={{ textAlign: 'center', color: '#a0aab2', padding: '20px 0', fontSize: '10px' }}>No bets placed yet</div>
                 ) : (
                   generateGraph()
                 )}
