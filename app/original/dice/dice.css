@@ -745,3 +745,44 @@ html, body {
   color: #000 !important;
   font-weight: bold;
 }
+
+/* ✅ Stats Modal Small Size (আগেরটার উপর ওভাররাইড) */
+.dice-stats-grid {
+  gap: 6px;
+  padding: 6px;
+  border-radius: 4px;
+  margin-bottom: 6px;
+}
+
+.dice-stat-label {
+  font-size: 0.6rem;
+}
+
+.dice-stat-value {
+  font-size: 0.8rem;
+}
+
+/* ✅ Graph Area (Scroll এবং Height ফিক্স) */
+.dice-graph-area {
+  background: var(--dice-card);
+  border: 1px solid var(--dice-border);
+  border-radius: 4px;
+  height: 80px; /* উচ্চতা আরও কমানো হয়েছে */
+  position: relative;
+  display: block;
+  overflow-x: auto; /* পিসির মতো ডানে-বামে স্ক্রল করার জন্য */
+  overflow-y: hidden;
+  padding: 0;
+}
+
+/* কাস্টম স্ক্রলবার (সুন্দর দেখানোর জন্য) */
+.dice-graph-area::-webkit-scrollbar {
+  height: 4px;
+}
+.dice-graph-area::-webkit-scrollbar-track {
+  background: transparent;
+}
+.dice-graph-area::-webkit-scrollbar-thumb {
+  background: var(--dice-border);
+  border-radius: 4px;
+}
