@@ -1,10 +1,11 @@
-/* app/game/original/dice/page.tsx */
+/* app/original/dice/page.tsx */
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import Header from "../../../../components/Header";
-import Footer from "../../../../components/Footer";
+// ✅ পাথ পরিবর্তন করে ৪ থেকে ৩টি ../ করা হয়েছে
+import Header from "../../../components/Header"; 
+import Footer from "../../../components/Footer";
 import "./dice.css";
 
 export default function DiceGamePage() {
@@ -231,7 +232,7 @@ export default function DiceGamePage() {
 
       {/* ✅ Footer ইন্টিগ্রেশন */}
       <Footer
-        activePage="casino" // যেহেতু ডাইস হলো অরিজিনাল ক্যাসিনো গেম
+        activePage="casino"
         onNavigate={(page) => {
           if (page === "home") router.push("/");
           else if (page === "chat") router.push("/");
