@@ -22,9 +22,10 @@ export default function LotteryAdminDrawsPage() {
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
   
-  // Create Form State
+  // Create/Edit Form State
   const [showForm, setShowForm] = useState(false);
   const [formLoading, setFormLoading] = useState(false);
+  const [editingDrawId, setEditingDrawId] = useState<string | null>(null); // ✅ এডিট ট্র্যাক করার জন্য
   const [formData, setFormData] = useState({
     draw_name: "",
     ticket_price: "50",
@@ -38,6 +39,9 @@ export default function LotteryAdminDrawsPage() {
   const [manualDrawId, setManualDrawId] = useState<string | null>(null);
   const [manualNumber, setManualNumber] = useState("");
   const [executing, setExecuting] = useState<string | null>(null);
+
+  // ✅ Action Loading State (Delete, Hide)
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
 
   const supabase = createClient();
 
@@ -54,30 +58,91 @@ export default function LotteryAdminDrawsPage() {
 
   useEffect(() => { void loadData(); }, [loadData]);
 
-  const handleCreateDraw = async (e: React.FormEvent) => {
+  // ✅ Create অথবা Update করার হ্যান্ডলার
+  const handleSubmitDraw = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormLoading(true);
     setMessage("");
 
-    const { error } = await supabase.from("lottery_draws").insert({
+    const payload = {
       draw_name: formData.draw_name,
       ticket_price: Number(formData.ticket_price),
       total_tickets: Number(formData.total_tickets),
       jackpot_amount: Number(formData.jackpot_amount),
       draw_type: formData.draw_type,
       draw_time: new Date(formData.draw_time).toISOString(),
-      status: "upcoming"
-    });
+    };
 
-    if (error) {
-      setMessage(`Error: ${error.message}`);
+    if (editingDrawId) {
+      // ✅ Update Logic
+      const { error } = await supabase.from("lottery_draws").update(payload).eq("id", editingDrawId);
+      if (error) {
+        setMessage(`Error: ${error.message}`);
+      } else {
+        setMessage("Draw updated successfully!");
+        setShowForm(false);
+        setEditingDrawId(null);
+        resetForm();
+      }
     } else {
-      setMessage("Draw created successfully!");
-      setShowForm(false);
-      setFormData({ draw_name: "", ticket_price: "50", total_tickets: "100", jackpot_amount: "", draw_type: "auto", draw_time: "" });
-      loadData();
+      // ✅ Create Logic
+      const { error } = await supabase.from("lottery_draws").insert({ ...payload, status: "upcoming" });
+      if (error) {
+        setMessage(`Error: ${error.message}`);
+      } else {
+        setMessage("Draw created successfully!");
+        setShowForm(false);
+        resetForm();
+      }
     }
     setFormLoading(false);
+    loadData();
+  };
+
+  const resetForm = () => {
+    setFormData({ draw_name: "", ticket_price: "50", total_tickets: "100", jackpot_amount: "", draw_type: "auto", draw_time: "" });
+  };
+
+  // ✅ এডিট বাটনে ক্লিক করলে ফর্মে ডাটা লোড হবে
+  const handleEditClick = (draw: Draw) => {
+    setEditingDrawId(draw.id);
+    setFormData({
+      draw_name: draw.draw_name,
+      ticket_price: draw.ticket_price.toString(),
+      total_tickets: draw.total_tickets.toString(),
+      jackpot_amount: draw.jackpot_amount.toString(),
+      draw_type: draw.draw_type,
+      // datetime-local এর জন্য ফরম্যাট করা (YYYY-MM-DDThh:mm)
+      draw_time: new Date(draw.draw_time).toISOString().slice(0, 16),
+    });
+    setShowForm(true);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // ✅ Delete বাটনের হ্যান্ডলার
+  const handleDeleteDraw = async (id: string) => {
+    if (!confirm("Are you sure you want to permanently delete this draw?")) return;
+    setActionLoading(id);
+    const { error } = await supabase.from("lottery_draws").delete().eq("id", id);
+    if (error) setMessage(`Error: ${error.message}`);
+    else {
+      setMessage("Draw deleted successfully.");
+      loadData();
+    }
+    setActionLoading(null);
+  };
+
+  // ✅ Hide/Show বাটনের হ্যান্ডলার
+  const handleToggleHide = async (id: string, currentStatus: string) => {
+    const newStatus = currentStatus === "hidden" ? "upcoming" : "hidden";
+    setActionLoading(id);
+    const { error } = await supabase.from("lottery_draws").update({ status: newStatus }).eq("id", id);
+    if (error) setMessage(`Error: ${error.message}`);
+    else {
+      setMessage(`Draw ${newStatus === "hidden" ? "hidden" : "shown"} successfully.`);
+      loadData();
+    }
+    setActionLoading(null);
   };
 
   const handleExecuteDraw = async (drawId: string, type: string) => {
@@ -93,14 +158,12 @@ export default function LotteryAdminDrawsPage() {
 
     if (!confirm(`Are you sure you want to execute this ${type.toUpperCase()} draw?`)) return;
 
-    // নতুন ড্র তৈরি করার জন্য বর্তমান ড্র-এর ডিটেইলস খুঁজে বের করা হচ্ছে
     const currentDraw = draws.find(d => d.id === drawId);
     if (!currentDraw) return;
 
     setExecuting(drawId);
     setMessage("");
 
-    // ১. ড্র এক্সিকিউট করা (RPC কল)
     const { data, error } = await supabase.rpc("execute_lottery_draw", {
       p_draw_id: drawId,
       p_winning_number: winningNumber
@@ -110,12 +173,9 @@ export default function LotteryAdminDrawsPage() {
       setMessage(`Error: ${error.message}`);
     } else if (data && data.success) {
       
-      // ==========================================
-      // ✅ নতুন লজিক: আগামীকাল রাত ১১:৫৯ মিনিটের নতুন ড্র তৈরি
-      // ==========================================
       const nextDrawTime = new Date();
-      nextDrawTime.setDate(nextDrawTime.getDate() + 1); // আগামীকালের তারিখ
-      nextDrawTime.setHours(23, 59, 0, 0); // রাত ১১:৫৯:০০ মিনিট
+      nextDrawTime.setDate(nextDrawTime.getDate() + 1); 
+      nextDrawTime.setHours(23, 59, 0, 0); 
 
       const { error: nextDrawError } = await supabase.from("lottery_draws").insert({
         draw_name: currentDraw.draw_name, 
@@ -123,7 +183,7 @@ export default function LotteryAdminDrawsPage() {
         total_tickets: currentDraw.total_tickets,
         jackpot_amount: currentDraw.jackpot_amount, 
         draw_type: currentDraw.draw_type,
-        draw_time: nextDrawTime.toISOString(), // নতুন তারিখ ও সময়
+        draw_time: nextDrawTime.toISOString(), 
         status: "upcoming"
       });
 
@@ -132,7 +192,6 @@ export default function LotteryAdminDrawsPage() {
       } else {
         setMessage(`Draw executed! Winning No: ${data.winning_number}. Next draw auto-created for Tomorrow 11:59 PM.`);
       }
-      // ==========================================
 
       setManualDrawId(null);
       setManualNumber("");
@@ -148,7 +207,7 @@ export default function LotteryAdminDrawsPage() {
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
         <h1 className="la-title" style={{ margin: 0 }}>Draw Management</h1>
         <button 
-          onClick={() => setShowForm(!showForm)}
+          onClick={() => { setShowForm(!showForm); setEditingDrawId(null); resetForm(); }}
           className="la-btn-approve"
           style={{ padding: "10px 16px", borderRadius: "8px", fontWeight: "bold" }}
         >
@@ -158,10 +217,12 @@ export default function LotteryAdminDrawsPage() {
 
       {message && <div className="la-alert">{message}</div>}
 
-      {/* Create Form */}
+      {/* Create / Edit Form */}
       {showForm && (
-        <form onSubmit={handleCreateDraw} className="la-card" style={{ marginBottom: "24px" }}>
-          <h3 style={{ margin: "0 0 16px", color: "#fff" }}>Create Lottery Draw</h3>
+        <form onSubmit={handleSubmitDraw} className="la-card" style={{ marginBottom: "24px" }}>
+          <h3 style={{ margin: "0 0 16px", color: "#fff" }}>
+            {editingDrawId ? "Edit Lottery Draw" : "Create Lottery Draw"}
+          </h3>
           
           <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
             <input 
@@ -221,7 +282,7 @@ export default function LotteryAdminDrawsPage() {
           </div>
 
           <button type="submit" className="la-btn-approve" disabled={formLoading} style={{ width: "100%", padding: "12px", marginTop: "16px", borderRadius: "6px", fontWeight: "bold" }}>
-            {formLoading ? "Creating..." : "Create Draw"}
+            {formLoading ? "Processing..." : editingDrawId ? "Update Draw" : "Create Draw"}
           </button>
         </form>
       )}
@@ -234,7 +295,7 @@ export default function LotteryAdminDrawsPage() {
       ) : (
         <div className="la-list">
           {draws.map(draw => (
-            <div className="la-card" key={draw.id}>
+            <div className="la-card" key={draw.id} style={{ opacity: draw.status === 'hidden' ? 0.6 : 1 }}>
               <div className="la-card-header">
                 <div>
                   <strong style={{ color: "#fff", display: "block", fontSize: "16px" }}>{draw.draw_name}</strong>
@@ -242,8 +303,8 @@ export default function LotteryAdminDrawsPage() {
                 </div>
                 <span style={{ 
                   fontSize: "11px", fontWeight: "bold", padding: "4px 8px", borderRadius: "4px", 
-                  background: draw.status === "upcoming" ? "rgba(245,130,32,0.15)" : "rgba(0,231,1,0.15)", 
-                  color: draw.status === "upcoming" ? "#f58220" : "#00e701" 
+                  background: draw.status === "upcoming" ? "rgba(245,130,32,0.15)" : draw.status === "hidden" ? "rgba(255,255,255,0.1)" : "rgba(0,231,1,0.15)", 
+                  color: draw.status === "upcoming" ? "#f58220" : draw.status === "hidden" ? "#aaa" : "#00e701" 
                 }}>
                   {draw.status.toUpperCase()}
                 </span>
@@ -257,8 +318,9 @@ export default function LotteryAdminDrawsPage() {
                 )}
               </div>
 
+              {/* Execute Draw Button (শুধুমাত্র upcoming থাকলে দেখাবে) */}
               {draw.status === "upcoming" && (
-                <div style={{ width: "100%" }}>
+                <div style={{ width: "100%", marginBottom: "12px" }}>
                   {draw.draw_type === "auto" ? (
                     <button 
                       className="la-btn-approve"
@@ -307,6 +369,34 @@ export default function LotteryAdminDrawsPage() {
                   )}
                 </div>
               )}
+
+              {/* ✅ Admin Actions: Edit, Hide, Delete */}
+              {draw.status !== "finished" && (
+                <div style={{ display: "flex", gap: "8px", marginTop: "12px", borderTop: "1px dashed #3a1f6b", paddingTop: "12px" }}>
+                  <button 
+                    onClick={() => handleEditClick(draw)} 
+                    disabled={actionLoading === draw.id}
+                    style={{ flex: 1, padding: "8px", borderRadius: "6px", fontWeight: "bold", background: "rgba(0,231,1,0.15)", color: "#00e701", border: "1px solid #00e701" }}
+                  >
+                    Edit
+                  </button>
+                  <button 
+                    onClick={() => handleToggleHide(draw.id, draw.status)} 
+                    disabled={actionLoading === draw.id}
+                    style={{ flex: 1, padding: "8px", borderRadius: "6px", fontWeight: "bold", background: "rgba(245,130,32,0.15)", color: "#f58220", border: "1px solid #f58220" }}
+                  >
+                    {draw.status === "hidden" ? "Show" : "Hide"}
+                  </button>
+                  <button 
+                    onClick={() => handleDeleteDraw(draw.id)} 
+                    disabled={actionLoading === draw.id}
+                    style={{ flex: 1, padding: "8px", borderRadius: "6px", fontWeight: "bold", background: "rgba(255,77,77,0.15)", color: "#ff4d4d", border: "1px solid #ff4d4d" }}
+                  >
+                    Delete
+                  </button>
+                </div>
+              )}
+
             </div>
           ))}
         </div>
