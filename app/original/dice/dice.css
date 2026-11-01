@@ -1,9 +1,23 @@
 /* app/original/dice/dice.css */
 
+/* ✅ মেইন পেজের গ্লোবাল কালার ফিক্স (ডেস্কটপ ও মোবাইলের জন্য) */
+html, body {
+  background-color: #18221E !important;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  overflow-x: hidden; /* স্ক্রলবারের কারণে যাতে পাশে কাটা না পড়ে */
+}
+
+.stake-app, .stake-main {
+  background-color: #18221E !important;
+  width: 100%;
+}
+
 /* ✅ পুরো স্ক্রিনের প্যারেন্ট কন্টেইনার */
 .dice-game-container {
-  --dice-bg: #18221E;         /* ✅ মেইন ব্যাকগ্রাউন্ড Deep Forest Green */
-  --dice-card: #1c2a24;       /* ✅ কার্ডের ব্যাকগ্রাউন্ড (সামান্য হালকা যাতে বোঝা যায়) */
+  --dice-bg: #18221E;         /* মেইন ব্যাকগ্রাউন্ড Deep Forest Green */
+  --dice-card: #1c2a24;       /* কার্ডের ব্যাকগ্রাউন্ড (সামান্য হালকা) */
   --dice-input-bg: #111815;   
   --dice-border: #2b4236;     
   --dice-text: #ffffff;       
@@ -11,29 +25,25 @@
   --dice-accent: #00E701;     
   --dice-danger: #ff4d4d;     
 
-  background-color: var(--dice-bg) !important;
+  background-color: var(--dice-bg);
   min-height: 100vh;
-  /* প্যারেন্টের কালো জায়গা ঢাকার জন্য ১০০ ভিউপোর্ট উইডথ */
-  width: 100vw; 
-  position: relative;
-  left: 50%;
-  right: 50%;
-  margin-left: -50vw;
-  margin-right: -50vw;
-  
+  width: 100%;
   color: var(--dice-text);
   font-family: inherit;
+  
+  /* ✅ ডেস্কটপে কন্টেইনারকে মাঝখানে রাখার জন্য */
   display: flex;
   flex-direction: column;
-  padding-bottom: 60px;
+  align-items: center; 
+  padding-bottom: 80px;
 }
 
 /* ✅ মেইন কার্ড */
 .dice-main-area {
   padding: 15px; 
-  margin: 20px auto; 
-  max-width: 600px;
-  width: calc(100% - 30px);
+  margin: 20px auto; /* উপরে-নিচে ২০ পিক্সেল, ডানে-বামে অটো (সেন্টার) */
+  max-width: 600px; /* ডেস্কটপে কার্ডের সর্বোচ্চ চওড়া */
+  width: calc(100% - 30px); /* মোবাইলে স্ক্রিনের দুই পাশে ১৫ পিক্সেল গ্যাপ */
   border: 1px solid var(--dice-border); 
   border-radius: 12px; 
   background-color: var(--dice-card); 
@@ -799,32 +809,4 @@
   background: var(--dice-accent) !important;
   color: #000 !important;
   font-weight: bold;
-}
-
-/* ✅ পুরো বডি এবং প্যারেন্ট কন্টেইনারের কালো ব্যাকগ্রাউন্ড দূর করা হলো */
-body, html {
-  background-color: #18221E !important;
-}
-
-.stake-app, .stake-main {
-  background-color: #18221E !important;
-}
-
-.dice-game-container {
-  --dice-bg: #18221E;         /* ✅ মেইন ব্যাকগ্রাউন্ড Deep Forest Green */
-  --dice-card: #1c2a24;       /* ✅ কার্ডের ব্যাকগ্রাউন্ড (সামান্য হালকা) */
-  --dice-input-bg: #111815;   
-  --dice-border: #2b4236;     
-  --dice-text: #ffffff;       
-  --dice-muted: #a0aab2;      
-  --dice-accent: #00E701;     
-  --dice-danger: #ff4d4d;     
-
-  background-color: var(--dice-bg);
-  min-height: 100vh;
-  color: var(--dice-text);
-  font-family: inherit;
-  display: flex;
-  flex-direction: column;
-  padding-bottom: 60px;
 }
