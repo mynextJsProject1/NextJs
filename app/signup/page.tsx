@@ -23,17 +23,17 @@ export default function SignupPage() {
     const cleanMobile = mobile.replace(/\D/g, "");
 
     if (!/^01[3-9]\d{8}$/.test(cleanMobile)) {
-      setMessage("সঠিক বাংলাদেশের মোবাইল নম্বর দিন।");
+      setMessage("Please enter a valid Bangladeshi mobile number.");
       return;
     }
 
     if (password.length < 8 || password.length > 128) {
-      setMessage("পাসওয়ার্ড ৮ থেকে ১২৮ অক্ষরের মধ্যে দিন।");
+      setMessage("Password must be between 8 and 128 characters.");
       return;
     }
 
     if (password !== confirmPassword) {
-      setMessage("দুটি পাসওয়ার্ড এক নয়।");
+      setMessage("Passwords do not match.");
       return;
     }
 
@@ -45,13 +45,13 @@ export default function SignupPage() {
 
       if (!url || !key) {
         throw new Error(
-          "Supabase configuration পাওয়া যায়নি। GitHub Environment Variables পরীক্ষা করুন।"
+          "Supabase configuration not found. Please check GitHub Environment Variables."
         );
       }
 
       const supabaseUrl = url.replace(/\/+$/, "");
 
-      // ✅ নতুন যোগ করা হলো: URL থেকে রেফারেল কোড নেওয়া
+      // ✅ URL থেকে রেফারেল কোড নেওয়া
       const urlParams = new URLSearchParams(window.location.search);
       const refCode = urlParams.get("ref") || "";
 
@@ -70,7 +70,7 @@ export default function SignupPage() {
             mobile: cleanMobile,
             password,
             confirm_password: confirmPassword,
-            ref: refCode, // ✅ নতুন যোগ করা হলো: রেফারেল কোডটি পাঠানো হচ্ছে
+            ref: refCode,
           }),
         }
       );
@@ -91,14 +91,14 @@ export default function SignupPage() {
         result = JSON.parse(responseText);
       } catch {
         throw new Error(
-          `Supabase থেকে সঠিক JSON Response আসেনি (HTTP ${response.status})। Function-এর Logs পরীক্ষা করুন।`
+          `Did not receive a valid JSON response from Supabase (HTTP ${response.status}). Check function logs.`
         );
       }
 
       if (!response.ok) {
         throw new Error(
           result.error ||
-            `Signup ব্যর্থ হয়েছে (HTTP ${response.status})।`
+            `Signup failed (HTTP ${response.status}).`
         );
       }
 
@@ -119,7 +119,7 @@ export default function SignupPage() {
 
         if (error) {
           throw new Error(
-            "অ্যাকাউন্ট তৈরি হয়েছে, কিন্তু Session সেট করা যায়নি। Login করুন।"
+            "Account created, but failed to set session. Please login."
           );
         }
 
@@ -131,18 +131,18 @@ export default function SignupPage() {
       setGameId(result.game_id || "");
       setMessage(
         result.message ||
-          "অ্যাকাউন্ট তৈরি হয়েছে। এখন Login করুন।"
+          "Account created. Please login now."
       );
     } catch (error) {
       if (error instanceof TypeError) {
         setMessage(
-          "Supabase-এর সঙ্গে সংযোগ করা যায়নি। Function URL, CORS এবং Network পরীক্ষা করুন।"
+          "Could not connect to Supabase. Check Function URL, CORS, and Network."
         );
       } else {
         setMessage(
           error instanceof Error
             ? error.message
-            : "একটি সমস্যা হয়েছে। আবার চেষ্টা করুন।"
+            : "An error occurred. Please try again."
         );
       }
     } finally {
@@ -166,17 +166,9 @@ export default function SignupPage() {
 
       <main className="stake-main auth-main">
         <section className="auth-card">
-          <div className="auth-brand-icon">
-            <i className="fa-solid fa-user-plus" />
-          </div>
-
-          <p className="auth-eyebrow">JOIN GAZICASINO</p>
+          {/* ✅ লাল দাগ দেওয়া আইকন, JOIN GAZICASINO এবং বাংলা ডেসক্রিপশন সরিয়ে দেওয়া হয়েছে */}
 
           <h1 className="auth-title">Create Account</h1>
-
-          <p className="auth-description">
-            আপনার অ্যাকাউন্ট তৈরি করতে তথ্য দিন।
-          </p>
 
           <form onSubmit={handleSignup} className="auth-form">
             <label htmlFor="fullName">Full Name</label>
@@ -186,7 +178,7 @@ export default function SignupPage() {
                 id="fullName"
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
-                placeholder="আপনার নাম"
+                placeholder="Your Name"
                 minLength={2}
                 maxLength={100}
                 required
@@ -219,64 +211,11 @@ export default function SignupPage() {
                 autoComplete="new-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="কমপক্ষে ৮ অক্ষর"
+                placeholder="At least 8 characters"
                 minLength={8}
                 maxLength={128}
                 required
               />
             </div>
 
-            <label htmlFor="confirmPassword">
-              Confirm Password
-            </label>
-
-            <div className="auth-input-wrap">
-              <input
-                id="confirmPassword"
-                type="password"
-                autoComplete="new-password"
-                value={confirmPassword}
-                onChange={(e) =>
-                  setConfirmPassword(e.target.value)
-                }
-                placeholder="পাসওয়ার্ড আবার লিখুন"
-                minLength={8}
-                maxLength={128}
-                required
-              />
-            </div>
-
-            {message && (
-              <div className="auth-error" role="alert">
-                {message}
-
-                {gameId && (
-                  <p className="auth-game-id">
-                    Game ID: <strong>{gameId}</strong>
-                  </p>
-                )}
-              </div>
-            )}
-
-            <button
-              type="submit"
-              className="auth-submit"
-              disabled={loading}
-            >
-              {loading ? "Creating account..." : "CREATE ACCOUNT"}
-            </button>
-          </form>
-
-          <p className="auth-switch">
-            আগে থেকেই অ্যাকাউন্ট আছে?{" "}
-            <Link href="/login">Login করুন</Link>
-          </p>
-        </section>
-      </main>
-
-      <footer className="stake-footer">
-        © 2026 Gazicasino. All rights reserved.
-      </footer>
-    </div>
-  );
-}
+            <label htmlFor="confirmPassword
