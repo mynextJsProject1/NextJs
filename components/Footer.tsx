@@ -1,3 +1,7 @@
+/* components/Footer.tsx (অথবা আপনার ফাইলের সঠিক পাথ) */
+"use client"; // ✅ useRouter ব্যবহারের জন্য এটি প্রয়োজন
+
+import { useRouter } from "next/navigation";
 
 type FooterProps = {
   activePage: string;
@@ -36,6 +40,17 @@ export default function Footer({
   activePage,
   onNavigate,
 }: FooterProps) {
+  const router = useRouter();
+
+  // ✅ ক্লিক হ্যান্ডলার: Lottery হলে রাউটার ব্যবহার করবে, নাহলে আগের লজিক
+  const handleNavigate = (id: string) => {
+    if (id === "lottery") {
+      router.push("/lottery"); // লটারি পেইজে নিয়ে যাবে
+    } else {
+      onNavigate(id); // বাকি বাটনগুলোর জন্য আগের ফাংশন
+    }
+  };
+
   return (
     <footer className="stake-bottom-nav">
       {navItems.map((item) => (
@@ -45,7 +60,7 @@ export default function Footer({
           className={`stake-nav-item ${
             activePage === item.id ? "active" : ""
           }`}
-          onClick={() => onNavigate(item.id)}
+          onClick={() => handleNavigate(item.id)} // ✅ নতুন হ্যান্ডলার ব্যবহার করা হলো
           aria-label={item.label}
         >
           <svg
