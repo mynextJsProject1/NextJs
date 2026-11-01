@@ -1,14 +1,15 @@
 /* app/original/dice/dice.css */
 
 .dice-game-container {
-  --dice-bg: #111814;
-  --dice-card: #18221E;
-  --dice-input-bg: #0E1613;
-  --dice-border: #23332b;
-  --dice-text: #ffffff;
-  --dice-muted: #a0aab2;
-  --dice-accent: #00E701;
-  --dice-danger: #ff4d4d;
+  /* ✅ প্রাইমারি কালার ভেরিয়েবল */
+  --dice-bg: #111814;         
+  --dice-card: #18221E;       
+  --dice-input-bg: #0E1613;   
+  --dice-border: #23332b;     
+  --dice-text: #ffffff;       
+  --dice-muted: #a0aab2;      
+  --dice-accent: #00E701;     
+  --dice-danger: #ff4d4d;     
 
   background-color: var(--dice-bg);
   min-height: 100vh;
@@ -19,21 +20,32 @@
   padding-bottom: 60px;
 }
 
+/* ✅ ৫. Main Border যুক্ত করা হয়েছে */
 .dice-main-area {
   flex: 1;
-  padding: 0 0.8rem 3rem; /* উপরের প্যাডিং সরানো হলো */
+  padding: 15px; /* ভেতরের প্যাডিং */
+  margin: 10px 15px 3rem 15px; /* বাইরের মার্জিন */
   max-width: 600px;
-  margin: 0 auto;
-  width: 100%;
+  width: calc(100% - 30px);
+  border: 1px solid var(--dice-border); /* চিকন বর্ডার */
+  border-radius: 12px; /* কোণা গোল করা */
+  background-color: #131a16; /* হালকা আলাদা ব্যাকগ্রাউন্ড */
+  box-sizing: border-box;
 }
 
-/* ✅ ১. বিট হিস্টরি (আরও উপরে নিয়ে আসা হয়েছে) */
+@media (min-width: 600px) {
+  .dice-main-area {
+    margin: 10px auto 3rem auto;
+  }
+}
+
+/* ✅ ১. বিট হিস্টরি (উপরে তোলা হয়েছে) */
 .dice-history-wrapper {
   display: flex;
   justify-content: flex-end;
   width: 100%;
-  margin-bottom: 10px;
-  margin-top: 10px; /* ফাঁকা জায়গা কমানো হয়েছে */
+  margin-bottom: 15px;
+  margin-top: 0; /* উপরে তোলা হয়েছে */
   overflow: hidden;
 }
 
@@ -51,7 +63,7 @@
 
 .dice-history-item {
   flex-shrink: 0;
-  padding: 4px 12px;
+  padding: 5px 12px;
   border-radius: 999px;
   font-weight: 700;
   font-size: 0.75rem;
@@ -77,46 +89,46 @@
 /* স্লাইডার সেকশন */
 .dice-slider-section {
   margin-bottom: 20px;
-  margin-top: 45px; /* কমপ্যাক্ট করা হয়েছে */
+  margin-top: 50px; 
 }
 
-/* ✅ ২. স্লাইডার লাইন ৫০% চিকন করা হয়েছে */
+/* ✅ ২. Slider Track ৫০% চিকন করা হয়েছে (40px থেকে 20px) */
 .dice-slider-track {
   position: relative;
-  height: 22px; /* ৪০px থেকে ২২px করা হলো */
+  height: 20px; /* চিকন করা হয়েছে */
   background: var(--dice-card);
   border: 1px solid var(--dice-border);
-  border-radius: 6px;
+  border-radius: 10px;
   display: flex;
   align-items: center;
-  padding: 0 8px;
+  padding: 0 5px;
 }
 
 .dice-track-fill {
   position: absolute;
   top: 4px;
   bottom: 4px;
-  left: 8px;
-  right: 8px;
-  border-radius: 3px;
+  left: 5px;
+  right: 5px;
+  border-radius: 6px;
   z-index: 1;
   transition: background 0.1s;
 }
 
-/* ✅ ৩. Result Box আরও ছোট করা হয়েছে */
+/* ✅ ৩. Result Box ছোট করা হয়েছে */
 .dice-floating-result {
   position: absolute;
-  top: -32px; /* লাইন চিকন হওয়ায় উপরে ওঠানো হলো */
+  top: -35px;
   transform: translateX(-50%);
   background: var(--dice-card);
   border: 1px solid var(--dice-border);
   color: var(--dice-text);
-  padding: 2px 10px; /* প্যাডিং ছোট */
+  padding: 4px 12px; /* প্যাডিং কমানো */
   border-radius: 999px;
-  font-size: 0.7rem; /* ফন্ট সাইজ ছোট */
+  font-size: 0.75rem; /* ফন্ট সাইজ ছোট */
   font-weight: 700;
   z-index: 10;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.5);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.5);
   white-space: nowrap;
 }
 
@@ -134,14 +146,14 @@
 
 .dice-floating-result .arrow-down {
   position: absolute;
-  bottom: -4px;
+  bottom: -5px;
   left: 50%;
   transform: translateX(-50%);
   width: 0;
   height: 0;
   border-left: 4px solid transparent;
   border-right: 4px solid transparent;
-  border-top: 4px solid var(--dice-card);
+  border-top: 5px solid var(--dice-card);
 }
 
 .dice-floating-result.win .arrow-down { border-top-color: var(--dice-accent); }
@@ -168,6 +180,7 @@
   border: none !important;
 }
 
+/* ✅ ৪. স্লাইডার হ্যান্ডেল চারকোনা করা হয়েছে (বেগুনি) */
 .dice-main-slider {
   width: 100%;
   position: relative;
@@ -176,16 +189,15 @@
   background: transparent;
 }
 
-/* ✅ ৪. গোল বৃত্তের জায়গায় চারকোনা বর্ডারসহ হ্যান্ডেল */
 .dice-main-slider::-webkit-slider-thumb {
   -webkit-appearance: none;
-  height: 18px; /* সাইজ ঠিক করা হলো */
-  width: 18px;
-  border-radius: 5px; /* চারকোনা (Rounded Square) */
+  height: 24px;
+  width: 24px;
+  border-radius: 6px; /* চারকোনা (Rounded Square) */
   background: #7c3aed; 
   cursor: pointer;
-  border: 1px solid rgba(255, 255, 255, 0.6); /* হালকা বর্ডার */
-  box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+  box-shadow: 0 0 10px rgba(0,0,0,0.5);
+  border: 2px solid #fff; /* বর্ডার একটু চিকন করা হলো */
 }
 
 .dice-slider-numbers {
@@ -195,7 +207,6 @@
   color: var(--dice-muted);
   font-size: 0.7rem;
   font-weight: 600;
-  padding: 0 4px;
 }
 
 /* ইনপুট গ্রিড */
@@ -217,11 +228,11 @@
 .dice-input-wrapper {
   background: var(--dice-input-bg);
   border: 1px solid var(--dice-border);
-  border-radius: 6px;
+  border-radius: 8px;
   display: flex;
   align-items: center;
   padding: 0 10px;
-  height: 40px; /* ইনপুট হালকা ছোট করা হলো */
+  height: 40px;
 }
 
 .dice-input-wrapper input {
@@ -244,10 +255,10 @@
 .dice-bet-btn {
   width: 100%;
   padding: 12px;
-  background: var(--dice-accent);
-  color: #000;
+  background: var(--dice-accent); 
+  color: #000; 
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;
   font-size: 0.95rem;
   font-weight: 800;
   cursor: pointer;
@@ -256,21 +267,21 @@
   min-height: 44px;
 }
 
-.dice-bet-btn:hover { background: #00c701; }
+.dice-bet-btn:hover { background: #00c701; } 
 .dice-bet-btn.rolling { opacity: 0.7; cursor: not-allowed; }
 
 /* অ্যামাউন্ট সেকশন */
 .dice-amount-section {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 15px;
   margin-bottom: 20px;
 }
 
 .dice-label-row {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 4px;
+  margin-bottom: 6px;
 }
 
 .dice-label-row label {
@@ -287,7 +298,7 @@
 .dice-amount-input-wrap {
   background: var(--dice-input-bg);
   border: 1px solid var(--dice-border);
-  border-radius: 6px;
+  border-radius: 8px;
   display: flex;
   align-items: center;
   padding: 0 10px;
@@ -327,9 +338,9 @@
   background: var(--dice-border);
   border: none;
   color: var(--dice-text);
-  width: 34px;
-  height: 34px;
-  border-radius: 4px;
+  width: 36px;
+  height: 36px;
+  border-radius: 6px;
   cursor: pointer;
   font-weight: bold;
   font-size: 0.75rem;
@@ -342,7 +353,7 @@
   display: flex;
   background: var(--dice-card);
   border: 1px solid var(--dice-border);
-  border-radius: 6px;
+  border-radius: 8px;
   padding: 4px;
   margin: 0;
 }
@@ -353,10 +364,10 @@
   background: transparent;
   border: none;
   color: var(--dice-muted);
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
-  border-radius: 4px;
+  border-radius: 6px;
   transition: all 0.2s ease;
 }
 
@@ -367,10 +378,14 @@
 
 /* মোবাইলের জন্য রেসপন্সিভ */
 @media (max-width: 500px) {
-  .dice-input-group label { font-size: 0.7rem; }
+  .dice-main-area {
+    margin: 5px 10px 3rem 10px;
+    padding: 12px;
+    width: calc(100% - 20px);
+  }
+  .dice-input-group label { font-size: 0.75rem; }
   .dice-input-wrapper input { font-size: 0.8rem; }
   .dice-input-wrapper { padding: 0 6px; height: 38px; }
   .dice-input-wrapper i, .dice-input-wrapper span { font-size: 0.75rem; }
   .dice-inputs-grid { gap: 6px; }
-  .dice-amount-input-wrap { height: 40px; }
 }
