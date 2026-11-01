@@ -1,6 +1,8 @@
 /* app/original/dice/dice.css */
+
+/* ✅ ১. ব্যাকগ্রাউন্ড কালার পরিবর্তন (Header এর সাথে মিলিয়ে) */
 .dice-game-container {
-  background-color: #0f212e;
+  background-color: #0b1c26; /* গাঢ় নীল/কালো (আপনার হেডারের মতো) */
   min-height: 100vh;
   color: #fff;
   font-family: inherit;
@@ -17,33 +19,34 @@
   width: 100%;
 }
 
-/* ✅ নতুন: বিট হিস্টরি স্টাইল */
+/* ✅ ২. History আরও উপরে এবং ৬টি রেজাল্ট */
 .dice-history-wrapper {
   display: flex;
   justify-content: flex-end;
   width: 100%;
   margin-bottom: 20px;
-  overflow: hidden; /* স্ক্রল বার লুকানোর জন্য */
+  margin-top: -10px; /* আরও উপরে তোলা হলো */
+  overflow: hidden;
 }
 
 .dice-history-container {
   display: flex;
-  gap: 8px;
+  gap: 6px;
   overflow-x: auto;
   padding: 5px 0;
-  scrollbar-width: none; /* Firefox */
+  scrollbar-width: none;
 }
 
 .dice-history-container::-webkit-scrollbar {
-  display: none; /* Chrome/Safari */
+  display: none;
 }
 
 .dice-history-item {
   flex-shrink: 0;
-  padding: 6px 16px;
+  padding: 6px 14px;
   border-radius: 20px;
   font-weight: bold;
-  font-size: 14px;
+  font-size: 13px;
   animation: slideInFromRight 0.3s ease-out;
 }
 
@@ -62,10 +65,10 @@
   to { transform: translateX(0); opacity: 1; }
 }
 
-/* স্লাইডার সেকশন */
+/* ✅ স্লাইডার সেকশন */
 .dice-slider-section {
   margin-bottom: 24px;
-  margin-top: 60px; /* রেজাল্ট বক্সের জন্য জায়গা */
+  margin-top: 80px; /* রেজাল্ট বক্সের জন্য আরও জায়গা */
 }
 
 .dice-slider-track {
@@ -89,20 +92,21 @@
   transition: background 0.1s;
 }
 
-/* ✅ ভাসমান রেজাল্ট বক্স (পিল শেপ) */
+/* ✅ ৩. Result Box ছোট করা */
 .dice-floating-result {
   position: absolute;
-  top: -55px;
+  top: -45px;
   transform: translateX(-50%);
   background: #2f4553;
   color: #fff;
-  padding: 10px 24px;
-  border-radius: 30px;
-  font-size: 18px;
+  padding: 6px 16px; /* প্যাডিং কমানো */
+  border-radius: 20px;
+  font-size: 14px; /* ফন্ট সাইজ কমানো */
   font-weight: bold;
   z-index: 10;
   box-shadow: 0 4px 10px rgba(0,0,0,0.5);
   border: none;
+  white-space: nowrap;
 }
 
 .dice-floating-result.win {
@@ -117,16 +121,16 @@
   transform: translateX(-50%);
   width: 0;
   height: 0;
-  border-left: 6px solid transparent;
-  border-right: 6px solid transparent;
-  border-top: 6px solid #2f4553;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 5px solid #2f4553;
 }
 
 .dice-floating-result.win .arrow-down {
   border-top-color: #00e701;
 }
 
-/* ✅ ভিজুয়াল স্লাইডার (লুকানো) */
+/* স্লাইডার হ্যান্ডেল */
 .dice-visual-slider {
   width: 100%;
   position: absolute;
@@ -147,7 +151,6 @@
   border: none !important;
 }
 
-/* ✅ মূল স্লাইডার */
 .dice-main-slider {
   width: 100%;
   position: relative;
@@ -176,7 +179,7 @@
   font-weight: bold;
 }
 
-/* ✅ ৩টি ইনপুট পাশাপাশি (শুধু একবার ব্যবহার করা হলো) */
+/* ✅ ইনপুট গ্রিড (৩টি পাশাপাশি) */
 .dice-inputs-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -337,7 +340,7 @@
   color: #fff;
 }
 
-/* ✅ মোবাইলের জন্য রেসপন্সিভ */
+/* মোবাইলের জন্য রেসপন্সিভ */
 @media (max-width: 500px) {
   .dice-input-group label { font-size: 11px; }
   .dice-input-wrapper input { font-size: 12px; padding: 10px 0; }
