@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useCallback } from 'react';
-import styles from './slotMachine.css';
+import styles from './slot-machine.css;
 
 const SYMBOLS = ['🍒', '🍋', '🔔', '💎', '7️⃣'];
 const REEL_COUNT = 3;
