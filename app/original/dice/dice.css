@@ -38,12 +38,12 @@ html, body {
   padding-bottom: 80px;
 }
 
-/* ✅ মেইন কার্ড */
+/* ✅ মেইন কার্ড (মার্জিন ২০ থেকে ১০ পিক্সেল করা হয়েছে) */
 .dice-main-area {
   padding: 15px; 
-  margin: 20px auto; /* উপরে-নিচে ২০ পিক্সেল, ডানে-বামে অটো (সেন্টার) */
-  max-width: 600px; /* ডেস্কটপে কার্ডের সর্বোচ্চ চওড়া */
-  width: calc(100% - 30px); /* মোবাইলে স্ক্রিনের দুই পাশে ১৫ পিক্সেল গ্যাপ */
+  margin: 10px auto; /* ✅ ৫০% মার্জিন কমানো হয়েছে */
+  max-width: 600px; 
+  width: calc(100% - 30px); 
   border: 1px solid var(--dice-border); 
   border-radius: 12px; 
   background-color: var(--dice-card); 
@@ -99,10 +99,10 @@ html, body {
   to { transform: translateX(0); opacity: 1; }
 }
 
-/* ✅ ৩. স্লাইডার সেকশন */
+/* ✅ ৩. স্লাইডার সেকশন (উপরের মার্জিন ৬০ থেকে ৩০ পিক্সেল করা হয়েছে) */
 .dice-slider-section {
   margin-bottom: 20px;
-  margin-top: 60px; 
+  margin-top: 30px; /* ✅ ৫০% ফাঁকা জায়গা কমানো হয়েছে */
   position: relative;
 }
 
@@ -397,7 +397,7 @@ html, body {
 /* মোবাইলের জন্য রেসপন্সিভ */
 @media (max-width: 500px) {
   .dice-main-area {
-    margin: 15px auto;
+    margin: 10px auto;
     padding: 12px;
     width: calc(100% - 20px);
   }
