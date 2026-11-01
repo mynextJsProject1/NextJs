@@ -1,15 +1,15 @@
 /* app/original/dice/dice.css */
 
 .dice-game-container {
-  /* ✅ wallets.css থেকে নেওয়া কালার ভেরিয়েবল */
-  --dice-bg: #0f212e;
-  --dice-card: #1a2c38;
-  --dice-input-bg: #111821;
-  --dice-border: #2f4553;
-  --dice-text: #ffffff;
-  --dice-muted: #b1bad3;
-  --dice-accent: #00e701;
-  --dice-danger: #ff4d4d;
+  /* ✅ আপনার প্রাইমারি কালার ভেরিয়েবল */
+  --dice-bg: #111814;         /* মেইন ব্যাকগ্রাউন্ড */
+  --dice-card: #18221E;       /* কার্ড ও স্লাইডার ব্যাকগ্রাউন্ড */
+  --dice-input-bg: #0E1613;   /* ইনপুট বক্সের ব্যাকগ্রাউন্ড */
+  --dice-border: #23332b;     /* বর্ডার কালার (গ্রিনিশ ডার্ক) */
+  --dice-text: #ffffff;       /* সাদা টেক্সট */
+  --dice-muted: #a0aab2;      /* মিউটেড টেক্সট */
+  --dice-accent: #00E701;     /* নিয়ন গ্রিন (Bet বাটন ও জেতার কালার) */
+  --dice-danger: #ff4d4d;     /* লাল (হারার কালার) */
 
   background-color: var(--dice-bg);
   min-height: 100vh;
@@ -22,13 +22,13 @@
 
 .dice-main-area {
   flex: 1;
-  padding: 0.5rem 0.8rem 3rem; /* wallets.css এর padding */
-  max-width: 600px; /* wallets.css এর max-width */
+  padding: 0.5rem 0.8rem 3rem;
+  max-width: 600px;
   margin: 0 auto;
   width: 100%;
 }
 
-/* ✅ ১. বিট হিস্টরি (আরও উপরে, ছোট সাইজ) */
+/* ✅ ১. বিট হিস্টরি */
 .dice-history-wrapper {
   display: flex;
   justify-content: flex-end;
@@ -53,7 +53,7 @@
 .dice-history-item {
   flex-shrink: 0;
   padding: 6px 14px;
-  border-radius: 999px; /* wallets.css এর wallet-category-selector */
+  border-radius: 999px;
   font-weight: 700;
   font-size: 0.8rem;
   animation: slideInFromRight 0.3s ease-out;
@@ -78,7 +78,7 @@
 /* স্লাইডার সেকশন */
 .dice-slider-section {
   margin-bottom: 24px;
-  margin-top: 60px; /* জায়গা বাড়ানো হলো */
+  margin-top: 60px; 
 }
 
 .dice-slider-track {
@@ -86,7 +86,7 @@
   height: 40px;
   background: var(--dice-card);
   border: 1px solid var(--dice-border);
-  border-radius: 8px; /* wallets.css এর wallet-radius */
+  border-radius: 8px;
   display: flex;
   align-items: center;
   padding: 0 10px;
@@ -103,7 +103,7 @@
   transition: background 0.1s;
 }
 
-/* ✅ ২. Result Box (সাইজ ছোট করা হয়েছে) */
+/* ✅ ২. Result Box */
 .dice-floating-result {
   position: absolute;
   top: -45px;
@@ -111,9 +111,9 @@
   background: var(--dice-card);
   border: 1px solid var(--dice-border);
   color: var(--dice-text);
-  padding: 6px 16px; /* প্যাডিং ছোট */
-  border-radius: 999px; /* পিল শেপ */
-  font-size: 0.85rem; /* ফন্ট সাইজ ছোট */
+  padding: 6px 16px;
+  border-radius: 999px;
+  font-size: 0.85rem;
   font-weight: 700;
   z-index: 10;
   box-shadow: 0 4px 10px rgba(0,0,0,0.5);
@@ -196,7 +196,7 @@
   font-weight: 600;
 }
 
-/* ✅ ৩. ইনপুট গ্রিড (wallets.css এর ইনপুট এর মতো) */
+/* ✅ ৩. ইনপুট গ্রিড */
 .dice-inputs-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -215,7 +215,7 @@
 .dice-input-wrapper {
   background: var(--dice-input-bg);
   border: 1px solid var(--dice-border);
-  border-radius: 8px; /* wallets.css এর ইনপুট বর্ডার রেডিয়াস */
+  border-radius: 8px;
   display: flex;
   align-items: center;
   padding: 0 10px;
@@ -238,23 +238,23 @@
   font-size: 0.85rem;
 }
 
-/* বেট বাটন (wallets.css এর wallet-submit এর সাইজ) */
+/* বেট বাটন (Bet বাটনের কালার আপনার সাইটের সবুজ কালারের সাথে মিলানো) */
 .dice-bet-btn {
   width: 100%;
   padding: 12px;
-  background: #7c3aed;
-  color: #fff;
+  background: var(--dice-accent); /* মেইন সবুজ কালার */
+  color: #000; /* টেক্সট কালো হবে যাতে সবুজের ওপর ফুটে ওঠে */
   border: none;
   border-radius: 8px;
   font-size: 0.95rem;
-  font-weight: 700;
+  font-weight: 800;
   cursor: pointer;
   transition: background 0.2s;
   margin-bottom: 24px;
   min-height: 46px;
 }
 
-.dice-bet-btn:hover { background: #6d28d9; }
+.dice-bet-btn:hover { background: #00c701; } /* হোভার করলে একটু ডার্ক হবে */
 .dice-bet-btn.rolling { opacity: 0.7; cursor: not-allowed; }
 
 /* অ্যামাউন্ট সেকশন */
@@ -333,9 +333,9 @@
   font-size: 0.8rem;
 }
 
-.dice-quick-btns button:hover { background: #3a4856; }
+.dice-quick-btns button:hover { background: #2d4236; }
 
-/* ট্যাব (wallets.css এর wallet-tabs এর সাইজ) */
+/* ট্যাব */
 .dice-bottom-tabs {
   display: flex;
   background: var(--dice-card);
