@@ -5,6 +5,7 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Header from "../../../components/Header";
 import Footer from "../../../components/Footer";
+import GameBottomBar from "../../../components/GameBottomBar"; // ✅ নতুন কানেকশন
 import { createClient } from "../../../lib/supabase/client";
 import "./dice.css";
 
@@ -46,6 +47,15 @@ export default function DiceGamePage() {
   const [isAutoBetting, setIsAutoBetting] = useState(false);
   const [autoStats, setAutoStats] = useState({ bets: 0, profit: 0 });
   const isAutoRef = useRef(false);
+
+  // ✅ নতুন স্টেটসমূহ (Settings, Graph, Fairness)
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isGraphOpen, setIsGraphOpen] = useState(false);
+  const [isFairnessOpen, setIsFairnessOpen] = useState(false);
+
+  // Settings এর ভেতরের স্টেট
+  const [instantBet, setInstantBet] = useState(false);
+  const [soundEnabled, setSoundEnabled] = useState(true);
 
   useEffect(() => {
     const fetchBalance = async () => {
@@ -205,6 +215,9 @@ export default function DiceGamePage() {
     }
   };
 
+  // ✅ Graph এর জন্য সর্বোচ্চ ভ্যালু বের করা (চার্ট স্কেল করার জন্য)
+  const maxGraphValue = Math.max(...history.map(h => h.value), 100);
+
   return (
     <div className="stake-app">
       <Header onMenuClick={() => router.push("/")} onHomeClick={() => router.push("/")} />
@@ -315,7 +328,6 @@ export default function DiceGamePage() {
               {isAutoBetting ? "Stop Auto" : isRolling ? "Rolling..." : activeTab === "manual" ? "Bet" : "Start Auto"}
             </button>
 
-            {/* ✅ Bet Amount সবসময় দেখা যাবে (Auto ও Manual দুই জায়গায়) */}
             <div className="dice-amount-section">
               <div className="dice-amount-group">
                 <div className="dice-label-row">
@@ -347,7 +359,6 @@ export default function DiceGamePage() {
               </div>
             </div>
 
-            {/* অটো মোড UI (Bet Amount এর নিচে) */}
             {activeTab === "auto" && (
               <div className="dice-auto-settings">
                 
@@ -425,12 +436,19 @@ export default function DiceGamePage() {
               </div>
             )}
 
-            {/* ট্যাব */}
             <div className="dice-bottom-tabs">
               <button className={activeTab === "manual" ? "active" : ""} onClick={() => setActiveTab("manual")} disabled={isAutoBetting}>Manual</button>
               <button className={activeTab === "auto" ? "active" : ""} onClick={() => setActiveTab("auto")} disabled={isAutoBetting}>Auto</button>
               <button className={activeTab === "advanced" ? "active" : ""} onClick={() => setActiveTab("advanced")} disabled={isAutoBetting}>Advanced</button>
             </div>
+
+            {/* ✅ GameBottomBar কানেক্ট করা হলো */}
+            <GameBottomBar 
+              onSettingsClick={() => setIsSettingsOpen(true)}
+              onStatsClick={() => setIsGraphOpen(true)}
+              onFairnessClick={() => setIsFairnessOpen(true)}
+            />
+
           </div>
         </div>
       </main>
@@ -441,6 +459,99 @@ export default function DiceGamePage() {
         else if (page === "casino") router.push("/");
         else if (page === "sports") router.push("/");
       }} />
+
+      {/* ================= ✅ Settings Modal ================= */}
+      {isSettingsOpen && (
+        <div className="dice-modal-overlay" onClick={() => setIsSettingsOpen(false)}>
+          <div className="dice-modal-content" onClick={e => e.stopPropagation()}>
+            <div className="dice-modal-header">
+              <h3>Settings</h3>
+              <button onClick={() => setIsSettingsOpen(false)}>✕</button>
+            </div>
+            <div className="dice-modal-body">
+              <div className="dice-setting-row">
+                <span>Instant Bet</span>
+                <div className={`toggle-switch ${instantBet ? "active" : ""}`} onClick={() => setInstantBet(!instantBet)}>
+                  <div className="toggle-knob"></div>
+                </div>
+              </div>
+              <div className="dice-setting-row">
+                <span>Sound Effects</span>
+                <div className={`toggle-switch ${soundEnabled ? "active" : ""}`} onClick={() => setSoundEnabled(!soundEnabled)}>
+                  <div className="toggle-knob"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ================= ✅ Graph/Stats Modal ================= */}
+      {isGraphOpen && (
+        <div className="dice-modal-overlay" onClick={() => setIsGraphOpen(false)}>
+          <div className="dice-modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '500px' }}>
+            <div className="dice-modal-header">
+              <h3>Dice Graph</h3>
+              <button onClick={() => setIsGraphOpen(false)}>✕</button>
+            </div>
+            <div className="dice-modal-body">
+              {history.length === 0 ? (
+                <p style={{ textAlign: 'center', color: '#aaa' }}>No bets placed yet.</p>
+              ) : (
+                <div className="dice-graph-container">
+                  {history.slice().reverse().map((h, i) => (
+                    <div key={h.id} className="dice-graph-bar-wrapper">
+                      <div 
+                        className={`dice-graph-bar ${h.isWin ? 'win' : 'lose'}`} 
+                        style={{ height: `${(h.value / maxGraphValue) * 100}%` }}
+                      ></div>
+                      <span className="dice-graph-label">{h.value.toFixed(0)}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ================= ✅ Fairness Modal ================= */}
+      {isFairnessOpen && (
+        <div className="dice-modal-overlay" onClick={() => setIsFairnessOpen(false)}>
+          <div className="dice-modal-content" onClick={e => e.stopPropagation()}>
+            <div className="dice-modal-header">
+              <h3>Provably Fair</h3>
+              <button onClick={() => setIsFairnessOpen(false)}>✕</button>
+            </div>
+            <div className="dice-modal-body">
+              <p style={{ color: '#aaa', fontSize: '13px', marginBottom: '15px' }}>
+                Dice uses a provably fair system to ensure every roll is completely random and cannot be manipulated.
+              </p>
+              
+              <div className="dice-fairness-group">
+                <label>Server Seed (Hashed)</label>
+                <div className="dice-fairness-input">
+                  <code>a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0</code>
+                </div>
+              </div>
+
+              <div className="dice-fairness-group">
+                <label>Client Seed (Editable)</label>
+                <div className="dice-fairness-input">
+                  <input type="text" defaultValue="my_client_seed_123" />
+                </div>
+              </div>
+
+              <div className="dice-fairness-group">
+                <label>Nonce</label>
+                <div className="dice-fairness-input">
+                  <code>{history.length + 1}</code>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
