@@ -14,16 +14,10 @@ export default function DiceGamePage() {
 
   const [balance, setBalance] = useState(0);
   const [betAmount, setBetAmount] = useState("10.00");
-  
-  // ✅ সংখ্যা টাইপ করার জন্য String State (যাতে ইউজার ফ্রি-লি এডিট করতে পারে)
   const [rollOver, setRollOver] = useState(50.50);
   const [isOver, setIsOver] = useState(true); 
   const [multiplier, setMultiplier] = useState(2.0000);
   const [chance, setChance] = useState(49.5000);
-
-  const [multiplierStr, setMultiplierStr] = useState("2.0000");
-  const [rollOverStr, setRollOverStr] = useState("50.50");
-  const [chanceStr, setChanceStr] = useState("49.5000");
 
   // রোল অ্যানিমেশন ও রেজাল্ট
   const [isRolling, setIsRolling] = useState(false);
@@ -31,11 +25,24 @@ export default function DiceGamePage() {
   const [isWin, setIsWin] = useState<boolean | null>(null);
   const [errorMsg, setErrorMsg] = useState("");
   
-  // ভিজুয়াল স্লাইডার (বক্সটি এখানে মুভ করবে)
+  // ✅ নতুন: বিট হিস্টরি স্টেট
+  const [history, setHistory] = useState<{ id: string, value: number, isWin: boolean }[]>([]);
+  
+  // ভিজুয়াল স্লাইডার
   const [visualSliderValue, setVisualSliderValue] = useState(50.50);
 
   // ট্যাব স্টেট
   const [activeTab, setActiveTab] = useState<"manual" | "auto" | "advanced">("manual");
+
+  // Auto Mode State
+  const [autoBetCount, setAutoBetCount] = useState("0");
+  const [isAdvanced, setIsAdvanced] = useState(false);
+  const [onWinMode, setOnWinMode] = useState<"reset" | "increase">("reset");
+  const [onWinValue, setOnWinValue] = useState("0");
+  const [onLossMode, setOnLossMode] = useState<"reset" | "increase">("reset");
+  const [onLossValue, setOnLossValue] = useState("0");
+  const [stopOnProfit, setStopOnProfit] = useState("0.00");
+  const [stopOnLoss, setStopOnLoss] = useState("0.00");
 
   useEffect(() => {
     const fetchBalance = async () => {
@@ -48,80 +55,56 @@ export default function DiceGamePage() {
     void fetchBalance();
   }, [supabase]);
 
-  // ✅ স্লাইডার পরিবর্তন
   const handleSliderChange = (value: number) => {
     setRollOver(value);
-    setRollOverStr(value.toFixed(2));
     setVisualSliderValue(value);
     const newChance = isOver ? 100 - value : value;
     setChance(newChance);
-    setChanceStr(newChance.toFixed(4));
-    const newMultiplier = 99 / newChance;
-    setMultiplier(newMultiplier);
-    setMultiplierStr(newMultiplier.toFixed(4)); 
+    setMultiplier(99 / newChance); 
   };
 
-  // ✅ Over/Under টগল
   const handleToggleMode = () => {
     setIsOver(!isOver);
     const newChance = !isOver ? 100 - rollOver : rollOver;
     setChance(newChance);
-    setChanceStr(newChance.toFixed(4));
-    const newMultiplier = 99 / newChance;
+    setMultiplier(99 / newChance);
+  };
+
+  // ✅ ইনপুট ভ্যালু স্ট্রিং হিসেবে রিসিভ করা হলো (যাতে ইউজার ইচ্ছেমতো এডিট করতে পারে)
+  const handleMultiplierChange = (val: string) => {
+    const num = parseFloat(val);
+    if (isNaN(num)) { setMultiplier(0); return; }
+    setMultiplier(num);
+    if (num <= 1) return;
+    const newChance = 99 / num;
+    setChance(newChance);
+    const newRollOver = isOver ? 100 - newChance : newChance;
+    setRollOver(newRollOver);
+    setVisualSliderValue(newRollOver);
+  };
+
+  const handleChanceChange = (val: string) => {
+    const num = parseFloat(val);
+    if (isNaN(num) || num <= 0 || num >= 100) { setChance(0); return; }
+    setChance(num);
+    const newMultiplier = 99 / num;
     setMultiplier(newMultiplier);
-    setMultiplierStr(newMultiplier.toFixed(4));
+    const newRollOver = isOver ? 100 - num : num;
+    setRollOver(newRollOver);
+    setVisualSliderValue(newRollOver);
   };
 
-  // ✅ ইনপুট হ্যান্ডলারসমূহ (ফ্রি-লি টাইপ করার জন্য)
-  const handleMultiplierInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.value;
-    setMultiplierStr(val);
+  const handleRollOverChange = (val: string) => {
     const num = parseFloat(val);
-    if (!isNaN(num) && num > 1) {
-      setMultiplier(num);
-      const newChance = 99 / num;
-      setChance(newChance);
-      setChanceStr(newChance.toFixed(4));
-      const newRollOver = isOver ? 100 - newChance : newChance;
-      setRollOver(newRollOver);
-      setRollOverStr(newRollOver.toFixed(2));
-      setVisualSliderValue(newRollOver);
-    }
+    if (isNaN(num) || num <= 0 || num >= 100) { setRollOver(0); return; }
+    setRollOver(num);
+    setVisualSliderValue(num);
+    const newChance = isOver ? 100 - num : num;
+    setChance(newChance);
+    setMultiplier(99 / newChance);
   };
 
-  const handleRollOverInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.value;
-    setRollOverStr(val);
-    const num = parseFloat(val);
-    if (!isNaN(num) && num > 0 && num < 100) {
-      setRollOver(num);
-      setVisualSliderValue(num);
-      const newChance = isOver ? 100 - num : num;
-      setChance(newChance);
-      setChanceStr(newChance.toFixed(4));
-      const newMultiplier = 99 / newChance;
-      setMultiplier(newMultiplier);
-      setMultiplierStr(newMultiplier.toFixed(4));
-    }
-  };
-
-  const handleChanceInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.value;
-    setChanceStr(val);
-    const num = parseFloat(val);
-    if (!isNaN(num) && num > 0 && num < 100) {
-      setChance(num);
-      const newMultiplier = 99 / num;
-      setMultiplier(newMultiplier);
-      setMultiplierStr(newMultiplier.toFixed(4));
-      const newRollOver = isOver ? 100 - num : num;
-      setRollOver(newRollOver);
-      setRollOverStr(newRollOver.toFixed(2));
-      setVisualSliderValue(newRollOver);
-    }
-  };
-
-  // ✅ আসল গেম লজিক এবং ডান থেকে বামে স্লাইড অ্যানিমেশন
+  // ✅ আসল গেম লজিক
   const handleRoll = async () => {
     const amount = Number(betAmount);
     if (amount <= 0) return;
@@ -135,25 +118,10 @@ export default function DiceGamePage() {
     setIsWin(null);
     setErrorMsg("");
 
-    // ✅ ডান থেকে বামে স্লাইড অ্যানিমেশন (100 থেকে 0)
-    let startTime = performance.now();
-    let duration = 1500; // ১.৫ সেকেন্ড
-    
-    const animate = (time: number) => {
-      let elapsed = time - startTime;
-      let progress = Math.min(elapsed / duration, 1);
-      
-      // Ease out effect
-      let easeOut = 1 - Math.pow(1 - progress, 3);
-      let currentVal = 100 - (100 * easeOut); 
-      
-      setVisualSliderValue(currentVal);
-
-      if (progress < 1) {
-        requestAnimationFrame(animate);
-      }
-    };
-    requestAnimationFrame(animate);
+    // ভিজুয়াল অ্যানিমেশন
+    const animationInterval = setInterval(() => {
+      setVisualSliderValue(Math.random() * 100);
+    }, 50);
 
     try {
       const { data, error } = await supabase.rpc("play_dice_bet", {
@@ -165,21 +133,29 @@ export default function DiceGamePage() {
 
       if (error) throw error;
 
-      // অ্যানিমেশন শেষ হওয়া পর্যন্ত অপেক্ষা করা
-      await new Promise(resolve => setTimeout(resolve, 1500));
-
-      if (data) {
-        setVisualSliderValue(data.roll); 
-        setResult(data.roll);
-        setIsWin(data.is_win);
-        setBalance(data.new_balance);
-      }
+      setTimeout(() => {
+        clearInterval(animationInterval);
+        if (data) {
+          setVisualSliderValue(data.roll); 
+          setResult(data.roll);
+          setIsWin(data.is_win);
+          setBalance(data.new_balance);
+          
+          // ✅ নতুন রেজাল্ট হিস্টরিতে যুক্ত করা (ডান দিক থেকে বামে স্লাইড হবে)
+          setHistory(prev => [...prev, { id: Date.now().toString(), value: data.roll, isWin: data.is_win }].slice(-20)); 
+        }
+        setIsRolling(false);
+      }, 1500);
 
     } catch (err: any) {
+      clearInterval(animationInterval);
       setErrorMsg(err.message || "Failed to place bet.");
-    } finally {
       setIsRolling(false);
     }
+  };
+
+  const handleAutoStart = () => {
+    alert("Auto betting will start in the backend update!");
   };
 
   return (
@@ -190,6 +166,17 @@ export default function DiceGamePage() {
         <div className="dice-game-container">
           <div className="dice-main-area">
             
+            {/* ✅ নতুন বিট হিস্টরি (উপরে ডান দিকে) */}
+            <div className="dice-history-wrapper">
+              <div className="dice-history-container">
+                {history.map((item) => (
+                  <div key={item.id} className={`dice-history-item ${item.isWin ? 'win' : 'lose'}`}>
+                    {item.value.toFixed(2)}
+                  </div>
+                ))}
+              </div>
+            </div>
+
             {errorMsg && (
               <div style={{ background: "rgba(255,77,77,0.1)", color: "#ff4d4d", padding: "10px", borderRadius: "6px", marginBottom: "15px", fontSize: "13px", textAlign: "center" }}>
                 {errorMsg}
@@ -200,7 +187,6 @@ export default function DiceGamePage() {
             <div className="dice-slider-section">
               <div className="dice-slider-track">
                 
-                {/* ✅ ভাসমান রেজাল্ট বক্স (ডান থেকে বামে আসবে) */}
                 {(isRolling || result !== null) && (
                   <div 
                     className={`dice-floating-result ${isWin === true ? 'win' : isWin === false ? 'lose' : ''}`}
@@ -237,16 +223,15 @@ export default function DiceGamePage() {
               </div>
             </div>
 
-            {/* ✅ ইনপুট গ্রিড (৩টি পাশাপাশি থাকবে) */}
+            {/* ইনপুট গ্রিড (৩টি পাশাপাশি) */}
             <div className="dice-inputs-grid">
               <div className="dice-input-group">
                 <label>Multiplier</label>
                 <div className="dice-input-wrapper">
                   <input 
                     type="number" 
-                    step="any"
-                    value={multiplierStr} 
-                    onChange={handleMultiplierInput} 
+                    value={multiplier === 0 ? "" : multiplier} 
+                    onChange={(e) => handleMultiplierChange(e.target.value)} 
                   />
                 </div>
               </div>
@@ -255,11 +240,10 @@ export default function DiceGamePage() {
                 <div className="dice-input-wrapper" onClick={handleToggleMode} style={{ cursor: "pointer" }}>
                   <input 
                     type="number" 
-                    step="any"
-                    value={rollOverStr} 
-                    onChange={handleRollOverInput}
+                    value={rollOver === 0 ? "" : rollOver} 
+                    onChange={(e) => handleRollOverChange(e.target.value)}
                   />
-                  <i className="fa-solid fa-rotate" style={{ cursor: "pointer" }}></i>
+                  <i className="fa-solid fa-rotate"></i>
                 </div>
               </div>
               <div className="dice-input-group">
@@ -267,9 +251,8 @@ export default function DiceGamePage() {
                 <div className="dice-input-wrapper">
                   <input 
                     type="number" 
-                    step="any"
-                    value={chanceStr} 
-                    onChange={handleChanceInput}
+                    value={chance === 0 ? "" : chance} 
+                    onChange={(e) => handleChanceChange(e.target.value)}
                   />
                   <span>%</span>
                 </div>
@@ -277,8 +260,8 @@ export default function DiceGamePage() {
             </div>
 
             {/* বেট বাটন */}
-            <button className={`dice-bet-btn ${isRolling ? "rolling" : ""}`} onClick={handleRoll} disabled={isRolling}>
-              {isRolling ? "Rolling..." : "Bet"}
+            <button className={`dice-bet-btn ${isRolling ? "rolling" : ""}`} onClick={activeTab === "manual" ? handleRoll : handleAutoStart} disabled={isRolling}>
+              {isRolling ? "Rolling..." : activeTab === "manual" ? "Bet" : "Start Auto"}
             </button>
 
             {/* ম্যানুয়াল ট্যাব */}
@@ -315,10 +298,79 @@ export default function DiceGamePage() {
               </div>
             )}
 
+            {/* অটো মোড UI */}
+            {activeTab === "auto" && (
+              <div className="dice-auto-settings">
+                <div className="dice-input-group">
+                  <label>Number of Bets</label>
+                  <div className="dice-input-wrapper">
+                    <input type="number" value={autoBetCount} onChange={(e) => setAutoBetCount(e.target.value)} />
+                    <i className="fa-solid fa-infinity"></i>
+                  </div>
+                </div>
+
+                <div className="auto-advanced-toggle">
+                  <label>Advanced</label>
+                  <div className={`toggle-switch ${isAdvanced ? "active" : ""}`} onClick={() => setIsAdvanced(!isAdvanced)}>
+                    <div className="toggle-knob"></div>
+                  </div>
+                </div>
+
+                {isAdvanced && (
+                  <div className="advanced-options">
+                    <div className="adv-row">
+                      <label>On Win</label>
+                      <div className="adv-inputs">
+                        <select value={onWinMode} onChange={(e) => setOnWinMode(e.target.value as any)}>
+                          <option value="reset">Reset</option>
+                          <option value="increase">Increase by</option>
+                        </select>
+                        <div className="dice-input-wrapper" style={{ width: "100px" }}>
+                          <input type="number" value={onWinValue} onChange={(e) => setOnWinValue(e.target.value)} disabled={onWinMode === "reset"} />
+                          <span>%</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="adv-row">
+                      <label>On Loss</label>
+                      <div className="adv-inputs">
+                        <select value={onLossMode} onChange={(e) => setOnLossMode(e.target.value as any)}>
+                          <option value="reset">Reset</option>
+                          <option value="increase">Increase by</option>
+                        </select>
+                        <div className="dice-input-wrapper" style={{ width: "100px" }}>
+                          <input type="number" value={onLossValue} onChange={(e) => setOnLossValue(e.target.value)} disabled={onLossMode === "reset"} />
+                          <span>%</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="dice-input-group">
+                      <label>Stop on Profit</label>
+                      <div className="dice-input-wrapper">
+                        <input type="number" value={stopOnProfit} onChange={(e) => setStopOnProfit(e.target.value)} />
+                        <i className="fa-solid fa-bangladeshi-taka-sign"></i>
+                      </div>
+                    </div>
+
+                    <div className="dice-input-group">
+                      <label>Stop on Loss</label>
+                      <div className="dice-input-wrapper">
+                        <input type="number" value={stopOnLoss} onChange={(e) => setStopOnLoss(e.target.value)} />
+                        <i className="fa-solid fa-bangladeshi-taka-sign"></i>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* ট্যাব */}
             <div className="dice-bottom-tabs">
               <button className={activeTab === "manual" ? "active" : ""} onClick={() => setActiveTab("manual")}>Manual</button>
               <button className={activeTab === "auto" ? "active" : ""} onClick={() => setActiveTab("auto")}>Auto</button>
+              <button className={activeTab === "advanced" ? "active" : ""} onClick={() => setActiveTab("advanced")}>Advanced</button>
             </div>
           </div>
         </div>
