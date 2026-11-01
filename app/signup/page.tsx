@@ -1,3 +1,4 @@
+/* app/signup/page.tsx */
 "use client";
 
 import { useState, type FormEvent } from "react";
@@ -51,7 +52,6 @@ export default function SignupPage() {
 
       const supabaseUrl = url.replace(/\/+$/, "");
 
-      // ✅ URL থেকে রেফারেল কোড নেওয়া
       const urlParams = new URLSearchParams(window.location.search);
       const refCode = urlParams.get("ref") || "";
 
@@ -70,7 +70,7 @@ export default function SignupPage() {
             mobile: cleanMobile,
             password,
             confirm_password: confirmPassword,
-            ref: refCode,
+            ref: refCode, 
           }),
         }
       );
@@ -91,7 +91,7 @@ export default function SignupPage() {
         result = JSON.parse(responseText);
       } catch {
         throw new Error(
-          `Did not receive a valid JSON response from Supabase (HTTP ${response.status}). Check function logs.`
+          `Invalid JSON Response from Supabase (HTTP ${response.status}). Check Function Logs.`
         );
       }
 
@@ -131,7 +131,7 @@ export default function SignupPage() {
       setGameId(result.game_id || "");
       setMessage(
         result.message ||
-          "Account created. Please login now."
+          "Account created successfully. Please login now."
       );
     } catch (error) {
       if (error instanceof TypeError) {
@@ -166,9 +166,9 @@ export default function SignupPage() {
 
       <main className="stake-main auth-main">
         <section className="auth-card">
-          {/* ✅ লাল দাগ দেওয়া আইকন, JOIN GAZICASINO এবং বাংলা ডেসক্রিপশন সরিয়ে দেওয়া হয়েছে */}
+          {/* ✅ লাল দাগ দেওয়া আইকন এবং টেক্সট সরিয়ে ফেলা হয়েছে */}
 
-          <h1 className="auth-title">Create Account</h1>
+          <h1 className="auth-title" style={{ marginTop: '0', marginBottom: '24px' }}>Create Account</h1>
 
           <form onSubmit={handleSignup} className="auth-form">
             <label htmlFor="fullName">Full Name</label>
@@ -211,11 +211,64 @@ export default function SignupPage() {
                 autoComplete="new-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="At least 8 characters"
+                placeholder="Minimum 8 characters"
                 minLength={8}
                 maxLength={128}
                 required
               />
             </div>
 
-            <label htmlFor="confirmPassword
+            <label htmlFor="confirmPassword">
+              Confirm Password
+            </label>
+
+            <div className="auth-input-wrap">
+              <input
+                id="confirmPassword"
+                type="password"
+                autoComplete="new-password"
+                value={confirmPassword}
+                onChange={(e) =>
+                  setConfirmPassword(e.target.value)
+                }
+                placeholder="Re-enter password"
+                minLength={8}
+                maxLength={128}
+                required
+              />
+            </div>
+
+            {message && (
+              <div className="auth-error" role="alert">
+                {message}
+
+                {gameId && (
+                  <p className="auth-game-id">
+                    Game ID: <strong>{gameId}</strong>
+                  </p>
+                )}
+              </div>
+            )}
+
+            <button
+              type="submit"
+              className="auth-submit"
+              disabled={loading}
+            >
+              {loading ? "Creating account..." : "CREATE ACCOUNT"}
+            </button>
+          </form>
+
+          <p className="auth-switch">
+            Already have an account?{" "}
+            <Link href="/login">Login</Link>
+          </p>
+        </section>
+      </main>
+
+      <footer className="stake-footer">
+        © 2026 Gazicasino. All rights reserved.
+      </footer>
+    </div>
+  );
+}
