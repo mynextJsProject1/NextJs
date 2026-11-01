@@ -417,12 +417,13 @@ html, body {
   cursor: not-allowed;
 }
 
+/* ✅ Auto Mode UI স্টাইল (ব্যাকগ্রাউন্ড কালার আপডেট করা হয়েছে) */
 .dice-auto-settings {
   display: flex;
   flex-direction: column;
   gap: 10px;
   margin-bottom: 10px;
-  background: var(--dice-input-bg); 
+  background: var(--dice-card); /* ✅ কালো সরিয়ে মেইন কার্ডের কালার */
   padding: 10px;
   border-radius: 8px;
   border: 1px solid var(--dice-border);
@@ -495,9 +496,10 @@ html, body {
   gap: 10px;
 }
 
+/* ✅ ড্রপডাউন বক্সের কালার ফিক্স */
 .adv-inputs select {
   flex: 1;
-  background: var(--dice-card);
+  background: var(--dice-input-bg); /* ✅ ইনপুট বক্সের মতো কালার */
   border: 1px solid var(--dice-border);
   color: var(--dice-text);
   padding: 0 10px;
@@ -584,16 +586,16 @@ html, body {
   font-weight: 600;
 }
 
-/* ✅ নতুন Graph Style (আপনার দেওয়া ছবির মতো এবং ৬০% ছোট) */
+/* ✅ Stats Modal Small Size */
 .dice-stats-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 8px; /* ১৫ থেকে ৮ পিক্সেল */
+  gap: 6px;
   background: var(--dice-input-bg);
-  padding: 8px; /* ১৫ থেকে ৮ পিক্সেল */
-  border-radius: 6px;
+  padding: 6px;
+  border-radius: 4px;
   border: 1px solid var(--dice-border);
-  margin-bottom: 8px; /* ১৫ থেকে ৮ পিক্সেল */
+  margin-bottom: 6px;
 }
 
 .dice-stat-item {
@@ -604,32 +606,32 @@ html, body {
 
 .dice-stat-label {
   color: var(--dice-muted);
-  font-size: 0.65rem; /* ০.৭৫ থেকে ০.৬৫ রেম */
+  font-size: 0.6rem;
   font-weight: 600;
 }
 
 .dice-stat-value {
   color: var(--dice-text);
-  font-size: 0.9rem; /* ১.১ থেকে ০.৯ রেম */
+  font-size: 0.8rem;
   font-weight: 700;
 }
 
 .dice-stat-value.text-green { color: var(--dice-accent); }
 .dice-stat-value.text-red { color: var(--dice-danger); }
 
+/* ✅ Graph Area (Scroll এবং Height ফিক্স) */
 .dice-graph-area {
   background: var(--dice-card);
   border: 1px solid var(--dice-border);
-  border-radius: 6px;
-  height: 100px; /* ১৮০ থেকে ১০০ পিক্সেল (কার্ড ৬০% ছোট) */
+  border-radius: 4px;
+  height: 80px; 
   position: relative;
-  display: block; /* স্ক্রলিং এর জন্য */
-  overflow-x: auto; /* পিসির মতো ডানে-বামে মুভ করা যাবে */
+  display: block;
+  overflow-x: auto; 
   overflow-y: hidden;
-  padding: 5px;
+  padding: 0;
 }
 
-/* স্ক্রলবার ডিজাইন (যাতে সুন্দর দেখায়) */
 .dice-graph-area::-webkit-scrollbar {
   height: 4px;
 }
@@ -702,87 +704,8 @@ html, body {
   background: #365244;
 }
 
-.dice-graph-bar-track {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-}
-
-.dice-graph-center-line {
-  position: absolute;
-  top: 50%;
-  left: 0;
-  right: 0;
-  height: 1px;
-  background: var(--dice-border);
-  z-index: 1;
-}
-
-.dice-graph-bar {
-  position: absolute;
-  width: 100%;
-  max-width: 20px;
-  z-index: 2;
-  border-radius: 2px;
-}
-
-.dice-graph-bar.win {
-  background: #00E701;
-  border-radius: 4px 4px 0 0;
-}
-
-.dice-graph-bar.lose {
-  background: #ff4d4d;
-  border-radius: 0 0 4px 4px;
-}
-
 .dice-btn-secondary.verified {
   background: var(--dice-accent) !important;
   color: #000 !important;
   font-weight: bold;
-}
-
-/* ✅ Stats Modal Small Size (আগেরটার উপর ওভাররাইড) */
-.dice-stats-grid {
-  gap: 6px;
-  padding: 6px;
-  border-radius: 4px;
-  margin-bottom: 6px;
-}
-
-.dice-stat-label {
-  font-size: 0.6rem;
-}
-
-.dice-stat-value {
-  font-size: 0.8rem;
-}
-
-/* ✅ Graph Area (Scroll এবং Height ফিক্স) */
-.dice-graph-area {
-  background: var(--dice-card);
-  border: 1px solid var(--dice-border);
-  border-radius: 4px;
-  height: 80px; /* উচ্চতা আরও কমানো হয়েছে */
-  position: relative;
-  display: block;
-  overflow-x: auto; /* পিসির মতো ডানে-বামে স্ক্রল করার জন্য */
-  overflow-y: hidden;
-  padding: 0;
-}
-
-/* কাস্টম স্ক্রলবার (সুন্দর দেখানোর জন্য) */
-.dice-graph-area::-webkit-scrollbar {
-  height: 4px;
-}
-.dice-graph-area::-webkit-scrollbar-track {
-  background: transparent;
-}
-.dice-graph-area::-webkit-scrollbar-thumb {
-  background: var(--dice-border);
-  border-radius: 4px;
 }
