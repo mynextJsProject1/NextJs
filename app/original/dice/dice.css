@@ -419,3 +419,114 @@
   cursor: not-allowed;
 }
 /* ✅ নিচের ডুপ্লিকেট কোডগুলো মুছে ফেলা হয়েছে */
+
+/* ========================================= */
+/* ✅ Auto Mode UI স্টাইল */
+/* ========================================= */
+
+.dice-auto-settings {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-bottom: 20px;
+  background: var(--dice-card);
+  padding: 15px;
+  border-radius: 8px;
+  border: 1px solid var(--dice-border);
+}
+
+.auto-advanced-toggle {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 5px;
+}
+
+.auto-advanced-toggle label {
+  color: var(--dice-text);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+/* টগল সুইচ বাটন */
+.toggle-switch {
+  width: 46px;
+  height: 24px;
+  background: var(--dice-border);
+  border-radius: 12px;
+  position: relative;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.toggle-switch.active {
+  background: var(--dice-accent);
+}
+
+.toggle-knob {
+  width: 18px;
+  height: 18px;
+  background: #fff;
+  border-radius: 50%;
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  transition: transform 0.3s;
+}
+
+.toggle-switch.active .toggle-knob {
+  transform: translateX(22px);
+}
+
+/* অ্যাডভান্সড অপশন */
+.advanced-options {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-top: 10px;
+  padding-top: 15px;
+  border-top: 1px solid var(--dice-border);
+}
+
+.adv-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.adv-row label {
+  color: var(--dice-muted);
+  font-size: 0.8rem;
+}
+
+.adv-inputs {
+  display: flex;
+  gap: 10px;
+}
+
+.adv-inputs select {
+  flex: 1;
+  background: var(--dice-input-bg);
+  border: 1px solid var(--dice-border);
+  color: var(--dice-text);
+  padding: 0 10px;
+  border-radius: 8px;
+  outline: none;
+  font-size: 0.85rem;
+}
+
+/* অটো চলাকালীন ডিজেবল স্টাইল */
+.dice-input-wrapper.disabled,
+.dice-amount-input-wrap.disabled {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.dice-bet-btn.stop-btn {
+  background: #ff4d4d;
+  color: #fff;
+}
+
+.dice-bet-btn.stop-btn:hover {
+  background: #e60000;
+}
