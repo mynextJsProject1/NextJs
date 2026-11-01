@@ -1,0 +1,196 @@
+/* app/lottery/lottery-verifie/lottery-verifie.css */
+.verify-page {
+  padding: 20px;
+  max-width: 600px;
+  margin: 0 auto;
+  min-height: 80vh;
+}
+
+.verify-header {
+  text-align: center;
+  margin-bottom: 30px;
+  margin-top: 20px;
+}
+
+.verify-header i {
+  font-size: 50px;
+  color: #d4af37;
+  margin-bottom: 15px;
+}
+
+.verify-header h1 {
+  color: #fff;
+  font-size: 24px;
+  font-weight: bold;
+  margin: 0 0 8px 0;
+}
+
+.verify-header p {
+  color: #b1bad3;
+  font-size: 14px;
+  margin: 0;
+}
+
+.verify-card {
+  background: #1a0f2e;
+  border: 1px solid #3a1f6b;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.verify-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.verify-form input {
+  width: 100%;
+  background: #0f0a1a;
+  border: 1px solid #3a1f6b;
+  padding: 14px;
+  border-radius: 8px;
+  color: #fff;
+  font-size: 16px;
+  font-weight: bold;
+  text-align: center;
+  text-transform: uppercase;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.verify-form input:focus {
+  border-color: #d4af37;
+}
+
+.verify-form button {
+  width: 100%;
+  padding: 14px;
+  background: #d4af37;
+  color: #1a0f2e;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+.verify-form button:disabled {
+  background: #3a1f6b;
+  color: #888;
+  cursor: not-allowed;
+}
+
+/* এরর মেসেজ */
+.verify-error {
+  display: flex;
+  align-items: flex-start;
+  gap: 15px;
+  background: rgba(255, 77, 77, 0.1);
+  border: 1px solid #ff4d4d;
+  padding: 20px;
+  border-radius: 12px;
+}
+
+.verify-error i {
+  font-size: 30px;
+  color: #ff4d4d;
+}
+
+.verify-error h3 {
+  color: #ff4d4d;
+  margin: 0 0 5px 0;
+  font-size: 16px;
+}
+
+.verify-error p {
+  color: #ffb3b3;
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+/* সাকসেস রেজাল্ট */
+.verify-success {
+  background: #1a0f2e;
+  border: 1px solid #00e701;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 4px 20px rgba(0, 231, 1, 0.1);
+}
+
+.success-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(0, 231, 1, 0.15);
+  color: #00e701;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: bold;
+  margin-bottom: 20px;
+}
+
+.result-details {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.res-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px dashed #3a1f6b;
+  padding-bottom: 10px;
+}
+
+.res-row:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.res-row span {
+  color: #b1bad3;
+  font-size: 13px;
+}
+
+.res-row strong {
+  color: #fff;
+  font-size: 14px;
+  text-align: right;
+}
+
+.status-row strong {
+  padding: 4px 8px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.text-green { color: #00e701 !important; }
+.text-gold { color: #d4af37 !important; }
+.text-red { color: #ff4d4d !important; }
+
+.win-row {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  background: rgba(212, 175, 55, 0.05);
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #d4af37;
+  margin-top: 10px;
+}
+
+/* অ্যানিমেশন */
+.fade-in {
+  animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
