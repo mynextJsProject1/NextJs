@@ -1,4 +1,4 @@
-
+/* app/login/page.tsx */
 "use client";
 
 import { FormEvent, useState } from "react";
@@ -88,15 +88,9 @@ export default function LoginPage() {
 
       <main className="stake-main auth-main">
         <section className="auth-card">
-          <div className="auth-brand-icon">
-            <i className="fa-solid fa-user-shield" />
-          </div>
-
-          <p className="auth-eyebrow">WELCOME BACK</p>
-          <h1 className="auth-title">Login to your account</h1>
-          <p className="auth-description">
-            Enter your mobile number or Game ID to continue.
-          </p>
+          
+          {/* ✅ লাল দাগ দেওয়া আইকন এবং লেখা সরিয়ে ফেলা হয়েছে */}
+          <h1 className="auth-title" style={{ marginTop: '0', marginBottom: '24px' }}>Login to your account</h1>
 
           <form onSubmit={handleLogin} className="auth-form">
             <label htmlFor="login-identifier">
