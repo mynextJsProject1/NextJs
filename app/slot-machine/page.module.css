@@ -5,13 +5,13 @@
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  background-color: #0f172a; /* ডার্ক ব্লু */
+  background-color: #0f172a;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   padding: 16px;
 }
 
 .machine {
-  background-color: #1e293b; /* হালকা স্লেট */
+  background-color: #1e293b;
   border-radius: 12px;
   padding: 8px; 
   width: 100%;
@@ -19,7 +19,6 @@
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
 }
 
-/* ইনার বর্ডার */
 .innerBorder {
   border: 1px solid #334155; 
   border-radius: 8px;
@@ -38,31 +37,61 @@
 }
 
 .header strong {
-  color: #22c55e; /* ব্রাইট গ্রিন */
+  color: #22c55e;
   font-size: 16px;
 }
 
-.reels {
-  display: flex;
-  justify-content: center;
-  gap: 12px;
-  background-color: #0f172a; 
-  padding: 24px 16px;
-  border-radius: 8px;
-  border: 1px solid #334155;
-}
-
-.reel {
-  width: 75px;
-  height: 100px;
-  background-color: #1e293b;
-  border-radius: 8px;
+/* 🎰 ফ্রেম এবং রিলের কন্টেইনার */
+.reelFrameContainer {
+  position: relative;
+  width: 100%;
+  max-width: 350px;
+  margin: 0 auto;
+  aspect-ratio: 3.1 / 1; /* ছবির অনুপাত অনুযায়ী */
   display: flex;
   justify-content: center;
   align-items: center;
-  box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
-  border: 1px solid #334155;
+}
+
+/* ফ্রেমের ভেতরে সিম্বলগুলোর ব্যাকগ্রাউন্ড */
+.reelsBackground {
+  position: absolute;
+  top: 12%;     
+  bottom: 12%;
+  left: 6%;
+  right: 6%;
+  display: flex;
+  justify-content: space-evenly;
+  gap: 2px;
+  z-index: 1; 
   overflow: hidden;
+  border-radius: 12px;
+  background-color: #ffffff; 
+}
+
+/* ফ্রেমের ছবি */
+.frameImage {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  z-index: 2; 
+  pointer-events: none; 
+}
+
+/* প্রতিটি রিল */
+.reel {
+  width: 32%; 
+  height: 100%;
+  background-color: transparent;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  border: none; 
+  box-shadow: none;
 }
 
 .symbol {
@@ -81,6 +110,7 @@
   100% { transform: translateY(-15px); opacity: 0.2; }
 }
 
+/* মেসেজ বোর্ড */
 .messageBoard {
   text-align: center;
   color: #94a3b8;
@@ -102,6 +132,7 @@
   font-size: 16px;
 }
 
+/* কন্ট্রোল এরিয়া */
 .controls {
   display: flex;
   flex-direction: column;
@@ -162,7 +193,7 @@
 }
 
 .spinButton {
-  background-color: #8b5cf6; /* পার্পল কালার */
+  background-color: #8b5cf6; 
   color: white;
   border: none;
   padding: 16px;
@@ -189,12 +220,8 @@
   opacity: 0.7;
 }
 
-/* মোবাইল রেসপন্সিভ */
+/* মোবাইলের জন্য রেসপন্সিভ */
 @media (max-width: 380px) {
-  .reel {
-    width: 60px;
-    height: 80px;
-  }
   .symbol {
     font-size: 2.2rem;
   }
