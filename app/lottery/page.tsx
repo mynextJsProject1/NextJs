@@ -61,13 +61,9 @@ export default function LotteryHomePage() {
   const [selectedNumbers, setSelectedNumbers] = useState<string[]>([]);
   const [showCheckout, setShowCheckout] = useState(false);
 
-  // ✅ স্টেট: ব্যানার ইমেজের জন্য
   const [bannerUrl, setBannerUrl] = useState<string | null>(null);
-
-  // ✅ স্টেট: প্রাইস চেঞ্জ লোডিং অ্যানিমেশনের জন্য
   const [priceLoadingText, setPriceLoadingText] = useState<string | null>(null);
 
-  // KYC State
   const [hasKyc, setHasKyc] = useState(false);
   const [showKycForm, setShowKycForm] = useState(false);
   const [kycData, setKycData] = useState<KycData>({
@@ -86,7 +82,6 @@ export default function LotteryHomePage() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { router.replace("/signup/"); return; }
 
-      // ✅ ১. ব্যানার লোড করা
       const { data: bannerData } = await supabase
         .from("lottery_banners")
         .select("image_url")
@@ -100,7 +95,6 @@ export default function LotteryHomePage() {
         setBannerUrl(null);
       }
 
-      // ২. ব্যালেন্স চেক
       const { data: profile } = await supabase.from("profiles").select("lottery_balance, mobile, full_name").eq("id", user.id).single();
       if (profile) {
         setBalance(Number(profile.lottery_balance || 0)); 
@@ -110,7 +104,6 @@ export default function LotteryHomePage() {
       const { data: kyc } = await supabase.from("lottery_user_details").select("user_id").eq("user_id", user.id).maybeSingle();
       setHasKyc(!!kyc);
 
-      // ৩. আমার সব টিকিট
       const { data: myTicketsData } = await supabase
         .from("lottery_tickets")
         .select("id, ticket_number, ticket_code, created_at, lottery_draws(draw_name, ticket_price)")
@@ -119,7 +112,6 @@ export default function LotteryHomePage() {
       
       if (myTicketsData) setAllMyTickets(myTicketsData as unknown as MyTicketData[]);
 
-      // ৪. চলমান ড্র
       const { data: drawData } = await supabase
         .from("lottery_draws")
         .select("*")
@@ -148,7 +140,6 @@ export default function LotteryHomePage() {
 
   useEffect(() => { void loadData(); }, [loadData]);
 
-  // ================= রিয়েল-টাইম আপডেট =================
   useEffect(() => {
     const channel = supabase
       .channel("lottery_draws_realtime")
@@ -166,9 +157,7 @@ export default function LotteryHomePage() {
       supabase.removeChannel(channel);
     };
   }, [supabase, loadData]);
-  // ==================================================================
 
-  // টাইমার
   useEffect(() => {
     if (!draw) return;
     const timer = setInterval(() => {
@@ -261,7 +250,6 @@ export default function LotteryHomePage() {
     }
   };
 
-  // ✅ প্রাইস চেঞ্জ হ্যান্ডলার 
   const handlePriceChange = (price: number) => {
     if (price === selectedPrice) return; 
     
@@ -277,7 +265,6 @@ export default function LotteryHomePage() {
   const isSoldByOthers = (num: string) => soldTickets.some(t => t.ticket_number === num) && !isMine(num);
   const totalWorth = allMyTickets.reduce((sum, t) => sum + (t.lottery_draws?.ticket_price || 0), 0);
 
-  // ================= ২. ইউজার প্রথম পেইজে আসলে এই অ্যানিমেশনটি দেখাবে =================
   if (loading && !priceLoadingText) return (
     <div style={{
       position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
@@ -285,18 +272,15 @@ export default function LotteryHomePage() {
       justifyContent: 'center', alignItems: 'center', zIndex: 9999
     }}>
       <i className="fa-solid fa-circle-notch fa-spin" style={{ fontSize: '40px', color: '#d4af37', marginBottom: '15px' }}></i>
-      {/* ✅ ফন্ট সাইজ ছোট করা হয়েছে (20px থেকে 12px) */}
       <h2 style={{ color: 'white', fontSize: '12px', fontWeight: 'bold', letterSpacing: '1px', textAlign: 'center' }}>
         Loading Lucky Jackpot Data..
       </h2>
     </div>
   );
-  // =========================================================================================
 
   return (
     <div className="lottery-home-page">
       
-      {/* ================= ১. প্রাইস চেঞ্জের ফুল স্ক্রিন অ্যানিমেশন ================= */}
       {priceLoadingText && (
         <div style={{
           position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
@@ -306,22 +290,20 @@ export default function LotteryHomePage() {
           zIndex: 9999
         }}>
           <i className="fa-solid fa-ticket fa-spin" style={{ fontSize: '45px', color: '#d4af37', marginBottom: '15px' }}></i>
-          {/* ✅ ফন্ট সাইজ ছোট করা হয়েছে (24px থেকে 14px) */}
           <h1 style={{ color: 'white', fontSize: '14px', fontWeight: '900', letterSpacing: '1px', textAlign: 'center' }}>
             Loading Draw Data...
           </h1>
         </div>
       )}
-      {/* ========================================================================================= */}
 
       <div className="main-tabs">
-        <button className={activeTab === "buy" ? "active" : ""} onClick={() => setActiveTab("buy")}>Buy Tickets</button>
-        <button className={activeTab === "my-tickets" ? "active" : ""} onClick={() => setActiveTab("my-tickets")}>My Tickets</button>
+        {/* ✅ type="button" যোগ করা হয়েছে */}
+        <button type="button" className={activeTab === "buy" ? "active" : ""} onClick={() => setActiveTab("buy")}>Buy Tickets</button>
+        <button type="button" className={activeTab === "my-tickets" ? "active" : ""} onClick={() => setActiveTab("my-tickets")}>My Tickets</button>
       </div>
 
       {activeTab === "buy" ? (
         <>
-          {/* ✅ জ্যাকপট ব্যানার */}
           <div className="jackpot-banner" style={{ position: 'relative', overflow: 'hidden' }}>
             {bannerUrl && (
               <img 
@@ -339,7 +321,9 @@ export default function LotteryHomePage() {
 
           <div className="price-tabs">
             {TICKET_PRICES.map(price => (
+              // ✅ type="button" যোগ করা হয়েছে
               <button 
+                type="button"
                 key={price} 
                 className={selectedPrice === price ? "active" : ""} 
                 onClick={() => handlePriceChange(price)} 
@@ -369,7 +353,9 @@ export default function LotteryHomePage() {
                   const selected = selectedNumbers.includes(num);
                   
                   return (
+                    // ✅ type="button" যোগ করা হয়েছে (এটাই মূল ফিক্স)
                     <button
+                      type="button"
                       key={num}
                       className={`num-btn ${soldByOthers ? "sold" : ""} ${mine ? "mine" : ""} ${selected ? "selected" : ""}`}
                       onClick={() => toggleNumber(num)}
@@ -398,7 +384,9 @@ export default function LotteryHomePage() {
                   <span>Total Price:</span>
                   <strong className="text-gold">৳ {draw.ticket_price * selectedNumbers.length}</strong>
                 </div>
+                {/* ✅ type="button" যোগ করা হয়েছে */}
                 <button 
+                  type="button"
                   className="buy-btn" 
                   onClick={() => { if (!hasKyc) setShowKycForm(true); else handleProceedToCheckout(); }} 
                   disabled={selectedNumbers.length === 0 || buying || balance < (draw.ticket_price * selectedNumbers.length)}
@@ -454,8 +442,10 @@ export default function LotteryHomePage() {
             <div className="modal-row"><span>Balance After Payment:</span> <strong className="text-green">৳{(balance - (draw.ticket_price * selectedNumbers.length)).toFixed(2)}</strong></div>
             
             <div className="modal-actions">
-              <button className="btn-cancel" onClick={() => setShowCheckout(false)}>Cancel</button>
-              <button className="btn-confirm" onClick={handleConfirmBuy} disabled={buying}>{buying ? "Processing..." : "Confirm & Pay"}</button>
+              {/* ✅ Cancel বাটনে type="button" যোগ করা হয়েছে */}
+              <button type="button" className="btn-cancel" onClick={() => setShowCheckout(false)}>Cancel</button>
+              {/* ✅ Confirm বাটনে type="button" যোগ করা হয়েছে */}
+              <button type="button" className="btn-confirm" onClick={handleConfirmBuy} disabled={buying}>{buying ? "Processing..." : "Confirm & Pay"}</button>
             </div>
           </div>
         </div>
