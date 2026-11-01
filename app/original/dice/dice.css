@@ -1,7 +1,6 @@
 /* app/original/dice/dice.css */
 
 .dice-game-container {
-  /* ✅ প্রাইমারি কালার ভেরিয়েবল */
   --dice-bg: #111814;         
   --dice-card: #18221E;       
   --dice-input-bg: #0E1613;   
@@ -20,17 +19,18 @@
   padding-bottom: 60px;
 }
 
-/* ✅ ১. Main Border এর নিচের খালি জায়গা দূর করা হলো */
+/* ✅ ১. বর্ডারের নিচের খালি জায়গা ফিক্স */
 .dice-main-area {
-  /* flex: 1; <- এটি সরিয়ে দেওয়া হয়েছে যাতে বর্ডার নিচ পর্যন্ত টেনে না যায় */
+  /* flex: 1; <--- এটা সরিয়ে দেওয়া হয়েছে */
   padding: 15px; 
-  margin: 10px 15px 20px 15px; /* নিচের মার্জিন কমানো হয়েছে */
+  margin: 10px 10px 20px 10px; /* বাম-ডান এবং নিচের মার্জিন কমানো হয়েছে */
   max-width: 600px;
-  width: calc(100% - 30px);
+  width: calc(100% - 20px);
   border: 1px solid var(--dice-border); 
   border-radius: 12px; 
   background-color: #131a16; 
   box-sizing: border-box;
+  height: fit-content; /* কন্টেন্ট অনুযায়ী উচ্চতা নেবে */
 }
 
 @media (min-width: 600px) {
@@ -39,14 +39,14 @@
   }
 }
 
-/* ✅ ২. বিট হিস্টরি */
+/* ✅ ২. হিস্টরি সেকশন */
 .dice-history-wrapper {
   display: flex;
   justify-content: flex-end;
   width: 100%;
-  margin-bottom: 10px; 
+  margin-bottom: 5px; /* নিচের গ্যাপ কমানো হলো */
   margin-top: 0; 
-  min-height: 30px; 
+  min-height: 25px; /* ফ্লোটিং বক্সের জন্য জায়গা */
   overflow: hidden;
 }
 
@@ -64,7 +64,7 @@
 
 .dice-history-item {
   flex-shrink: 0;
-  padding: 5px 12px;
+  padding: 4px 10px;
   border-radius: 999px;
   font-weight: 700;
   font-size: 0.75rem;
@@ -87,10 +87,11 @@
   to { transform: translateX(0); opacity: 1; }
 }
 
-/* স্লাইডার সেকশন */
+/* ✅ ৩. স্লাইডার সেকশন (ওভারল্যাপ ফিক্স) */
 .dice-slider-section {
   margin-bottom: 20px;
-  margin-top: 30px; 
+  margin-top: 50px; /* ৩০ থেকে বাড়িয়ে ৫০ করা হলো যাতে রেজাল্ট বক্স হিস্টরির সাথে না লাগে */
+  position: relative;
 }
 
 .dice-slider-track {
@@ -115,10 +116,10 @@
   transition: background 0.1s;
 }
 
-/* ✅ ৩. Result Box */
+/* ✅ ৪. রেজাল্ট বক্স */
 .dice-floating-result {
   position: absolute;
-  top: -35px;
+  top: -35px; /* স্লাইডার থেকে উপরে উঠবে */
   transform: translateX(-50%);
   background: var(--dice-card);
   border: 1px solid var(--dice-border);
@@ -180,7 +181,6 @@
   border: none !important;
 }
 
-/* ✅ ৪. স্লাইডার হ্যান্ডেল চারকোনা */
 .dice-main-slider {
   width: 100%;
   position: relative;
@@ -295,7 +295,6 @@
   font-size: 0.75rem;
 }
 
-/* ✅ ৫. ১/২ এবং 2x বাটন বাইরে যাওয়া ফিক্স করা হলো */
 .dice-amount-input-wrap {
   background: var(--dice-input-bg);
   border: 1px solid var(--dice-border);
@@ -304,8 +303,8 @@
   align-items: center;
   padding: 0 10px;
   height: 44px;
-  width: 100%; /* পুরো জায়গা নেবে */
-  box-sizing: border-box; /* প্যাডিং বা বর্ডার সাইজের বাইরে যাবে না */
+  width: 100%; 
+  box-sizing: border-box; 
 }
 
 .dice-currency-icon {
@@ -320,12 +319,12 @@
   font-size: 10px;
   margin-right: 10px;
   font-weight: bold;
-  flex-shrink: 0; /* আইকন চেপে যাবে না */
+  flex-shrink: 0; 
 }
 
 .dice-amount-input-wrap input {
   flex: 1;
-  min-width: 0; /* ✅ মূল ফিক্স: ইনপুট ফিল্ডকে চেপে ছোট হতে দেবে */
+  min-width: 0; 
   background: transparent;
   border: none;
   color: var(--dice-text);
@@ -337,7 +336,7 @@
 .dice-quick-btns {
   display: flex;
   gap: 5px;
-  flex-shrink: 0; /* বাটনগুলো চেপে যাবে না */
+  flex-shrink: 0; 
 }
 
 .dice-quick-btns button {
@@ -385,9 +384,9 @@
 /* মোবাইলের জন্য রেসপন্সিভ */
 @media (max-width: 500px) {
   .dice-main-area {
-    margin: 10px 10px 20px 10px; /* মোবাইলে মার্জিন ঠিক করা হলো */
+    margin: 10px 8px 20px 8px; /* মার্জিন আরও কমানো হলো যাতে স্ক্রিন ফুল নেয় */
     padding: 12px;
-    width: calc(100% - 20px);
+    width: calc(100% - 16px);
   }
   .dice-input-group label { font-size: 0.75rem; }
   .dice-input-wrapper input { font-size: 0.8rem; }
