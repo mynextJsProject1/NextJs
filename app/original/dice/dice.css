@@ -20,32 +20,33 @@
   padding-bottom: 60px;
 }
 
-/* ✅ ৫. Main Border যুক্ত করা হয়েছে */
+/* ✅ ১. Main Border এর নিচের খালি জায়গা দূর করা হলো */
 .dice-main-area {
-  flex: 1;
-  padding: 15px; /* ভেতরের প্যাডিং */
-  margin: 10px 15px 3rem 15px; /* বাইরের মার্জিন */
+  /* flex: 1; <- এটি সরিয়ে দেওয়া হয়েছে যাতে বর্ডার নিচ পর্যন্ত টেনে না যায় */
+  padding: 15px; 
+  margin: 10px 15px 20px 15px; /* নিচের মার্জিন কমানো হয়েছে */
   max-width: 600px;
   width: calc(100% - 30px);
-  border: 1px solid var(--dice-border); /* চিকন বর্ডার */
-  border-radius: 12px; /* কোণা গোল করা */
-  background-color: #131a16; /* হালকা আলাদা ব্যাকগ্রাউন্ড */
+  border: 1px solid var(--dice-border); 
+  border-radius: 12px; 
+  background-color: #131a16; 
   box-sizing: border-box;
 }
 
 @media (min-width: 600px) {
   .dice-main-area {
-    margin: 10px auto 3rem auto;
+    margin: 10px auto 20px auto;
   }
 }
 
-/* ✅ ১. বিট হিস্টরি (উপরে তোলা হয়েছে) */
+/* ✅ ২. বিট হিস্টরি */
 .dice-history-wrapper {
   display: flex;
   justify-content: flex-end;
   width: 100%;
-  margin-bottom: 15px;
-  margin-top: 0; /* উপরে তোলা হয়েছে */
+  margin-bottom: 10px; 
+  margin-top: 0; 
+  min-height: 30px; 
   overflow: hidden;
 }
 
@@ -89,13 +90,12 @@
 /* স্লাইডার সেকশন */
 .dice-slider-section {
   margin-bottom: 20px;
-  margin-top: 50px; 
+  margin-top: 30px; 
 }
 
-/* ✅ ২. Slider Track ৫০% চিকন করা হয়েছে (40px থেকে 20px) */
 .dice-slider-track {
   position: relative;
-  height: 20px; /* চিকন করা হয়েছে */
+  height: 20px; 
   background: var(--dice-card);
   border: 1px solid var(--dice-border);
   border-radius: 10px;
@@ -115,7 +115,7 @@
   transition: background 0.1s;
 }
 
-/* ✅ ৩. Result Box ছোট করা হয়েছে */
+/* ✅ ৩. Result Box */
 .dice-floating-result {
   position: absolute;
   top: -35px;
@@ -123,9 +123,9 @@
   background: var(--dice-card);
   border: 1px solid var(--dice-border);
   color: var(--dice-text);
-  padding: 4px 12px; /* প্যাডিং কমানো */
+  padding: 4px 12px; 
   border-radius: 999px;
-  font-size: 0.75rem; /* ফন্ট সাইজ ছোট */
+  font-size: 0.75rem; 
   font-weight: 700;
   z-index: 10;
   box-shadow: 0 4px 10px rgba(0,0,0,0.5);
@@ -180,7 +180,7 @@
   border: none !important;
 }
 
-/* ✅ ৪. স্লাইডার হ্যান্ডেল চারকোনা করা হয়েছে (বেগুনি) */
+/* ✅ ৪. স্লাইডার হ্যান্ডেল চারকোনা */
 .dice-main-slider {
   width: 100%;
   position: relative;
@@ -193,11 +193,11 @@
   -webkit-appearance: none;
   height: 24px;
   width: 24px;
-  border-radius: 6px; /* চারকোনা (Rounded Square) */
+  border-radius: 6px; 
   background: #7c3aed; 
   cursor: pointer;
   box-shadow: 0 0 10px rgba(0,0,0,0.5);
-  border: 2px solid #fff; /* বর্ডার একটু চিকন করা হলো */
+  border: 2px solid #fff; 
 }
 
 .dice-slider-numbers {
@@ -295,6 +295,7 @@
   font-size: 0.75rem;
 }
 
+/* ✅ ৫. ১/২ এবং 2x বাটন বাইরে যাওয়া ফিক্স করা হলো */
 .dice-amount-input-wrap {
   background: var(--dice-input-bg);
   border: 1px solid var(--dice-border);
@@ -303,6 +304,8 @@
   align-items: center;
   padding: 0 10px;
   height: 44px;
+  width: 100%; /* পুরো জায়গা নেবে */
+  box-sizing: border-box; /* প্যাডিং বা বর্ডার সাইজের বাইরে যাবে না */
 }
 
 .dice-currency-icon {
@@ -317,10 +320,12 @@
   font-size: 10px;
   margin-right: 10px;
   font-weight: bold;
+  flex-shrink: 0; /* আইকন চেপে যাবে না */
 }
 
 .dice-amount-input-wrap input {
   flex: 1;
+  min-width: 0; /* ✅ মূল ফিক্স: ইনপুট ফিল্ডকে চেপে ছোট হতে দেবে */
   background: transparent;
   border: none;
   color: var(--dice-text);
@@ -332,6 +337,7 @@
 .dice-quick-btns {
   display: flex;
   gap: 5px;
+  flex-shrink: 0; /* বাটনগুলো চেপে যাবে না */
 }
 
 .dice-quick-btns button {
@@ -379,7 +385,7 @@
 /* মোবাইলের জন্য রেসপন্সিভ */
 @media (max-width: 500px) {
   .dice-main-area {
-    margin: 5px 10px 3rem 10px;
+    margin: 10px 10px 20px 10px; /* মোবাইলে মার্জিন ঠিক করা হলো */
     padding: 12px;
     width: calc(100% - 20px);
   }
@@ -388,21 +394,4 @@
   .dice-input-wrapper { padding: 0 6px; height: 38px; }
   .dice-input-wrapper i, .dice-input-wrapper span { font-size: 0.75rem; }
   .dice-inputs-grid { gap: 6px; }
-}
-
-/* ১. এই ক্লাসে margin-top কমিয়ে 30px করে দিন */
-.dice-slider-section {
-  margin-bottom: 20px;
-  margin-top: 30px; /* আগে 50px ছিল, এখন 30px */
-}
-
-/* ২. হিস্টরি কন্টেইনার যেন খালি থাকলে জায়গা না নেয় */
-.dice-history-wrapper {
-  display: flex;
-  justify-content: flex-end;
-  width: 100%;
-  margin-bottom: 10px; /* 15px থেকে কমানো হলো */
-  margin-top: 0; 
-  min-height: 30px; /* যাতে হিস্টরি থাকলে ঠিকমতো জায়গা নেয় */
-  overflow: hidden;
 }
