@@ -1,7 +1,7 @@
 /* app/original/dice/page.tsx */
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Header from "../../../components/Header";
 import Footer from "../../../components/Footer";
@@ -25,10 +25,8 @@ export default function DiceGamePage() {
   const [isWin, setIsWin] = useState<boolean | null>(null);
   const [errorMsg, setErrorMsg] = useState("");
   
-  // ✅ নতুন: বিট হিস্টরি স্টেট
+  // বিট হিস্টরি
   const [history, setHistory] = useState<{ id: string, value: number, isWin: boolean }[]>([]);
-  
-  // ভিজুয়াল স্লাইডার
   const [visualSliderValue, setVisualSliderValue] = useState(50.50);
 
   // ট্যাব স্টেট
@@ -44,6 +42,11 @@ export default function DiceGamePage() {
   const [stopOnProfit, setStopOnProfit] = useState("0.00");
   const [stopOnLoss, setStopOnLoss] = useState("0.00");
 
+  // ✅ নতুন স্টেট: Auto Betting এর জন্য
+  const [isAutoBetting, setIsAutoBetting] = useState(false);
+  const [autoStats, setAutoStats] = useState({ bets: 0, profit: 0 });
+  const isAutoRef = useRef(false); // লুপ কন্ট্রোল করার জন্য
+
   useEffect(() => {
     const fetchBalance = async () => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -53,6 +56,9 @@ export default function DiceGamePage() {
       }
     };
     void fetchBalance();
+
+    // কম্পোনেন্ট আনমাউন্ট হলে অটো বেট বন্ধ হয়ে যাবে
+    return () => { isAutoRef.current = false; };
   }, [supabase]);
 
   const handleSliderChange = (value: number) => {
@@ -70,7 +76,6 @@ export default function DiceGamePage() {
     setMultiplier(99 / newChance);
   };
 
-  // ✅ ইনপুট ভ্যালু স্ট্রিং হিসেবে রিসিভ করা হলো (যাতে ইউজার ইচ্ছেমতো এডিট করতে পারে)
   const handleMultiplierChange = (val: string) => {
     const num = parseFloat(val);
     if (isNaN(num)) { setMultiplier(0); return; }
@@ -104,28 +109,23 @@ export default function DiceGamePage() {
     setMultiplier(99 / newChance);
   };
 
-  // ✅ আসল গেম লজিক
-  const handleRoll = async () => {
-    const amount = Number(betAmount);
-    if (amount <= 0) return;
-    if (amount > balance) {
-      setErrorMsg("Insufficient balance.");
-      return;
-    }
+  // ✅ ১. মূল বাজি ধরার ফাংশন (ম্যানুয়াল এবং অটো উভয়ের জন্য ব্যবহার হবে)
+  const executeBet = async (amountToBet: number) => {
+    if (amountToBet <= 0) throw new Error("Invalid bet amount.");
+    if (amountToBet > balance) throw new Error("Insufficient balance.");
     
     setIsRolling(true);
     setResult(null);
     setIsWin(null);
     setErrorMsg("");
 
-    // ভিজুয়াল অ্যানিমেশন
     const animationInterval = setInterval(() => {
       setVisualSliderValue(Math.random() * 100);
     }, 50);
 
     try {
       const { data, error } = await supabase.rpc("play_dice_bet", {
-        p_bet_amount: amount,
+        p_bet_amount: amountToBet,
         p_target: rollOver,
         p_is_over: isOver,
         p_multiplier: multiplier
@@ -133,29 +133,86 @@ export default function DiceGamePage() {
 
       if (error) throw error;
 
-      setTimeout(() => {
-        clearInterval(animationInterval);
-        if (data) {
-          setVisualSliderValue(data.roll); 
-          setResult(data.roll);
-          setIsWin(data.is_win);
-          setBalance(data.new_balance);
-          
-          // ✅ নতুন রেজাল্ট হিস্টরিতে যুক্ত করা (ডান দিক থেকে বামে স্লাইড হবে)
-          setHistory(prev => [...prev, { id: Date.now().toString(), value: data.roll, isWin: data.is_win }].slice(-20)); 
-        }
-        setIsRolling(false);
-      }, 1500);
+      // ১.৫ সেকেন্ড অ্যানিমেশন
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      clearInterval(animationInterval);
 
+      if (data) {
+        setVisualSliderValue(data.roll); 
+        setResult(data.roll);
+        setIsWin(data.is_win);
+        setBalance(data.new_balance);
+        setHistory(prev => [...prev, { id: Date.now().toString(), value: data.roll, isWin: data.is_win }].slice(-20)); 
+      }
+      return data;
     } catch (err: any) {
       clearInterval(animationInterval);
       setErrorMsg(err.message || "Failed to place bet.");
+      throw err;
+    } finally {
       setIsRolling(false);
     }
   };
 
-  const handleAutoStart = () => {
-    alert("Auto betting will start in the backend update!");
+  // ✅ ২. ম্যানুয়াল বাজি
+  const handleManualRoll = async () => {
+    await executeBet(Number(betAmount)).catch(() => {});
+  };
+
+  // ✅ ৩. অটো বেট টগল (চালু/বন্ধ)
+  const toggleAutoBet = () => {
+    if (isAutoRef.current) {
+      isAutoRef.current = false;
+      setIsAutoBetting(false);
+    } else {
+      if (Number(betAmount) <= 0) return setErrorMsg("Please enter a valid bet amount.");
+      isAutoRef.current = true;
+      setIsAutoBetting(true);
+      setAutoStats({ bets: 0, profit: 0 });
+      runAutoLoop(Number(betAmount), 0, 0); // লুপ শুরু
+    }
+  };
+
+  // ✅ ৪. অটো বেট লুপ (Recursive)
+  const runAutoLoop = async (currentBet: number, currentCount: number, currentProfit: number) => {
+    if (!isAutoRef.current) return;
+
+    // স্টপ কন্ডিশন চেক
+    const maxBets = Number(autoBetCount);
+    const profitLimit = Number(stopOnProfit);
+    const lossLimit = Number(stopOnLoss);
+
+    if (maxBets > 0 && currentCount >= maxBets) return toggleAutoBet();
+    if (profitLimit > 0 && currentProfit >= profitLimit) return toggleAutoBet();
+    if (lossLimit > 0 && currentProfit <= -lossLimit) return toggleAutoBet();
+    if (currentBet > balance) {
+      setErrorMsg("Auto stopped: Insufficient balance.");
+      return toggleAutoBet();
+    }
+
+    try {
+      const data = await executeBet(currentBet);
+      if (!data) return;
+
+      const newCount = currentCount + 1;
+      const newProfit = currentProfit + data.profit;
+      setAutoStats({ bets: newCount, profit: newProfit });
+      
+      // On Win / On Loss লজিক
+      let nextBet = Number(betAmount); // ডিফল্ট: Reset
+      if (data.is_win && onWinMode === "increase") {
+        nextBet = currentBet + (currentBet * Number(onWinValue) / 100);
+      } else if (!data.is_win && onLossMode === "increase") {
+        nextBet = currentBet + (currentBet * Number(onLossValue) / 100);
+      }
+
+      // পরবর্তী বাজি ধরার জন্য সামান্য দেরি (UI আপডেট হওয়ার জন্য)
+      if (isAutoRef.current) {
+        setTimeout(() => runAutoLoop(nextBet, newCount, newProfit), 200);
+      }
+    } catch (err) {
+      toggleAutoBet(); // এরর হলে বন্ধ করে দেবে
+    }
   };
 
   return (
@@ -166,7 +223,6 @@ export default function DiceGamePage() {
         <div className="dice-game-container">
           <div className="dice-main-area">
             
-            {/* ✅ নতুন বিট হিস্টরি (উপরে ডান দিকে) */}
             <div className="dice-history-wrapper">
               <div className="dice-history-container">
                 {history.map((item) => (
@@ -183,7 +239,6 @@ export default function DiceGamePage() {
               </div>
             )}
 
-            {/* স্লাইডার সেকশন */}
             <div className="dice-slider-section">
               <div className="dice-slider-track">
                 
@@ -215,6 +270,7 @@ export default function DiceGamePage() {
                   value={rollOver}
                   onChange={(e) => handleSliderChange(Number(e.target.value))}
                   className="dice-main-slider"
+                  disabled={isAutoBetting} // ✅ অটো চলাকালীন ডিজেবল
                 />
               </div>
 
@@ -223,45 +279,51 @@ export default function DiceGamePage() {
               </div>
             </div>
 
-            {/* ইনপুট গ্রিড (৩টি পাশাপাশি) */}
             <div className="dice-inputs-grid">
               <div className="dice-input-group">
                 <label>Multiplier</label>
-                <div className="dice-input-wrapper">
+                <div className={`dice-input-wrapper ${isAutoBetting ? 'disabled' : ''}`}>
                   <input 
                     type="number" 
                     value={multiplier === 0 ? "" : multiplier} 
                     onChange={(e) => handleMultiplierChange(e.target.value)} 
+                    disabled={isAutoBetting}
                   />
                 </div>
               </div>
               <div className="dice-input-group">
                 <label>Roll {isOver ? "Over" : "Under"}</label>
-                <div className="dice-input-wrapper" onClick={handleToggleMode} style={{ cursor: "pointer" }}>
+                <div className={`dice-input-wrapper ${isAutoBetting ? 'disabled' : ''}`} onClick={() => !isAutoBetting && handleToggleMode()} style={{ cursor: isAutoBetting ? "not-allowed" : "pointer" }}>
                   <input 
                     type="number" 
                     value={rollOver === 0 ? "" : rollOver} 
                     onChange={(e) => handleRollOverChange(e.target.value)}
+                    disabled={isAutoBetting}
                   />
                   <i className="fa-solid fa-rotate"></i>
                 </div>
               </div>
               <div className="dice-input-group">
                 <label>Chance</label>
-                <div className="dice-input-wrapper">
+                <div className={`dice-input-wrapper ${isAutoBetting ? 'disabled' : ''}`}>
                   <input 
                     type="number" 
                     value={chance === 0 ? "" : chance} 
                     onChange={(e) => handleChanceChange(e.target.value)}
+                    disabled={isAutoBetting}
                   />
                   <span>%</span>
                 </div>
               </div>
             </div>
 
-            {/* বেট বাটন */}
-            <button className={`dice-bet-btn ${isRolling ? "rolling" : ""}`} onClick={activeTab === "manual" ? handleRoll : handleAutoStart} disabled={isRolling}>
-              {isRolling ? "Rolling..." : activeTab === "manual" ? "Bet" : "Start Auto"}
+            {/* ✅ বেট বাটন (ম্যানুয়াল / অটো) */}
+            <button 
+              className={`dice-bet-btn ${isRolling && !isAutoBetting ? "rolling" : ""} ${isAutoBetting ? "stop-btn" : ""}`} 
+              onClick={activeTab === "manual" ? handleManualRoll : toggleAutoBet} 
+              disabled={isRolling && !isAutoBetting}
+            >
+              {isAutoBetting ? "Stop Auto" : isRolling ? "Rolling..." : activeTab === "manual" ? "Bet" : "Start Auto"}
             </button>
 
             {/* ম্যানুয়াল ট্যাব */}
@@ -272,14 +334,14 @@ export default function DiceGamePage() {
                     <label>Bet Amount</label>
                     <span className="dice-currency">Balance: {balance.toFixed(2)} BDT</span>
                   </div>
-                  <div className="dice-amount-input-wrap">
+                  <div className={`dice-amount-input-wrap ${isAutoBetting ? 'disabled' : ''}`}>
                     <div className="dice-currency-icon">
                       <i className="fa-solid fa-bangladeshi-taka-sign"></i>
                     </div>
-                    <input type="number" value={betAmount} onChange={(e) => setBetAmount(e.target.value)} placeholder="0.00" />
+                    <input type="number" value={betAmount} onChange={(e) => setBetAmount(e.target.value)} placeholder="0.00" disabled={isAutoBetting} />
                     <div className="dice-quick-btns">
-                      <button type="button" onClick={() => setBetAmount((Number(betAmount) / 2).toFixed(2))}>½</button>
-                      <button type="button" onClick={() => setBetAmount((Number(betAmount) * 2).toFixed(2))}>2x</button>
+                      <button type="button" onClick={() => setBetAmount((Number(betAmount) / 2).toFixed(2))} disabled={isAutoBetting}>½</button>
+                      <button type="button" onClick={() => setBetAmount((Number(betAmount) * 2).toFixed(2))} disabled={isAutoBetting}>2x</button>
                     </div>
                   </div>
                 </div>
@@ -288,7 +350,7 @@ export default function DiceGamePage() {
                     <label>Profit</label>
                     <span className="dice-currency">0.00000000 BDT</span>
                   </div>
-                  <div className="dice-amount-input-wrap">
+                  <div className={`dice-amount-input-wrap ${isAutoBetting ? 'disabled' : ''}`}>
                     <div className="dice-currency-icon">
                       <i className="fa-solid fa-bangladeshi-taka-sign"></i>
                     </div>
@@ -301,17 +363,28 @@ export default function DiceGamePage() {
             {/* অটো মোড UI */}
             {activeTab === "auto" && (
               <div className="dice-auto-settings">
-                <div className="dice-input-group">
+                
+                {/* ✅ Auto Stats (চলাকালীন সময়ে দেখাবে) */}
+                {isAutoBetting && (
+                  <div style={{ background: "rgba(0, 231, 1, 0.1)", border: "1px solid #00e701", padding: "10px", borderRadius: "8px", marginBottom: "15px", display: "flex", justifyContent: "space-between" }}>
+                    <span style={{ color: "#fff", fontSize: "13px" }}>Bets: <strong>{autoStats.bets}</strong></span>
+                    <span style={{ color: autoStats.profit >= 0 ? "#00e701" : "#ff4d4d", fontSize: "13px", fontWeight: "bold" }}>
+                      Profit: {autoStats.profit.toFixed(2)} BDT
+                    </span>
+                  </div>
+                )}
+
+                <div className={`dice-input-group ${isAutoBetting ? 'disabled' : ''}`}>
                   <label>Number of Bets</label>
                   <div className="dice-input-wrapper">
-                    <input type="number" value={autoBetCount} onChange={(e) => setAutoBetCount(e.target.value)} />
+                    <input type="number" value={autoBetCount} onChange={(e) => setAutoBetCount(e.target.value)} disabled={isAutoBetting} />
                     <i className="fa-solid fa-infinity"></i>
                   </div>
                 </div>
 
                 <div className="auto-advanced-toggle">
                   <label>Advanced</label>
-                  <div className={`toggle-switch ${isAdvanced ? "active" : ""}`} onClick={() => setIsAdvanced(!isAdvanced)}>
+                  <div className={`toggle-switch ${isAdvanced ? "active" : ""}`} onClick={() => !isAutoBetting && setIsAdvanced(!isAdvanced)} style={{ opacity: isAutoBetting ? 0.5 : 1, cursor: isAutoBetting ? 'not-allowed' : 'pointer' }}>
                     <div className="toggle-knob"></div>
                   </div>
                 </div>
@@ -321,12 +394,12 @@ export default function DiceGamePage() {
                     <div className="adv-row">
                       <label>On Win</label>
                       <div className="adv-inputs">
-                        <select value={onWinMode} onChange={(e) => setOnWinMode(e.target.value as any)}>
+                        <select value={onWinMode} onChange={(e) => setOnWinMode(e.target.value as any)} disabled={isAutoBetting}>
                           <option value="reset">Reset</option>
                           <option value="increase">Increase by</option>
                         </select>
                         <div className="dice-input-wrapper" style={{ width: "100px" }}>
-                          <input type="number" value={onWinValue} onChange={(e) => setOnWinValue(e.target.value)} disabled={onWinMode === "reset"} />
+                          <input type="number" value={onWinValue} onChange={(e) => setOnWinValue(e.target.value)} disabled={onWinMode === "reset" || isAutoBetting} />
                           <span>%</span>
                         </div>
                       </div>
@@ -335,12 +408,12 @@ export default function DiceGamePage() {
                     <div className="adv-row">
                       <label>On Loss</label>
                       <div className="adv-inputs">
-                        <select value={onLossMode} onChange={(e) => setOnLossMode(e.target.value as any)}>
+                        <select value={onLossMode} onChange={(e) => setOnLossMode(e.target.value as any)} disabled={isAutoBetting}>
                           <option value="reset">Reset</option>
                           <option value="increase">Increase by</option>
                         </select>
                         <div className="dice-input-wrapper" style={{ width: "100px" }}>
-                          <input type="number" value={onLossValue} onChange={(e) => setOnLossValue(e.target.value)} disabled={onLossMode === "reset"} />
+                          <input type="number" value={onLossValue} onChange={(e) => setOnLossValue(e.target.value)} disabled={onLossMode === "reset" || isAutoBetting} />
                           <span>%</span>
                         </div>
                       </div>
@@ -349,7 +422,7 @@ export default function DiceGamePage() {
                     <div className="dice-input-group">
                       <label>Stop on Profit</label>
                       <div className="dice-input-wrapper">
-                        <input type="number" value={stopOnProfit} onChange={(e) => setStopOnProfit(e.target.value)} />
+                        <input type="number" value={stopOnProfit} onChange={(e) => setStopOnProfit(e.target.value)} disabled={isAutoBetting} />
                         <i className="fa-solid fa-bangladeshi-taka-sign"></i>
                       </div>
                     </div>
@@ -357,7 +430,7 @@ export default function DiceGamePage() {
                     <div className="dice-input-group">
                       <label>Stop on Loss</label>
                       <div className="dice-input-wrapper">
-                        <input type="number" value={stopOnLoss} onChange={(e) => setStopOnLoss(e.target.value)} />
+                        <input type="number" value={stopOnLoss} onChange={(e) => setStopOnLoss(e.target.value)} disabled={isAutoBetting} />
                         <i className="fa-solid fa-bangladeshi-taka-sign"></i>
                       </div>
                     </div>
@@ -368,9 +441,9 @@ export default function DiceGamePage() {
 
             {/* ট্যাব */}
             <div className="dice-bottom-tabs">
-              <button className={activeTab === "manual" ? "active" : ""} onClick={() => setActiveTab("manual")}>Manual</button>
-              <button className={activeTab === "auto" ? "active" : ""} onClick={() => setActiveTab("auto")}>Auto</button>
-              <button className={activeTab === "advanced" ? "active" : ""} onClick={() => setActiveTab("advanced")}>Advanced</button>
+              <button className={activeTab === "manual" ? "active" : ""} onClick={() => setActiveTab("manual")} disabled={isAutoBetting}>Manual</button>
+              <button className={activeTab === "auto" ? "active" : ""} onClick={() => setActiveTab("auto")} disabled={isAutoBetting}>Auto</button>
+              <button className={activeTab === "advanced" ? "active" : ""} onClick={() => setActiveTab("advanced")} disabled={isAutoBetting}>Advanced</button>
             </div>
           </div>
         </div>
