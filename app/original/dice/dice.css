@@ -65,6 +65,7 @@ html, body {
   overflow-x: auto;
   padding: 2px 0;
   scrollbar-width: none;
+  scroll-behavior: smooth; /* ✅ স্মুথ স্ক্রলিং এর জন্য */
 }
 
 .dice-history-container::-webkit-scrollbar {
@@ -96,9 +97,10 @@ html, body {
   to { transform: translateX(0); opacity: 1; }
 }
 
+/* ✅ দূরত্ব ১৩% বাড়িয়ে ৫২ পিক্সেল করা হয়েছে */
 .dice-slider-section {
   margin-bottom: 10px; 
-  margin-top: 45px; 
+  margin-top: 52px; 
   position: relative;
   z-index: 2;
 }
@@ -417,13 +419,13 @@ html, body {
   cursor: not-allowed;
 }
 
-/* ✅ Auto Mode UI স্টাইল (ব্যাকগ্রাউন্ড কালার আপডেট করা হয়েছে) */
+/* ✅ Auto Mode UI স্টাইল */
 .dice-auto-settings {
   display: flex;
   flex-direction: column;
   gap: 10px;
   margin-bottom: 10px;
-  background: var(--dice-card); /* ✅ কালো সরিয়ে মেইন কার্ডের কালার */
+  background: var(--dice-card); 
   padding: 10px;
   border-radius: 8px;
   border: 1px solid var(--dice-border);
@@ -496,10 +498,9 @@ html, body {
   gap: 10px;
 }
 
-/* ✅ ড্রপডাউন বক্সের কালার ফিক্স */
 .adv-inputs select {
   flex: 1;
-  background: var(--dice-input-bg); /* ✅ ইনপুট বক্সের মতো কালার */
+  background: var(--dice-input-bg); 
   border: 1px solid var(--dice-border);
   color: var(--dice-text);
   padding: 0 10px;
@@ -586,7 +587,6 @@ html, body {
   font-weight: 600;
 }
 
-/* ✅ Stats Modal Small Size */
 .dice-stats-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -619,7 +619,6 @@ html, body {
 .dice-stat-value.text-green { color: var(--dice-accent); }
 .dice-stat-value.text-red { color: var(--dice-danger); }
 
-/* ✅ Graph Area (Scroll এবং Height ফিক্স) */
 .dice-graph-area {
   background: var(--dice-card);
   border: 1px solid var(--dice-border);
