@@ -1,0 +1,63 @@
+/* components/GameBottomBar.css */
+
+/* ✅ আপনার সাইটের থিম অনুযায়ী কালার */
+:root {
+  --dice-card: #18221E;
+  --dice-border: #23332b;
+  --dice-text: #ffffff;
+  --dice-muted: #a0aab2;
+}
+
+.game-bottom-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--dice-card);
+  border: 1px solid var(--dice-border);
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin-top: 20px;
+}
+
+.game-bottom-left {
+  display: flex;
+  gap: 15px;
+}
+
+.game-bottom-left button {
+  background: transparent;
+  border: none;
+  color: var(--dice-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s;
+}
+
+.game-bottom-left button:hover {
+  color: var(--dice-text);
+}
+
+.game-bottom-right {
+  display: flex;
+}
+
+.fairness-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--dice-border);
+  color: var(--dice-text);
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.fairness-btn:hover {
+  background: #2d4236;
+}
