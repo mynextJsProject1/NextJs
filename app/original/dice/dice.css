@@ -1,10 +1,10 @@
 /* app/original/dice/dice.css */
 
 .dice-game-container {
-  --dice-bg: #18221E;         /* ✅ মেইন ব্যাকগ্রাউন্ড Deep Forest Green */
-  --dice-card: #1e2b26;       /* ✅ কার্ডের ব্যাকগ্রাউন্ড (সামান্য হালকা শেড) */
+  --dice-bg: #18221E;         /* ✅ পুরো পেইজের ব্যাকগ্রাউন্ড */
+  --dice-card: #18221E;       /* ✅ কার্ডের ব্যাকগ্রাউন্ড (একই কালার) */
   --dice-input-bg: #111815;   /* ✅ ইনপুট বক্সের ব্যাকগ্রাউন্ড */
-  --dice-border: #2b4236;     /* ✅ বর্ডারের কালার (ডার্ক মোড সরিয়ে সবুজাভ করা হলো) */
+  --dice-border: #2b4236;     /* ✅ বর্ডারের কালার */
   --dice-text: #ffffff;       
   --dice-muted: #a0aab2;      
   --dice-accent: #00E701;     
@@ -12,6 +12,7 @@
 
   background-color: var(--dice-bg);
   min-height: 100vh;
+  width: 100%;
   color: var(--dice-text);
   font-family: inherit;
   display: flex;
@@ -19,13 +20,13 @@
   padding-bottom: 60px;
 }
 
-/* ✅ মেইন কার্ড (মেইন বর্ডার ডার্ক মোড সরানো হয়েছে) */
+/* ✅ মেইন কার্ড (কালো জায়গা রিমুভ করা হয়েছে) */
 .dice-main-area {
   padding: 15px; 
   margin: 10px 15px 20px 15px; 
   max-width: 600px;
   width: calc(100% - 30px);
-  border: 1px solid var(--dice-border); /* হালকা সবুজ বর্ডার */
+  border: 1px solid var(--dice-border); 
   border-radius: 12px; 
   background-color: var(--dice-card); 
   box-sizing: border-box;
