@@ -1,10 +1,10 @@
 /* app/original/dice/dice.css */
 
 .dice-game-container {
-  --dice-bg: transparent; /* ✅ ডার্ক মোড ব্যাকগ্রাউন্ড সরিয়ে ট্রান্সপারেন্ট করা হলো */
-  --dice-card: #18221E;       
-  --dice-input-bg: #0E1613;   
-  --dice-border: #23332b;     
+  --dice-bg: #18221E;         /* ✅ মেইন ব্যাকগ্রাউন্ড Deep Forest Green */
+  --dice-card: #1e2b26;       /* ✅ কার্ডের ব্যাকগ্রাউন্ড (সামান্য হালকা শেড) */
+  --dice-input-bg: #111815;   /* ✅ ইনপুট বক্সের ব্যাকগ্রাউন্ড */
+  --dice-border: #2b4236;     /* ✅ বর্ডারের কালার (ডার্ক মোড সরিয়ে সবুজাভ করা হলো) */
   --dice-text: #ffffff;       
   --dice-muted: #a0aab2;      
   --dice-accent: #00E701;     
@@ -19,15 +19,15 @@
   padding-bottom: 60px;
 }
 
-/* ✅ ১. কার্ডের কালার সেট করা হলো */
+/* ✅ মেইন কার্ড (মেইন বর্ডার ডার্ক মোড সরানো হয়েছে) */
 .dice-main-area {
   padding: 15px; 
   margin: 10px 15px 20px 15px; 
   max-width: 600px;
   width: calc(100% - 30px);
-  border: 1px solid var(--dice-border); 
+  border: 1px solid var(--dice-border); /* হালকা সবুজ বর্ডার */
   border-radius: 12px; 
-  background-color: var(--dice-card); /* ✅ এখানে কার্ডের আলাদা কালার সেট হলো */
+  background-color: var(--dice-card); 
   box-sizing: border-box;
   height: fit-content; 
 }
@@ -76,7 +76,7 @@
 }
 
 .dice-history-item.lose {
-  background: var(--dice-input-bg); /* লুজ হলে ইনপুট বক্সের কালার */
+  background: var(--dice-input-bg);
   color: var(--dice-text);
   border: 1px solid var(--dice-border);
 }
@@ -351,7 +351,7 @@
   font-size: 0.75rem;
 }
 
-.dice-quick-btns button:hover { background: #2d4236; }
+.dice-quick-btns button:hover { background: #365244; }
 
 /* ট্যাব */
 .dice-bottom-tabs {
@@ -427,7 +427,7 @@
   flex-direction: column;
   gap: 15px;
   margin-bottom: 20px;
-  background: var(--dice-input-bg); /* ইনপুট এরিয়ার কালার */
+  background: var(--dice-input-bg); 
   padding: 15px;
   border-radius: 8px;
   border: 1px solid var(--dice-border);
@@ -519,7 +519,7 @@
 .dice-modal-overlay {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0, 0, 0, 0.75);
+  background: rgba(24, 34, 30, 0.85); /* Deep Forest Green overlay */
   backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
@@ -596,8 +596,6 @@
 }
 
 /* ✅ নতুন Graph Style (SVG Line Chart) */
-/* আপনার dice.css ফাইলের আগের গ্রাফ স্টাইলগুলো মুছে দিয়ে এটি দিন */
-
 .dice-graph-container {
   position: relative;
   width: 100%;
@@ -688,7 +686,7 @@
 /* ✅ নতুন: Bet History Button & Center Line Graph */
 
 .dice-btn-secondary {
-  background: #23332b;
+  background: var(--dice-border);
   color: #ffffff;
   border: none;
   padding: 10px;
@@ -700,7 +698,7 @@
 }
 
 .dice-btn-secondary:hover {
-  background: #2d4236;
+  background: #365244;
 }
 
 /* Graph Bar Track (Profit/Loss এর জন্য) */
@@ -720,7 +718,7 @@
   left: 0;
   right: 0;
   height: 1px;
-  background: #23332b;
+  background: var(--dice-border);
   z-index: 1;
 }
 
