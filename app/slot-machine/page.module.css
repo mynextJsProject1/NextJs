@@ -1,29 +1,27 @@
-/* components/SlotMachine/slotMachine.css */
+/* app/slot-machine/page.module.css */
 
-/* মেইন ব্যাকগ্রাউন্ড (আপনার সাইটের ডার্ক থিম) */
 .container {
   display: flex;
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  background-color: #0f172a; /* ডার্ক ব্লু ব্যাকগ্রাউন্ড */
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background-color: #0f172a; /* ডার্ক ব্লু */
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   padding: 16px;
 }
 
-/* আউটার কার্ড */
 .machine {
-  background-color: #1e293b; /* হালকা স্লেট বক্স */
+  background-color: #1e293b; /* হালকা স্লেট */
   border-radius: 12px;
-  padding: 8px; /* ইনার বর্ডারের জন্য প্যাডিং */
+  padding: 8px; 
   width: 100%;
-  max-width: 420px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+  max-width: 400px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
 }
 
-/* আপনার চাওয়া ইনার বর্ডার */
+/* ইনার বর্ডার */
 .innerBorder {
-  border: 1px solid #334155; /* স্লেট গ্রে বর্ডার */
+  border: 1px solid #334155; 
   border-radius: 8px;
   padding: 20px;
   display: flex;
@@ -31,13 +29,12 @@
   gap: 20px;
 }
 
-/* হেডার (ব্যালেন্স) */
 .header {
   color: #94a3b8;
   font-size: 14px;
   text-align: right;
   border-bottom: 1px solid #334155;
-  padding-bottom: 10px;
+  padding-bottom: 12px;
 }
 
 .header strong {
@@ -45,20 +42,18 @@
   font-size: 16px;
 }
 
-/* রিল কন্টেইনার */
 .reels {
   display: flex;
   justify-content: center;
   gap: 12px;
-  background-color: #0f172a; /* ইনপুট বক্সের মতো ডার্ক */
+  background-color: #0f172a; 
   padding: 24px 16px;
   border-radius: 8px;
   border: 1px solid #334155;
 }
 
-/* প্রতিটি রিল */
 .reel {
-  width: 80px;
+  width: 75px;
   height: 100px;
   background-color: #1e293b;
   border-radius: 8px;
@@ -67,23 +62,25 @@
   align-items: center;
   box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
   border: 1px solid #334155;
+  overflow: hidden;
 }
 
 .symbol {
-  font-size: 3rem;
+  font-size: 2.8rem;
+  user-select: none;
 }
 
+/* স্পিনিং অ্যানিমেশন */
 .reel.spinning .symbol {
-  animation: spinBlur 0.2s linear infinite;
+  animation: spinBlur 0.15s linear infinite;
 }
 
 @keyframes spinBlur {
-  0% { transform: translateY(-10px); opacity: 0.3; }
-  50% { transform: translateY(10px); opacity: 1; }
-  100% { transform: translateY(-10px); opacity: 0.3; }
+  0% { transform: translateY(-15px); opacity: 0.2; }
+  50% { transform: translateY(15px); opacity: 1; }
+  100% { transform: translateY(-15px); opacity: 0.2; }
 }
 
-/* মেসেজ বোর্ড */
 .messageBoard {
   text-align: center;
   color: #94a3b8;
@@ -99,12 +96,12 @@
 }
 
 .winText {
-  color: #22c55e; /* ব্রাইট গ্রিন */
+  color: #22c55e;
   font-weight: bold;
   margin: 4px 0 0 0;
+  font-size: 16px;
 }
 
-/* কন্ট্রোল এরিয়া */
 .controls {
   display: flex;
   flex-direction: column;
@@ -123,13 +120,11 @@
   font-weight: 600;
 }
 
-/* বেট ইনপুট র‍্যাপার */
 .betWrapper {
   display: flex;
   gap: 8px;
 }
 
-/* বেট ইনপুট ফিল্ড (আপনার ছবির মতো) */
 .betInput {
   flex: 1;
   background-color: #0f172a;
@@ -139,16 +134,16 @@
   color: #ffffff;
   font-size: 16px;
   outline: none;
+  width: 100%;
 }
 
 .betInput:focus {
   border-color: #8b5cf6;
 }
 
-/* ছোট ১/২ এবং 2x বাটন */
 .quickBet {
   background-color: #334155;
-  border: none;
+  border: 1px solid #334155;
   border-radius: 8px;
   color: #ffffff;
   padding: 0 16px;
@@ -157,13 +152,17 @@
   transition: background 0.2s;
 }
 
-.quickBet:hover {
+.quickBet:hover:not(:disabled) {
   background-color: #475569;
 }
 
-/* মেইন BET বাটন (পার্পল কালার) */
+.quickBet:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .spinButton {
-  background-color: #8b5cf6; /* আপনার ছবির পার্পল বাটন */
+  background-color: #8b5cf6; /* পার্পল কালার */
   color: white;
   border: none;
   padding: 16px;
@@ -188,4 +187,18 @@
   background-color: #475569;
   cursor: not-allowed;
   opacity: 0.7;
+}
+
+/* মোবাইল রেসপন্সিভ */
+@media (max-width: 380px) {
+  .reel {
+    width: 60px;
+    height: 80px;
+  }
+  .symbol {
+    font-size: 2.2rem;
+  }
+  .betInput {
+    padding: 10px;
+  }
 }
