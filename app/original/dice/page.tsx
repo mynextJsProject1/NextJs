@@ -249,39 +249,75 @@ export default function DiceGamePage() {
   const wins = history.filter(h => h.isWin).length;
   const losses = history.filter(h => !h.isWin).length;
 
-  // ✅ Graph Chart Logic
+  // ✅ Smooth Live Stats Graph (visual only; history/profit calculations unchanged)
   const generateGraph = () => {
     if (history.length === 0) return null;
-    
+
     let cumulativeProfit = 0;
-    const points = history.map(h => {
+    const points = history.map((h) => {
       cumulativeProfit += h.profit;
       return cumulativeProfit;
     });
 
-    const maxVal = Math.max(...points.map(Math.abs), 10); 
-    const width = Math.max(400, points.length * 60); 
-    const height = 100; 
-    const stepX = (width - 40) / Math.max(points.length - 1, 1);
-    const getY = (val: number) => (height / 2) - (val / maxVal) * (height / 2 - 10);
+    const width = Math.max(680, points.length * 18);
+    const height = 220;
+    const padX = 12;
+    const padY = 22;
+    const minVal = Math.min(0, ...points);
+    const maxVal = Math.max(0, ...points);
+    const range = Math.max(maxVal - minVal, 10);
+    const y = (value: number) => padY + ((maxVal - value) / range) * (height - padY * 2);
+    const coords = points.map((value, index) => ({
+      x: padX + (points.length === 1 ? (width - padX * 2) / 2 : index * (width - padX * 2) / (points.length - 1)),
+      y: y(value),
+      value,
+    }));
+    const zeroY = y(0);
 
-    const segments = [];
-    for (let i = 0; i < points.length - 1; i++) {
-      const x1 = 20 + i * stepX;
-      const y1 = getY(points[i]);
-      const x2 = 20 + (i + 1) * stepX;
-      const y2 = getY(points[i + 1]);
-      
-      const color = points[i + 1] >= points[i] ? "#00E701" : "#ff4d4d";
-      
-      segments.push(
-        <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke={color} strokeWidth="3" />
-      );
+    // Smooth cubic curve through the original cumulative-profit points.
+    let curvePath = `M ${coords[0].x} ${coords[0].y}`;
+    for (let i = 0; i < coords.length - 1; i++) {
+      const current = coords[i];
+      const next = coords[i + 1];
+      const midX = (current.x + next.x) / 2;
+      curvePath += ` C ${midX} ${current.y}, ${midX} ${next.y}, ${next.x} ${next.y}`;
     }
 
+    const areaPath = `${curvePath} L ${coords[coords.length - 1].x} ${zeroY} L ${coords[0].x} ${zeroY} Z`;
+    const segments = coords.slice(0, -1).map((point, index) => {
+      const next = coords[index + 1];
+      const midX = (point.x + next.x) / 2;
+      const segmentPath = `M ${point.x} ${point.y} C ${midX} ${point.y}, ${midX} ${next.y}, ${next.x} ${next.y}`;
+      const rising = next.value >= point.value;
+      return (
+        <path
+          key={index}
+          d={segmentPath}
+          fill="none"
+          stroke={rising ? "#20e33b" : "#ed4058"}
+          strokeWidth="4"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      );
+    });
+
     return (
-      <svg viewBox={`0 0 ${width} ${height}`} style={{ width: `${width}px`, height: '100%', display: 'block' }}>
-        <line x1="0" y1={height / 2} x2={width} y2={height / 2} stroke="#23332b" strokeWidth="1" strokeDasharray="4 4" />
+      <svg
+        viewBox={`0 0 ${width} ${height}`}
+        preserveAspectRatio="none"
+        role="img"
+        aria-label="Cumulative session profit graph"
+        style={{ width: `${width}px`, height: "100%", minHeight: `${height}px`, display: "block" }}
+      >
+        <defs>
+          <linearGradient id="diceGraphFill" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#20e33b" stopOpacity="0.22" />
+            <stop offset="100%" stopColor="#20e33b" stopOpacity="0.015" />
+          </linearGradient>
+        </defs>
+        <path d={areaPath} fill="url(#diceGraphFill)" />
+        <line x1="0" y1={zeroY} x2={width} y2={zeroY} stroke="#718895" strokeOpacity="0.45" strokeWidth="1.2" />
         {segments}
       </svg>
     );
@@ -610,7 +646,7 @@ export default function DiceGamePage() {
           onClick={() => setIsGraphOpen(false)}
           style={{ backdropFilter: 'none', backgroundColor: 'rgba(0,0,0,0.85)' }} // ✅ Blur রিমুভ করা হয়েছে
         >
-          <div className="dice-modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '300px' }}>
+          <div className="dice-modal-content dice-stats-modal" onClick={e => e.stopPropagation()} style={{ width: 'min(720px, calc(100vw - 24px))', maxWidth: '720px' }}>
             
             <div className="dice-modal-header" style={{ borderBottom: 'none', paddingBottom: '0' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#a0aab2' }}>
@@ -664,7 +700,7 @@ export default function DiceGamePage() {
               <div 
                 className="dice-graph-area" 
                 ref={graphContainerRef} // ✅ অটো স্ক্রল রেফ
-                style={{ height: '120px', marginTop: '10px', borderRadius: '8px', overflowX: 'auto', overflowY: 'hidden' }}
+                style={{ height: '220px', marginTop: '14px', borderRadius: '12px', overflowX: 'auto', overflowY: 'hidden' }}
               >
                 {history.length === 0 ? (
                   <div style={{ textAlign: 'center', color: '#a0aab2', padding: '40px 0', fontSize: '12px' }}>No bets placed yet</div>
