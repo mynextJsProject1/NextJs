@@ -3,8 +3,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import Header from "../../../components/Header";
-import Footer from "../../../components/Footer";
+// import Header from "../../../components/Header"; // হেডার বন্ধ করা হয়েছে
+// import Footer from "../../../components/Footer"; // ফুটার বন্ধ করা হয়েছে
 import "./asia-auto.css";
 
 export default function AsiaAutoRoulettePage() {
@@ -42,9 +42,9 @@ export default function AsiaAutoRoulettePage() {
 
   return (
     <div className="stake-app">
-      <Header onMenuClick={() => router.push("/")} onHomeClick={() => router.push("/")} />
+      {/* <Header onMenuClick={() => router.push("/")} onHomeClick={() => router.push("/")} /> */}
 
-      <main className="roulette-main-container">
+      <main className="roulette-main-container" style={{ paddingTop: '20px' }}>
         
         {/* টপ বার */}
         <div className="roulette-top-bar">
@@ -189,12 +189,12 @@ export default function AsiaAutoRoulettePage() {
 
       </main>
 
-      <Footer activePage="casino" onNavigate={(page) => {
+      {/* <Footer activePage="casino" onNavigate={(page) => {
         if (page === "home") router.push("/");
         else if (page === "chat") router.push("/");
         else if (page === "casino") router.push("/");
         else if (page === "sports") router.push("/");
-      }} />
+      }} /> */}
     </div>
   );
 }
