@@ -28,8 +28,9 @@ export default function DiceGamePage() {
   const [history, setHistory] = useState<{ id: string, value: number, isWin: boolean, profit: number, nonce: number, betAmount: number }[]>([]);
   const [visualSliderValue, setVisualSliderValue] = useState(50.50);
 
-  // ✅ নতুন: হিস্টরি অটো-স্ক্রল করার জন্য রেফ
+  // ✅ হিস্টরি এবং গ্রাফ অটো-স্ক্রল করার জন্য রেফ
   const historyContainerRef = useRef<HTMLDivElement>(null);
+  const graphContainerRef = useRef<HTMLDivElement>(null);
 
   const [activeTab, setActiveTab] = useState<"manual" | "auto" | "advanced">("manual");
 
@@ -80,10 +81,13 @@ export default function DiceGamePage() {
     return () => { isAutoRef.current = false; };
   }, [supabase]);
 
-  // ✅ নতুন ইফেক্ট: হিস্টরি আপডেট হলে অটোমেটিক ডান দিকে (সর্বশেষ রেজাল্টে) স্ক্রল হবে
+  // ✅ হিস্টরি আপডেট হলে অটোমেটিক স্ক্রল হবে
   useEffect(() => {
     if (historyContainerRef.current) {
       historyContainerRef.current.scrollLeft = historyContainerRef.current.scrollWidth;
+    }
+    if (graphContainerRef.current) {
+      graphContainerRef.current.scrollLeft = graphContainerRef.current.scrollWidth;
     }
   }, [history]);
 
@@ -162,6 +166,7 @@ export default function DiceGamePage() {
         setIsWin(data.is_win);
         setBalance(data.new_balance);
         
+        // ✅ .slice(-20) সরিয়ে দেওয়া হয়েছে যাতে আনলিমিটেড ডাটা জমা হয়
         setHistory(prev => [...prev, { 
           id: Date.now().toString(), 
           value: data.roll, 
@@ -169,7 +174,7 @@ export default function DiceGamePage() {
           profit: data.profit,
           nonce: nonce,
           betAmount: amountToBet
-        }].slice(-20));
+        }]);
         
         setNonce(prev => prev + 1);
       }
@@ -244,7 +249,7 @@ export default function DiceGamePage() {
   const wins = history.filter(h => h.isWin).length;
   const losses = history.filter(h => !h.isWin).length;
 
-  // ✅ আপডেট করা Graph Chart Logic (স্মুথ লাইন এবং এরিয়া ফিল)
+  // ✅ Graph Chart Logic
   const generateGraph = () => {
     if (history.length === 0) return null;
     
@@ -257,61 +262,27 @@ export default function DiceGamePage() {
     const maxVal = Math.max(...points.map(Math.abs), 10); 
     const width = Math.max(400, points.length * 60); 
     const height = 100; 
-    const padding = 20;
-    const stepX = (width - padding * 2) / Math.max(points.length - 1, 1);
-    const baselineY = height / 2;
+    const stepX = (width - 40) / Math.max(points.length - 1, 1);
+    const getY = (val: number) => (height / 2) - (val / maxVal) * (height / 2 - 10);
 
-    const getY = (val: number) => baselineY - (val / maxVal) * (baselineY - 10);
-
-    const mappedPoints = points.map((p, i) => ({
-      x: padding + i * stepX,
-      y: getY(p)
-    }));
-
-    if (mappedPoints.length === 1) {
-      mappedPoints.push({ x: mappedPoints[0].x + 1, y: mappedPoints[0].y });
+    const segments = [];
+    for (let i = 0; i < points.length - 1; i++) {
+      const x1 = 20 + i * stepX;
+      const y1 = getY(points[i]);
+      const x2 = 20 + (i + 1) * stepX;
+      const y2 = getY(points[i + 1]);
+      
+      const color = points[i + 1] >= points[i] ? "#00E701" : "#ff4d4d";
+      
+      segments.push(
+        <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke={color} strokeWidth="3" />
+      );
     }
-
-    // স্মুথ বাঁকা লাইন তৈরির পাথ
-    let linePath = `M ${mappedPoints[0].x} ${mappedPoints[0].y}`;
-    for (let i = 0; i < mappedPoints.length - 1; i++) {
-      const p0 = mappedPoints[i];
-      const p1 = mappedPoints[i + 1];
-      const midX = (p0.x + p1.x) / 2;
-      linePath += ` C ${midX} ${p0.y}, ${midX} ${p1.y}, ${p1.x} ${p1.y}`;
-    }
-
-    // এরিয়া (নিচের অংশ কালার করার পাথ)
-    const areaPath = `${linePath} L ${mappedPoints[mappedPoints.length - 1].x} ${height} L ${mappedPoints[0].x} ${height} Z`;
 
     return (
       <svg viewBox={`0 0 ${width} ${height}`} style={{ width: `${width}px`, height: '100%', display: 'block' }}>
-        <defs>
-          {/* এরিয়ার জন্য গ্রেডিয়েন্ট (উপরে সবুজ, নিচে লাল) */}
-          <linearGradient id="areaGradient" x1="0" x2="0" y1="0" y2={height} gradientUnits="userSpaceOnUse">
-            <stop offset="0%" stopColor="#00E701" stopOpacity="0.1" />
-            <stop offset={`${(baselineY / height) * 100}%`} stopColor="#00E701" stopOpacity="0.3" />
-            <stop offset={`${(baselineY / height) * 100}%`} stopColor="#ff4d4d" stopOpacity="0.3" />
-            <stop offset="100%" stopColor="#ff4d4d" stopOpacity="0.1" />
-          </linearGradient>
-          
-          {/* লাইনের জন্য গ্রেডিয়েন্ট (উপরে সবুজ, নিচে লাল) */}
-          <linearGradient id="lineGrad" x1="0" x2="0" y1="0" y2={height} gradientUnits="userSpaceOnUse">
-            <stop offset="0%" stopColor="#00E701" />
-            <stop offset={`${(baselineY / height) * 100}%`} stopColor="#00E701" />
-            <stop offset={`${(baselineY / height) * 100}%`} stopColor="#ff4d4d" />
-            <stop offset="100%" stopColor="#ff4d4d" />
-          </linearGradient>
-        </defs>
-        
-        {/* বেসলাইন */}
-        <line x1="0" y1={baselineY} x2={width} y2={baselineY} stroke="#23332b" strokeWidth="1" strokeDasharray="4 4" />
-        
-        {/* এরিয়া ফিল */}
-        <path d={areaPath} fill="url(#areaGradient)" />
-        
-        {/* মূল স্মুথ লাইন */}
-        <path d={linePath} fill="none" stroke="url(#lineGrad)" strokeWidth="3" strokeLinejoin="round" strokeLinecap="round" />
+        <line x1="0" y1={height / 2} x2={width} y2={height / 2} stroke="#23332b" strokeWidth="1" strokeDasharray="4 4" />
+        {segments}
       </svg>
     );
   };
@@ -632,12 +603,15 @@ export default function DiceGamePage() {
         </div>
       )}
 
-      {/* ================= ✅ Graph/Stats Modal (Updated UI) ================= */}
+      {/* ================= ✅ Graph/Stats Modal (No Blur & Scrollable Graph) ================= */}
       {isGraphOpen && (
-        <div className="dice-modal-overlay" onClick={() => setIsGraphOpen(false)}>
+        <div 
+          className="dice-modal-overlay" 
+          onClick={() => setIsGraphOpen(false)}
+          style={{ backdropFilter: 'none', backgroundColor: 'rgba(0,0,0,0.85)' }} // ✅ Blur রিমুভ করা হয়েছে
+        >
           <div className="dice-modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '300px' }}>
             
-            {/* ✅ নতুন হেডার: Live Stats */}
             <div className="dice-modal-header" style={{ borderBottom: 'none', paddingBottom: '0' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#a0aab2' }}>
                 <i className="fa-solid fa-chart-simple" style={{ fontSize: '18px', color: '#a0aab2' }}></i>
@@ -650,7 +624,6 @@ export default function DiceGamePage() {
 
             <div className="dice-modal-body" style={{ padding: '10px' }}>
               
-              {/* ✅ ড্রপডাউন এবং আইকন সমূহ */}
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px' }}>
                 <div style={{ display: 'flex', gap: '8px' }}>
                   <div style={{ padding: '6px 12px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', background: '#1a2c38', borderRadius: '6px', color: '#fff', cursor: 'pointer' }}>
@@ -666,7 +639,6 @@ export default function DiceGamePage() {
                 </div>
               </div>
 
-              {/* Stats Grid */}
               <div className="dice-stats-grid" style={{ padding: '12px', background: '#1a2c38', borderRadius: '8px' }}>
                 <div className="dice-stat-item">
                   <span className="dice-stat-label" style={{ fontSize: '0.7rem' }}>Profit</span>
@@ -688,8 +660,12 @@ export default function DiceGamePage() {
                 </div>
               </div>
 
-              {/* ✅ নতুন স্মুথ Graph Area */}
-              <div className="dice-graph-area" style={{ height: '120px', marginTop: '10px', borderRadius: '8px', overflow: 'hidden' }}>
+              {/* ✅ গ্রাফের জন্য overflowX: 'auto' দেওয়া হয়েছে */}
+              <div 
+                className="dice-graph-area" 
+                ref={graphContainerRef} // ✅ অটো স্ক্রল রেফ
+                style={{ height: '120px', marginTop: '10px', borderRadius: '8px', overflowX: 'auto', overflowY: 'hidden' }}
+              >
                 {history.length === 0 ? (
                   <div style={{ textAlign: 'center', color: '#a0aab2', padding: '40px 0', fontSize: '12px' }}>No bets placed yet</div>
                 ) : (
