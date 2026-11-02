@@ -25,7 +25,7 @@ export default function LimboGamePage() {
   const [result, setResult] = useState<number | null>(null);
   const [isWin, setIsWin] = useState<boolean | null>(null);
   const [errorMsg, setErrorMsg] = useState("");
-  const [displayMultiplier, setDisplayMultiplier] = useState(1.00); // অ্যানিমেশনের জন্য
+  const [displayMultiplier, setDisplayMultiplier] = useState(1.00); 
   
   const [history, setHistory] = useState<{ id: string, value: number, isWin: boolean, profit: number, nonce: number, betAmount: number }[]>([]);
   const historyContainerRef = useRef<HTMLDivElement>(null);
@@ -66,7 +66,6 @@ export default function LimboGamePage() {
 
   const playLimboSound = () => {
     if (soundEnabled) {
-      // আপনি চাইলে এখানে ভিন্ন কোনো সাউন্ড লিংক দিতে পারেন
       const audio = new Audio("https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3");
       audio.volume = 0.5;
       audio.play().catch(e => console.log("Audio play blocked by browser:", e));
@@ -94,7 +93,6 @@ export default function LimboGamePage() {
     }
   }, [history]);
 
-  // Target Multiplier পরিবর্তন হলে Chance অটো আপডেট হবে (১% হাউজ এজ)
   const handleMultiplierChange = (val: string) => {
     const num = parseFloat(val);
     if (isNaN(num) || num < 1.01) { setTargetMultiplier(1.01); setChance(98.02); return; }
@@ -127,16 +125,14 @@ export default function LimboGamePage() {
       if (data) {
         const crashPoint = Number(data.crash_multiplier);
         
-        // অ্যানিমেশন লজিক: মাল্টিপ্লায়ার ১.০০ থেকে বাড়তে থাকবে
-        let current = 1.00;
-        const animationSpeed = instantBet ? 10 : 50; // Turbo mode
+        // ✅ নতুন অ্যানিমেশন লজিক: এটি ১ সেকেন্ডের মধ্যে ক্র্যাশ পয়েন্টে পৌঁছে থেমে যাবে
+        const startTime = Date.now();
         const interval = setInterval(() => {
-          if (current >= crashPoint) {
-            current = crashPoint;
-            setDisplayMultiplier(current);
+          const elapsed = Date.now() - startTime;
+          
+          if (elapsed >= 1000 || instantBet) { // ১ সেকেন্ড অথবা ইনস্ট্যান্ট বেট
             clearInterval(interval);
-            
-            // অ্যানিমেশন শেষ, রেজাল্ট দেখাও
+            setDisplayMultiplier(crashPoint);
             setResult(crashPoint);
             setIsWin(data.is_win);
             setBalance(data.new_balance);
@@ -153,12 +149,12 @@ export default function LimboGamePage() {
             setNonce(prev => prev + 1);
             setIsRolling(false);
           } else {
-            // কত দ্রুত বাড়বে তা নির্ভর করে ক্র্যাশ পয়েন্টের ওপর
-            const step = crashPoint > 10 ? 0.2 : 0.02; 
-            current += step; 
+            // ১ সেকেন্ডের মধ্যে ১.০০ থেকে ক্র্যাশ পয়েন্ট পর্যন্ত বাড়বে
+            const progress = elapsed / 1000;
+            const current = 1.00 + (crashPoint - 1.00) * progress;
             setDisplayMultiplier(current);
           }
-        }, animationSpeed);
+        }, 30);
       }
       return data;
     } catch (err: any) {
@@ -218,8 +214,7 @@ export default function LimboGamePage() {
       setBetAmount(nextBet.toFixed(2));
 
       if (isAutoRef.current) {
-        // অ্যানিমেশনের জন্য একটু অপেক্ষা করতে হবে
-        setTimeout(() => runAutoLoop(nextBet, newCount, newProfit), 800);
+        setTimeout(() => runAutoLoop(nextBet, newCount, newProfit), 1200); // ১.২ সেকেন্ড পর পর অটো বেট হবে
       }
     } catch (err) {
       toggleAutoBet(); 
@@ -272,7 +267,6 @@ export default function LimboGamePage() {
         <div className="limbo-game-container">
           <div className="limbo-main-area">
             
-            {/* ✅ হিস্টরি সেকশন */}
             <div className="limbo-history-wrapper">
               <div className="limbo-history-container" ref={historyContainerRef}>
                 {history.map((item) => (
@@ -289,14 +283,12 @@ export default function LimboGamePage() {
               </div>
             )}
 
-            {/* ✅ মূল মাল্টিপ্লায়ার ডিসপ্লে */}
             <div className="limbo-display-area">
               <div className={`limbo-multiplier-text ${isRolling ? 'rolling' : isWin === true ? 'win' : isWin === false ? 'lose' : ''}`}>
                 {displayMultiplier.toFixed(2)}x
               </div>
             </div>
 
-            {/* ✅ ইনপুট গ্রিড */}
             <div className="limbo-inputs-grid">
               <div className="limbo-input-group">
                 <label>Target Multiplier</label>
@@ -324,16 +316,15 @@ export default function LimboGamePage() {
               </div>
             </div>
 
-            {/* ✅ বেট বাটন */}
             <button 
               className={`limbo-bet-btn ${isRolling && !isAutoBetting ? "rolling" : ""} ${isAutoBetting ? "stop-btn" : ""}`} 
               onClick={activeTab === "manual" ? handleManualRoll : toggleAutoBet} 
               disabled={isRolling && !isAutoBetting}
             >
-              {isAutoBetting ? "Stop Auto" : isRolling ? "Rolling..." : activeTab === "manual" ? "Bet" : "Start Auto"}
+              {/* ✅ "Rolling..." থেকে পরিবর্তন করে "Playing..." করা হলো */}
+              {isAutoBetting ? "Stop Auto" : isRolling ? "Playing..." : activeTab === "manual" ? "Bet" : "Start Auto"}
             </button>
 
-            {/* ✅ অ্যামাউন্ট সেকশন */}
             <div className="limbo-amount-section">
               <div className="limbo-amount-group">
                 <div className="limbo-label-row">
@@ -365,7 +356,6 @@ export default function LimboGamePage() {
               </div>
             </div>
 
-            {/* ✅ অটো মোড UI */}
             {activeTab === "auto" && (
               <div className="limbo-auto-settings">
                 {isAutoBetting && (
@@ -442,7 +432,6 @@ export default function LimboGamePage() {
               </div>
             )}
 
-            {/* ✅ ট্যাব */}
             <div className="limbo-bottom-tabs">
               <button className={activeTab === "manual" ? "active" : ""} onClick={() => setActiveTab("manual")} disabled={isAutoBetting}>Manual</button>
               <button className={activeTab === "auto" ? "active" : ""} onClick={() => setActiveTab("auto")} disabled={isAutoBetting}>Auto</button>
