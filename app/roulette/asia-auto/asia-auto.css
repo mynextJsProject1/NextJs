@@ -1,421 +1,285 @@
-/* ফন্ট ইমপোর্ট (প্রয়োজন হলে) */
-@import url('https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@400;700&display=swap');
+/* app/roulette/asia-auto/asia-auto.css */
 
-* {
-  box-sizing: border-box;
+/* বেস স্টাইল */
+html, body {
+  background-color: #18221E !important;
   margin: 0;
   padding: 0;
-  font-family: 'Roboto Condensed', Arial, sans-serif;
-  user-select: none;
+  width: 100%;
+  overflow-x: hidden;
 }
 
-body {
-  background-color: #0d1a22; /* গাঢ় নীল/সবুজ ব্যাকগ্রাউন্ড */
-}
-
-.roulette-app-container {
+.stake-app {
+  background-color: #18221E;
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
-  height: 100vh;
-  width: 100vw;
-  background: radial-gradient(circle at center, #1b3243 0%, #0d1a22 100%);
-  overflow: hidden;
-  position: relative;
 }
 
-/* ================= TOP SECTION ================= */
-.roulette-top-section {
-  display: flex;
-  height: 45%; /* স্ক্রিনের উপরের অংশ */
-  position: relative;
-  padding: 5px;
-}
-
-/* --- History Sidebar (Left) --- */
-.roulette-history-sidebar {
-  width: 45px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  z-index: 10;
-}
-
-.history-header-icon {
-  color: #a0b0c0;
-  font-size: 14px;
-  margin-bottom: 5px;
-}
-
-.history-item {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-size: 13px;
-  font-weight: bold;
-  position: relative;
-  box-shadow: inset 0 2px 4px rgba(255,255,255,0.2), 0 2px 4px rgba(0,0,0,0.5);
-}
-
-.history-item .history-icon {
-  position: absolute;
-  top: -5px;
-  right: -5px;
-  font-size: 12px;
-}
-
-.bg-red { background: linear-gradient(180deg, #e74c3c, #c0392b); border: 1px solid #ff7b6b; }
-.bg-black { background: linear-gradient(180deg, #34495e, #1a252f); border: 1px solid #4a6a8a; }
-.bg-green { background: linear-gradient(180deg, #2ecc71, #27ae60); border: 1px solid #55efc4; }
-.bg-orange { background: linear-gradient(180deg, #e67e22, #d35400); border: 1px solid #f39c12; }
-.bg-blue { background: linear-gradient(180deg, #3498db, #2980b9); border: 1px solid #74b9ff; }
-
-/* --- Center Wheel --- */
-.roulette-wheel-container {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-}
-
-/* হুইলের প্লেসহোল্ডার (আপনার ইমেজ এখানে বসবে) */
-.roulette-wheel-placeholder {
-  width: 90%;
-  max-width: 320px;
-  aspect-ratio: 1/1;
-  border-radius: 50%;
-  background: radial-gradient(circle at 30% 30%, #8b5a2b, #4a2c13); /* কপার ইফেক্ট */
-  border: 8px solid #2d1a0b;
-  box-shadow: inset 0 0 20px rgba(0,0,0,0.8), 0 10px 30px rgba(0,0,0,0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.wheel-inner-circle {
-  width: 70%;
-  height: 70%;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #d35400, #8e44ad); /* হুইলের ভেতরের রঙ */
-  border: 4px solid #5a2c13;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.wheel-cross {
-  width: 10px;
-  height: 60%;
-  background: #bdc3c7;
-  position: relative;
-}
-.wheel-cross::before {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 100px;
-  height: 10px;
-  background: #bdc3c7;
-  transform: translate(-50%, -50%);
-}
-
-/* --- Controls Sidebar (Right) --- */
-.roulette-controls-sidebar {
-  width: 50px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  z-index: 10;
-}
-
-.ctrl-btn {
-  background: #1e3b4d;
-  border: 1px solid #3f5d70;
-  color: #a0b0c0;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  box-shadow: inset 0 2px 5px rgba(255,255,255,0.1), 0 3px 5px rgba(0,0,0,0.3);
-  transition: all 0.1s;
-}
-
-.ctrl-btn:active {
-  transform: scale(0.95);
-  box-shadow: inset 0 3px 5px rgba(0,0,0,0.5);
-}
-
-.icon-only {
-  width: 34px;
-  height: 34px;
-  font-size: 14px;
-}
-
-.text-only {
-  width: 34px;
-  height: 34px;
-  font-size: 12px;
-  font-weight: bold;
-  border-radius: 50%;
-}
-
-.ctrl-group {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-  margin-top: 5px;
-}
-
-.border-gold {
-  border: 1px solid #b8860b;
-  color: #d4af37;
-}
-
-.ctrl-bottom-group {
-  margin-top: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin-bottom: 10px;
-}
-
-.auto-btn {
-  width: 40px;
-  height: 40px;
-  font-size: 18px;
-  background: radial-gradient(circle, #f39c12, #d35400);
-  color: white;
-  border: 2px solid #f1c40f;
-}
-
-.chip-btn {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: radial-gradient(circle, #ffffff, #dddddd);
-  color: #000;
-  font-weight: bold;
-  font-size: 14px;
-  border: 3px dashed #f39c12;
-}
-
-.info-btn {
-  width: 34px;
-  height: 34px;
-  background: transparent;
-  border: 1px solid #3f5d70;
-}
-
-
-/* ================= BETTING TABLE ================= */
-.roulette-table-container {
+.roulette-main-container {
   flex: 1;
   display: flex;
   flex-direction: column;
-  padding: 0 10px 5px 10px;
-  max-width: 400px;
+  align-items: center;
+  padding: 10px;
+  max-width: 900px;
   margin: 0 auto;
   width: 100%;
 }
 
-.table-zero {
-  width: 30px;
-  height: 25px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-size: 12px;
-  font-weight: bold;
-  border-radius: 4px 4px 0 0;
-  margin-left: auto;
-  margin-right: auto;
-  border: 1px solid rgba(255,255,255,0.2);
-  border-bottom: none;
-  transform: translateX(-15px); /* গ্রিডের মাঝখানে আনার জন্য */
-}
-
-.table-grid-layout {
-  display: flex;
-  border: 1px solid #4a6a8a;
-  background: #1e3b4d;
-  border-radius: 4px;
-  overflow: hidden;
-}
-
-/* Outside Left (1-18, Even, Red, Black, etc) */
-.outside-bets-left {
-  display: flex;
-  flex-direction: column;
-  width: 35px;
-  border-right: 1px solid #4a6a8a;
-}
-
-.outside-btn {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-size: 10px;
-  font-weight: bold;
-  border-bottom: 1px solid #4a6a8a;
-  background: #1a2e3d;
-  cursor: pointer;
-}
-.outside-btn:last-child { border-bottom: none; }
-.outside-btn:hover { background: #2c4a5e; }
-
-.diamond-icon {
-  width: 12px;
-  height: 12px;
-  background: white;
-  transform: rotate(45deg);
-}
-
-/* Center Numbers Grid */
-.numbers-grid {
-  display: grid;
-  grid-template-columns: repeat(12, 1fr);
-  grid-template-rows: repeat(3, 1fr);
-  flex: 1;
-  border-right: 1px solid #4a6a8a;
-}
-
-.number-cell {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-size: 14px;
-  font-weight: bold;
-  border-right: 1px solid #4a6a8a;
-  border-bottom: 1px solid #4a6a8a;
-  cursor: pointer;
-  position: relative;
-}
-.number-cell:nth-child(12n) { border-right: none; }
-.number-cell:nth-child(n+34) { border-bottom: none; }
-
-/* Right Columns (2:1) */
-.outside-bets-right {
-  display: flex;
-  flex-direction: column;
-  width: 30px;
-}
-
-.col-btn {
-  font-size: 11px;
-}
-
-/* Bottom Dozens */
-.dozens-row {
-  display: flex;
-  height: 25px;
-  border: 1px solid #4a6a8a;
-  border-top: none;
-  border-radius: 0 0 4px 4px;
-  margin-left: 35px; /* লেফট সাইডবারের সমান মার্জিন */
-  margin-right: 30px; /* রাইট সাইডবারের সমান মার্জিন */
-}
-
-.dozen-btn {
-  flex: 1;
-  font-size: 11px;
-  border-right: 1px solid #4a6a8a;
-  border-bottom: none;
-}
-.dozen-btn:last-child { border-right: none; }
-
-
-/* ================= BOTTOM BAR ================= */
-.roulette-bottom-bar {
+/* ================= টপ বার ================= */
+.roulette-top-bar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 5px 10px;
-  background: #0f1a22;
-  border-top: 1px solid #1e3b4d;
+  width: 100%;
+  background: #1c2a24;
+  border: 1px solid #2b4236;
+  padding: 10px 15px;
+  border-radius: 10px;
+  margin-bottom: 20px;
 }
 
-.bottom-left-icons {
+.roulette-history {
   display: flex;
-  gap: 10px;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
 }
 
-.menu-btn, .home-btn {
-  background: none;
-  border: none;
-  color: #a0b0c0;
-  font-size: 20px;
-  cursor: pointer;
-}
+.roulette-history::-webkit-scrollbar { display: none; }
 
-.bottom-center-info {
-  text-align: center;
-  color: #a0b0c0;
-  font-size: 8px;
-  line-height: 1.2;
-}
-
-.table-limits { margin-bottom: 2px; }
-
-.table-meta {
+.history-pill {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
   display: flex;
   justify-content: center;
-  gap: 10px;
-  font-size: 9px;
+  align-items: center;
+  font-size: 12px;
+  font-weight: bold;
+  color: #fff;
+  flex-shrink: 0;
 }
 
-.bottom-right-logo {
+.history-pill.green { background: #00E701; color: #000; }
+.history-pill.red { background: #ff4d4d; }
+.history-pill.black { background: #111; border: 1px solid #333; }
+
+.roulette-timer {
+  color: #a0aab2;
+  font-size: 14px;
+  background: #111815;
+  padding: 6px 12px;
+  border-radius: 20px;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
+}
+.roulette-timer strong { color: #00E701; }
+
+/* ================= রুলেট হুইল ================= */
+.roulette-wheel-section {
+  position: relative;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin-bottom: 30px;
 }
 
-.synot-logo {
+.wheel-pointer {
+  position: absolute;
+  top: -15px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 15px solid transparent;
+  border-right: 15px solid transparent;
+  border-top: 25px solid #FFD700;
+  z-index: 10;
+  filter: drop-shadow(0 4px 4px rgba(0,0,0,0.5));
+}
+
+.roulette-wheel-wrapper {
+  width: 250px;
+  height: 250px;
+  border-radius: 50%;
+  padding: 10px;
+  background: #2b4236;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.8), inset 0 0 15px rgba(255,215,0,0.2);
+  position: relative;
+}
+
+.roulette-wheel {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  position: relative;
+  /* স্পিন অ্যানিমেশন (রিয়েল লাইফ ফিল দেওয়ার জন্য) */
+  animation: spin 20s linear infinite; 
+  box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
+}
+
+@keyframes spin {
+  100% { transform: rotate(360deg); }
+}
+
+.wheel-inner-circle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 60%;
+  height: 60%;
+  background: #1c2a24;
+  border-radius: 50%;
+  border: 4px solid #FFD700;
+  box-shadow: inset 0 0 20px rgba(0,0,0,0.9);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.wheel-center {
+  width: 70%;
+  height: 70%;
+  background: linear-gradient(135deg, #FFD700, #b8860b);
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+  /* যাতে টেক্সট ঘুরে না যায় */
+  animation: counter-spin 20s linear infinite; 
+}
+
+@keyframes counter-spin {
+  100% { transform: rotate(-360deg); }
+}
+
+.wheel-center span {
+  color: #000;
   font-weight: 900;
   font-size: 14px;
-  color: #a0b0c0;
-  font-family: 'Arial Black', sans-serif;
   letter-spacing: 1px;
 }
 
-.sound-icon {
-  color: #a0b0c0;
-  font-size: 16px;
+/* ================= বেটিং টেবিল ================= */
+.roulette-betting-area {
+  width: 100%;
+  max-width: 600px;
+  background: #1a2c38;
+  border: 2px solid #FFD700;
+  border-radius: 8px;
+  padding: 5px;
+  margin-bottom: 20px;
 }
 
-/* ================= BALANCE BAR ================= */
-.balance-bar {
+.roulette-table-grid {
   display: flex;
-  justify-content: space-between;
-  padding: 5px 10px;
-  background: #050a0e;
+  border: 1px solid #2b4236;
 }
 
-.balance-item {
+.zero-spot {
+  width: 40px;
   display: flex;
-  flex-direction: column;
-  font-size: 11px;
+  justify-content: center;
+  align-items: center;
+  background: #00E701;
+  color: #000;
+  font-weight: bold;
+  font-size: 18px;
+  border-right: 1px solid #2b4236;
 }
 
-.balance-item .label {
-  color: #a0b0c0;
-  font-weight: bold;
-  margin-bottom: 2px;
+.numbers-grid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  flex: 1;
 }
 
-.balance-item .value {
-  color: white;
+.bet-spot {
+  padding: 10px 0;
+  text-align: center;
+  color: #fff;
   font-weight: bold;
-  font-size: 13px;
+  font-size: 14px;
+  border-right: 1px solid #2b4236;
+  border-bottom: 1px solid #2b4236;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.bet-spot:hover {
+  background: rgba(255,255,255,0.2);
+}
+
+.bet-spot.red { background: #ff4d4d; }
+.bet-spot.black { background: #111; }
+
+/* আউটসাইড বেটস গ্রিড */
+.outside-bets-grid {
+  display: grid;
+  grid-template-columns: repeat(9, 1fr);
+  border-left: 1px solid #2b4236;
+}
+
+.outside-bets-grid .bet-spot {
+  padding: 12px 0;
+  border-right: 1px solid #2b4236;
+  font-size: 12px;
+}
+
+.outside-bets-grid .red-bet { background: #ff4d4d; }
+.outside-bets-grid .black-bet { background: #111; }
+
+/* ================= চিপ সিলেকশন ================= */
+.roulette-chips {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.chip-btn {
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, #4a5568, #1a202c);
+  border: 2px dashed #FFD700;
+  color: #fff;
+  font-weight: bold;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.chip-btn:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 15px rgba(0,0,0,0.7);
+}
+
+/* মোবাইলের জন্য রেসপন্সিভ */
+@media (max-width: 600px) {
+  .roulette-wheel-wrapper {
+    width: 200px;
+    height: 200px;
+  }
+  
+  .numbers-grid {
+    grid-template-columns: repeat(6, 1fr); /* মোবাইলে ২ লাইনে ভাগ হবে */
+  }
+  
+  .bet-spot {
+    padding: 8px 0;
+    font-size: 12px;
+  }
+  
+  .outside-bets-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
 }
