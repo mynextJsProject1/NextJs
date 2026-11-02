@@ -148,7 +148,7 @@ html, body {
   font-size: 11px;
 }
 
-/* ================= New Vertical Table UI (CSS Grid) ================= */
+/* ================= Flexbox Vertical Table UI ================= */
 .roulette-table-container {
   width: 100%;
   background: #111815;
@@ -182,14 +182,58 @@ html, body {
   font-weight: bold;
 }
 
-/* মূল রুলেট গ্রিড (৬ কলাম এবং ১৩ রো) */
-.roulette-table-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr; /* 6 equal columns */
-  grid-template-rows: 1.2fr repeat(12, 1fr); /* 1 row for 0, 12 rows for numbers */
-  gap: 2px;
+/* ফ্লেক্সবক্স গ্রিড সিস্টেম */
+.roulette-grid-layout {
+  display: flex;
+  flex-direction: column;
   width: 100%;
+  gap: 2px;
 }
+
+.grid-row {
+  display: flex;
+  width: 100%;
+  gap: 2px;
+}
+
+.main-row {
+  align-items: stretch; /* সব কলাম সমান উচ্চতার হবে */
+}
+
+/* কলামগুলোর নির্দিষ্ট প্রস্থ */
+.outside-col, .outside-col-width { width: 16%; }
+.dozens-col, .dozens-col-width { width: 16%; }
+.col-2to1, .col-2to1-width { width: 16%; }
+.nums-col { flex: 1; } /* বাকি জায়গা ৩টি নাম্বার কলামে সমান ভাগ হবে */
+
+.empty-cell {
+  flex: none;
+}
+
+.top-row .zero-spot { 
+  flex: 1; 
+  display: flex; 
+  justify-content: center; 
+  align-items: center; 
+  background: #00E701; 
+  color: #000; 
+  font-weight: 900; 
+  border-radius: 4px;
+  border: 1px solid #00c800;
+  min-height: 30px;
+}
+
+/* ভেতরের কলাম */
+.col {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* উচ্চতা মেলানোর জন্য Flex ব্যবহার */
+.flex-1 { flex: 1; } /* ১২টি রো-এর জন্য */
+.flex-2 { flex: 2; } /* ৬টি রো-এর জন্য */
+.flex-4 { flex: 4; } /* ৩টি রো-এর জন্য */
 
 /* বেস স্পট ডিজাইন */
 .bet-spot {
@@ -203,10 +247,10 @@ html, body {
   cursor: pointer;
   position: relative;
   user-select: none;
-  background: #1a2c38; /* Dark blueish default */
+  background: #1a2c38;
   border: 1px solid #2b4236;
+  padding: 4px 0;
   transition: opacity 0.1s ease;
-  min-height: 28px;
 }
 
 .bet-spot:hover { opacity: 0.8; }
@@ -215,10 +259,8 @@ html, body {
 /* কালার সেট */
 .bet-spot.red { background: #ff4d4d; border-color: #e64545; }
 .bet-spot.black { background: #222; border-color: #444; }
-.bet-spot.zero-spot { background: #00E701; color: #000; border-color: #00c800; font-size: 16px; font-weight: 900; }
 
-/* আউটসাইড বেট (1-18, Even, ইত্যাদি) */
-.outside-bet {
+.outside-bet, .dozen-bet, .col-bet {
   font-size: 10px;
   text-align: center;
 }
@@ -229,7 +271,7 @@ html, body {
   font-size: 10px;
 }
 
-/* ডায়মন্ড আইকন (লাল ও কালোর জন্য) */
+/* ডায়মন্ড আইকন */
 .diamond {
   width: 8px;
   height: 8px;
@@ -238,45 +280,6 @@ html, body {
 }
 .red-diamond { background-color: #ff4d4d; border: 1px solid #ff9999; }
 .black-diamond { background-color: #000; border: 1px solid #555; }
-
-/* Dozens (1st 12, 2nd 12, 3rd 12) */
-.dozen-bet {
-  font-size: 11px;
-}
-
-/* 2:1 Columns */
-.col-bet {
-  font-size: 11px;
-}
-
-/* ================= Grid Placement (গ্রিড পজিশনিং) ================= */
-
-/* Top Row */
-.g-zero { grid-column: 3 / 6; grid-row: 1; }
-
-/* Left Column (Outside Bets) */
-.g-1-18 { grid-column: 1; grid-row: 2 / span 2; }
-.g-even { grid-column: 1; grid-row: 4 / span 2; }
-.g-red { grid-column: 1; grid-row: 6 / span 2; }
-.g-black { grid-column: 1; grid-row: 8 / span 2; }
-.g-odd { grid-column: 1; grid-row: 10 / span 2; }
-.g-19-36 { grid-column: 1; grid-row: 12 / span 2; }
-
-/* Second Column (Dozens) */
-.g-1st12 { grid-column: 2; grid-row: 2 / span 4; }
-.g-2nd12 { grid-column: 2; grid-row: 6 / span 4; }
-.g-3rd12 { grid-column: 2; grid-row: 10 / span 4; }
-
-/* Number Columns (নাম্বারগুলো কলাম অনুযায়ী বসবে) */
-.col-1-num { grid-column: 3; }
-.col-2-num { grid-column: 4; }
-.col-3-num { grid-column: 5; }
-
-/* Rightmost Column (2:1) */
-.g-col3 { grid-column: 6; grid-row: 2 / span 4; }
-.g-col2 { grid-column: 6; grid-row: 6 / span 4; }
-.g-col1 { grid-column: 6; grid-row: 10 / span 4; }
-
 
 /* ================= চিপ বসানোর ডিজাইন ================= */
 .placed-chip {
