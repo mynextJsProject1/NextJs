@@ -21,23 +21,23 @@ export default function AsiaAutoRoulettePage() {
     }));
   };
 
-  // হুইলের রঙিন অংশ তৈরি (লাল, কালো এবং একটি সবুজ)
+  // হুইলের গ্রেডিয়েন্ট
   const generateWheelGradient = () => {
     const totalSegments = 37;
     const segmentAngle = 360 / totalSegments;
     let gradient = "conic-gradient(";
     for (let i = 0; i < totalSegments; i++) {
-      const color = i === 0 ? "#00E701" : (i % 2 === 0 ? "#e84141" : "#111111");
+      const color = i === 0 ? "#00E701" : (i % 2 === 0 ? "#d93838" : "#181818");
       gradient += `${color} ${i * segmentAngle}deg ${(i + 1) * segmentAngle}deg, `;
     }
     return gradient.slice(0, -2) + ")";
   };
 
-  // নাম্বারগুলোর জন্য গ্রিড পজিশন ক্যালকুলেশন (যাতে ডিজাইন না ভাঙে)
+  // ৩৬টি নাম্বারের পজিশন
   const numbersData = Array.from({ length: 36 }, (_, i) => {
     const num = i + 1;
-    const col = ((num - 1) % 3) + 3; // কলাম ৩, ৪, ৫ এর জন্য
-    const row = Math.floor((num - 1) / 3) + 2; // রো ২ থেকে ১৩ পর্যন্ত
+    const col = ((num - 1) % 3) + 3; 
+    const row = Math.floor((num - 1) / 3) + 2; 
     return { num, col, row, isRed: redNumbers.includes(num) };
   });
 
@@ -80,7 +80,7 @@ export default function AsiaAutoRoulettePage() {
         {/* --- CENTER AREA (Wheel + Table) --- */}
         <div className="center-area">
           
-          {/* Wheel Section */}
+          {/* Wheel */}
           <div className="wheel-section">
             <div className="wheel-pointer"></div>
             <div className="wheel-outer-ring">
@@ -92,7 +92,7 @@ export default function AsiaAutoRoulettePage() {
             </div>
           </div>
 
-          {/* Table Section */}
+          {/* Table */}
           <div className="table-container">
             <div className="roulette-table-grid">
               
@@ -101,7 +101,7 @@ export default function AsiaAutoRoulettePage() {
                 0 {bets['0'] > 0 && <div className="chip">{bets['0']}</div>}
               </div>
 
-              {/* Left Column (1-18, Even, etc) */}
+              {/* Left Column */}
               <div className="cell vert-text" onClick={() => handleBetClick('1-18')} style={{ gridColumn: 1, gridRow: '2 / 4' }}>1-18 {bets['1-18'] > 0 && <div className="chip">{bets['1-18']}</div>}</div>
               <div className="cell vert-text" onClick={() => handleBetClick('even')} style={{ gridColumn: 1, gridRow: '4 / 6' }}>Even {bets['even'] > 0 && <div className="chip">{bets['even']}</div>}</div>
               <div className="cell" onClick={() => handleBetClick('red')} style={{ gridColumn: 1, gridRow: '6 / 8' }}><span className="diamond red-d"></span>{bets['red'] > 0 && <div className="chip">{bets['red']}</div>}</div>
@@ -119,7 +119,7 @@ export default function AsiaAutoRoulettePage() {
               <div className="cell" onClick={() => handleBetClick('col2')} style={{ gridColumn: 6, gridRow: '6 / 10' }}>2:1 {bets['col2'] > 0 && <div className="chip">{bets['col2']}</div>}</div>
               <div className="cell" onClick={() => handleBetClick('col1')} style={{ gridColumn: 6, gridRow: '10 / 14' }}>2:1 {bets['col1'] > 0 && <div className="chip">{bets['col1']}</div>}</div>
 
-              {/* Numbers Grid (Dynamic Mapping) */}
+              {/* Numbers */}
               {numbersData.map((item) => (
                 <div 
                   key={item.num} 
@@ -145,9 +145,9 @@ export default function AsiaAutoRoulettePage() {
           <button className="circle-btn"><i className="fa-solid fa-xmark"></i></button>
           
           <div className="chip-container">
-            <div className={`chip-btn right-chip ${selectedChip === 1 ? 'active' : ''}`} onClick={() => setSelectedChip(1)}>1</div>
-            <div className={`chip-btn right-chip ${selectedChip === 0.5 ? 'active' : ''}`} onClick={() => setSelectedChip(0.5)}>0.5</div>
-            <div className={`chip-btn right-chip ${selectedChip === 0.1 ? 'active' : ''}`} onClick={() => setSelectedChip(0.1)}>0.1</div>
+            <div className={`right-chip ${selectedChip === 1 ? 'active' : ''}`} onClick={() => setSelectedChip(1)}>1</div>
+            <div className={`right-chip ${selectedChip === 0.5 ? 'active' : ''}`} onClick={() => setSelectedChip(0.5)}>0.5</div>
+            <div className={`right-chip ${selectedChip === 0.1 ? 'active' : ''}`} onClick={() => setSelectedChip(0.1)}>0.1</div>
           </div>
 
           <div className="bottom-right-icons">
