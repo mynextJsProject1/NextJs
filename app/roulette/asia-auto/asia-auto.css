@@ -148,7 +148,7 @@ html, body {
   font-size: 11px;
 }
 
-/* ================= Vertical Table UI ================= */
+/* ================= New Vertical Table UI (CSS Grid) ================= */
 .roulette-table-container {
   width: 100%;
   background: #111815;
@@ -182,118 +182,101 @@ html, body {
   font-weight: bold;
 }
 
-.vertical-roulette-table {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-/* মূল গ্রিড */
-.numbers-and-columns {
-  display: flex;
-  flex-direction: row;
-  width: 100%;
-  gap: 4px;
-}
-
-.main-numbers-grid {
+/* মূল রুলেট গ্রিড (৬ কলাম এবং ১৩ রো) */
+.roulette-table-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  grid-template-rows: repeat(12, 1fr);
-  flex: 1;
+  grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr; /* 6 equal columns */
+  grid-template-rows: 1.2fr repeat(12, 1fr); /* 1 row for 0, 12 rows for numbers */
   gap: 2px;
+  width: 100%;
 }
 
-/* জিরো স্পট (উল্লম্বভাবে) */
-.zero-spot {
-  width: 12%;
-  background: #00E701;
-  color: #000;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-size: 18px;
-  font-weight: 900;
-  border-radius: 4px;
-  cursor: pointer;
-  position: relative;
-}
-
-/* বেট স্পট বেস */
+/* বেস স্পট ডিজাইন */
 .bet-spot {
   display: flex;
   justify-content: center;
   align-items: center;
   color: #fff;
   font-weight: bold;
-  font-size: 14px;
+  font-size: 13px;
   border-radius: 4px;
   cursor: pointer;
   position: relative;
   user-select: none;
+  background: #1a2c38; /* Dark blueish default */
+  border: 1px solid #2b4236;
+  transition: opacity 0.1s ease;
+  min-height: 28px;
 }
 
-.bet-spot:hover {
-  opacity: 0.8;
+.bet-spot:hover { opacity: 0.8; }
+.bet-spot:active { transform: scale(0.96); }
+
+/* কালার সেট */
+.bet-spot.red { background: #ff4d4d; border-color: #e64545; }
+.bet-spot.black { background: #222; border-color: #444; }
+.bet-spot.zero-spot { background: #00E701; color: #000; border-color: #00c800; font-size: 16px; font-weight: 900; }
+
+/* আউটসাইড বেট (1-18, Even, ইত্যাদি) */
+.outside-bet {
+  font-size: 10px;
+  text-align: center;
 }
 
-/* লাল এবং কালো নাম্বার */
-.bet-spot.red { background: #ff4d4d; }
-.bet-spot.black { background: #222; border: 1px solid #444; }
-
-/* কলাম 2:1 বেটস (ডান দিকে) */
-.column-bets {
-  display: flex;
+.red-bet, .black-bet {
   flex-direction: column;
-  width: 15%;
   gap: 2px;
+  font-size: 10px;
 }
 
-.col-bet {
-  flex: 1;
-  background: #1a2c38;
-  border: 1px solid #2b4236;
-  font-size: 11px;
-  text-align: center;
-  border-radius: 4px;
+/* ডায়মন্ড আইকন (লাল ও কালোর জন্য) */
+.diamond {
+  width: 8px;
+  height: 8px;
+  transform: rotate(45deg);
+  display: block;
 }
+.red-diamond { background-color: #ff4d4d; border: 1px solid #ff9999; }
+.black-diamond { background-color: #000; border: 1px solid #555; }
 
-/* Dazon (1st 12, 2nd 12, 3rd 12) */
-.dozens-bets {
-  display: flex;
-  flex-direction: row;
-  gap: 4px;
-  margin-left: 12%; /* জিরো স্পটের সমান জায়গা ছাড়া */
-  margin-right: 15%; /* কলাম বেটের সমান জায়গা ছাড়া */
-}
-
+/* Dozens (1st 12, 2nd 12, 3rd 12) */
 .dozen-bet {
-  flex: 1;
-  background: #1a2c38;
-  border: 1px solid #2b4236;
-  padding: 8px 0;
-  font-size: 12px;
-  text-align: center;
-}
-
-/* Outside Bets (1-18, Even, Red, Black, Odd, 19-36) */
-.outside-bets {
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: 4px;
-  margin-top: 4px;
-}
-
-.outside {
-  background: #1a2c38;
-  border: 1px solid #2b4236;
-  padding: 10px 0;
   font-size: 11px;
-  text-align: center;
 }
 
-.red-bet { background: #ff4d4d; }
-.black-bet { background: #222; border: 1px solid #444; }
+/* 2:1 Columns */
+.col-bet {
+  font-size: 11px;
+}
+
+/* ================= Grid Placement (গ্রিড পজিশনিং) ================= */
+
+/* Top Row */
+.g-zero { grid-column: 3 / 6; grid-row: 1; }
+
+/* Left Column (Outside Bets) */
+.g-1-18 { grid-column: 1; grid-row: 2 / span 2; }
+.g-even { grid-column: 1; grid-row: 4 / span 2; }
+.g-red { grid-column: 1; grid-row: 6 / span 2; }
+.g-black { grid-column: 1; grid-row: 8 / span 2; }
+.g-odd { grid-column: 1; grid-row: 10 / span 2; }
+.g-19-36 { grid-column: 1; grid-row: 12 / span 2; }
+
+/* Second Column (Dozens) */
+.g-1st12 { grid-column: 2; grid-row: 2 / span 4; }
+.g-2nd12 { grid-column: 2; grid-row: 6 / span 4; }
+.g-3rd12 { grid-column: 2; grid-row: 10 / span 4; }
+
+/* Number Columns (নাম্বারগুলো কলাম অনুযায়ী বসবে) */
+.col-1-num { grid-column: 3; }
+.col-2-num { grid-column: 4; }
+.col-3-num { grid-column: 5; }
+
+/* Rightmost Column (2:1) */
+.g-col3 { grid-column: 6; grid-row: 2 / span 4; }
+.g-col2 { grid-column: 6; grid-row: 6 / span 4; }
+.g-col1 { grid-column: 6; grid-row: 10 / span 4; }
+
 
 /* ================= চিপ বসানোর ডিজাইন ================= */
 .placed-chip {
