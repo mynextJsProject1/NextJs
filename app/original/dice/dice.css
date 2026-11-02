@@ -631,15 +631,32 @@ html, body {
 
 /* ✅ Graph Area (স্ক্রলিং ঠিক করার জন্য) */
 .dice-graph-area {
-  background: var(--dice-card);
-  border: 1px solid var(--dice-border);
-  border-radius: 4px;
-  height: 120px; /* ✅ উচ্চতা বাড়ানো হলো যাতে স্মুথ গ্রাফ সুন্দর দেখায় */
+  background: #172b38;
+  border: 1px solid rgba(112, 145, 163, 0.12);
+  border-radius: 12px;
+  height: 220px;
+  min-height: 220px;
   position: relative;
   display: block;
-  overflow-x: auto; 
+  overflow-x: auto;
   overflow-y: hidden;
   padding: 0;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(137, 166, 181, 0.35) transparent;
+}
+
+.dice-graph-area svg {
+  overflow: visible;
+}
+
+.dice-stats-modal {
+  background: #203746;
+  border: 1px solid rgba(126, 158, 176, 0.12);
+  border-radius: 16px;
+}
+
+.dice-stats-modal .dice-modal-body {
+  padding: 14px !important;
 }
 
 /* কাস্টম স্ক্রলবার */
@@ -719,4 +736,67 @@ html, body {
   background: var(--dice-accent) !important;
   color: #000 !important;
   font-weight: bold;
+}
+
+/* Live Stats card arrangement matching the supplied reference */
+.dice-stats-modal .dice-stats-grid {
+  grid-template-columns: 1.2fr 0.8fr;
+  grid-template-rows: repeat(2, auto);
+  grid-auto-flow: row;
+  column-gap: 22px;
+  row-gap: 12px;
+  padding: 22px !important;
+  margin-bottom: 12px;
+  border: 0;
+  border-radius: 14px;
+  background: #192f3d !important;
+}
+
+.dice-stats-modal .dice-stat-item {
+  min-width: 0;
+  gap: 5px;
+}
+
+.dice-stats-modal .dice-stat-item:nth-child(1) {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.dice-stats-modal .dice-stat-item:nth-child(2) {
+  grid-column: 1;
+  grid-row: 2;
+}
+
+.dice-stats-modal .dice-stat-item:nth-child(3) {
+  grid-column: 2;
+  grid-row: 1;
+  border-left: 1px solid rgba(142, 169, 184, 0.35);
+  padding-left: 22px;
+}
+
+.dice-stats-modal .dice-stat-item:nth-child(4) {
+  grid-column: 2;
+  grid-row: 2;
+  border-left: 1px solid rgba(142, 169, 184, 0.35);
+  padding-left: 22px;
+}
+
+.dice-stats-modal .dice-stat-label {
+  color: #9fb6c5;
+  font-size: 0.88rem !important;
+}
+
+.dice-stats-modal .dice-stat-value {
+  font-size: 1.18rem !important;
+}
+
+@media (max-width: 420px) {
+  .dice-stats-modal .dice-stats-grid {
+    padding: 16px !important;
+    column-gap: 12px;
+  }
+  .dice-stats-modal .dice-stat-item:nth-child(3),
+  .dice-stats-modal .dice-stat-item:nth-child(4) {
+    padding-left: 12px;
+  }
 }
