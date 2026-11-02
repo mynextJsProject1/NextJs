@@ -231,24 +231,33 @@ export default function LimboGamePage() {
   const wins = history.filter(h => h.isWin).length;
   const losses = history.filter(h => !h.isWin).length;
 
-  // ✅ নতুন আপডেট করা গ্রাফ জেনারেশন লজিক (১০,০০০ পয়েন্ট সাপোর্ট করে)
+  // ✅ আপডেট করা গ্রাফ জেনারেশন লজিক
   const generateGraph = () => {
-    if (history.length === 0) return <div style={{textAlign: 'center', color: '#a0aab2', padding: '40px 0', fontSize: '12px'}}>No bets placed yet</div>;
+    if (history.length === 0) {
+      return (
+        <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+          <svg viewBox={`0 0 280 140`} style={{ width: '100%', height: '100%', display: 'block' }}>
+             <line x1="0" y1="70" x2="280" y2="70" stroke="#2b4236" strokeWidth="1" />
+          </svg>
+          <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#a0aab2', fontSize: '12px' }}>
+            No bets placed yet
+          </div>
+        </div>
+      );
+    }
     
     let cumulative = 0;
-    const points = [0]; // ০ থেকে শুরু হবে
+    const points = [0]; 
     history.forEach(h => {
       cumulative += h.profit;
       points.push(cumulative);
     });
 
     const maxAbs = Math.max(...points.map(Math.abs), 1); 
-    
-    // ১০,০০০ পয়েন্টের জন্য width স্কেলিং করা হয়েছে যাতে ব্রাউজার ক্র্যাশ না করে
-    const width = Math.max(400, points.length * 10); 
-    const height = 150; 
+    const width = Math.max(280, points.length * 10); 
+    const height = 140; 
     const centerY = height / 2; // মাঝখানে দাগ
-    const padding = 20;
+    const padding = 15;
     
     const stepX = (width - 2 * padding) / Math.max(points.length - 1, 1);
     
@@ -285,16 +294,13 @@ export default function LimboGamePage() {
           </linearGradient>
         </defs>
         
-        {/* বেসলাইন (দাগ) */}
         <line x1="0" y1={centerY} x2={width} y2={centerY} stroke="#2b4236" strokeWidth="1" />
         
-        {/* সবুজ শেড (শুধু বেসলাইনের উপরে) */}
         <clipPath id="aboveCenter">
           <rect x="0" y="0" width={width} height={centerY} />
         </clipPath>
         <path d={areaPath} fill="url(#greenGradient)" clipPath="url(#aboveCenter)" />
 
-        {/* গ্রাফ লাইন */}
         {segments}
       </svg>
     );
@@ -572,43 +578,52 @@ export default function LimboGamePage() {
       {/* ================= ✅ Graph/Stats Modal (Updated) ================= */}
       {isGraphOpen && (
         <div className="limbo-modal-overlay no-blur" onClick={() => setIsGraphOpen(false)}>
-          <div className="limbo-modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '340px' }}>
+          {/* ✅ maxWidth 240px করে ৪০% চিকন করা হয়েছে */}
+          <div className="limbo-modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '240px' }}>
             
-            <div className="limbo-live-stats-header" style={{ padding: '16px 16px 0 16px' }}>
+            <div className="limbo-live-stats-header" style={{ padding: '16px 12px 0 12px' }}>
               <div className="limbo-live-stats-title">
-                <i className="fa-solid fa-chart-simple" style={{ fontSize: '18px', color: '#a0aab2' }}></i>
-                <h3 style={{ fontSize: '1.1rem', color: '#fff', margin: 0, fontWeight: 'bold' }}>Live Stats</h3>
+                <i className="fa-solid fa-chart-simple" style={{ fontSize: '14px', color: '#a0aab2' }}></i>
+                <h3 style={{ fontSize: '0.95rem', color: '#fff', margin: 0, fontWeight: 'bold' }}>Live Stats</h3>
               </div>
               <div className="limbo-live-stats-icons">
-                <i className="fa-solid fa-thumbtack" style={{ transform: 'rotate(45deg)', fontSize: '14px', cursor: 'pointer' }}></i>
-                <i className="fa-solid fa-rotate-right" style={{ fontSize: '14px', cursor: 'pointer' }}></i>
-                <button onClick={() => setIsGraphOpen(false)} style={{ fontSize: '0.8rem', color: '#fff', background: 'transparent', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
-                  <i className="fa-solid fa-xmark"></i>
+                <i className="fa-solid fa-thumbtack" style={{ transform: 'rotate(45deg)', fontSize: '12px', cursor: 'pointer' }}></i>
+                <i className="fa-solid fa-rotate-right" style={{ fontSize: '12px', cursor: 'pointer' }}></i>
+                
+                {/* ✅ সরাসরি সাদা SVG আইকন ব্যবহার করা হয়েছে */}
+                <button 
+                  onClick={() => setIsGraphOpen(false)} 
+                  style={{ background: 'transparent', border: 'none', color: '#ffffff', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center' }}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                  </svg>
                 </button>
               </div>
             </div>
 
-            <div className="limbo-modal-body" style={{ padding: '15px 16px 16px 16px' }}>
+            <div className="limbo-modal-body" style={{ padding: '12px 12px 12px 12px' }}>
               
               <div className="limbo-stats-layout">
                 <div className="limbo-stats-column">
                   <div className="limbo-stat-row-new">
                     <span className="limbo-stat-label-new">Profit</span>
                     <span className="limbo-stat-value-new" style={{ color: totalProfit >= 0 ? '#00E701' : '#ff4d4d' }}>
-                      {totalProfit >= 0 ? '' : '-'}৳ {Math.abs(totalProfit).toFixed(2)} 
+                      {totalProfit >= 0 ? '' : '-'}৳{Math.abs(totalProfit).toFixed(2)} 
                     </span>
                   </div>
                   <div className="limbo-stat-row-new">
                     <span className="limbo-stat-label-new">Wagered</span>
                     <span className="limbo-stat-value-new" style={{ color: '#fff' }}>
-                      ৳ {totalWagered.toFixed(2)}
+                      ৳{totalWagered.toFixed(2)}
                     </span>
                   </div>
                 </div>
 
                 <div className="limbo-stats-divider"></div>
 
-                <div className="limbo-stats-column" style={{ paddingLeft: '10px' }}>
+                <div className="limbo-stats-column" style={{ paddingLeft: '8px' }}>
                   <div className="limbo-stat-row-new">
                     <span className="limbo-stat-label-new">Wins</span>
                     <span className="limbo-stat-value-new" style={{ color: '#00E701' }}>{wins}</span>
