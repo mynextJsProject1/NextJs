@@ -106,6 +106,12 @@ export default function LimboGamePage() {
     if (amountToBet > balance) throw new Error("Insufficient balance.");
     if (targetMultiplier < 1.01) throw new Error("Multiplier must be at least 1.01x");
 
+    // ================= ✅ Optimistic UI Update =================
+    // ক্লিক করার সাথে সাথেই ব্যালেন্স থেকে টাকা কেটে ফেলা হচ্ছে
+    const previousBalance = balance;
+    setBalance(prev => prev - amountToBet);
+    // ===========================================================
+
     setIsRolling(true);
     setResult(null);
     setIsWin(null);
@@ -135,7 +141,9 @@ export default function LimboGamePage() {
             setDisplayMultiplier(crashPoint);
             setResult(crashPoint);
             setIsWin(data.is_win);
-            setBalance(data.new_balance);
+            
+            // অ্যানিমেশন শেষে সার্ভার থেকে পাওয়া সঠিক ব্যালেন্স সেট করা হচ্ছে
+            setBalance(data.new_balance); 
             
             setHistory(prev => [...prev, { 
               id: Date.now().toString(), 
@@ -158,6 +166,11 @@ export default function LimboGamePage() {
       }
       return data;
     } catch (err: any) {
+      // ================= ✅ Rollback on Error =================
+      // কোনো কারণে বেট ফেইল হলে ব্যালেন্স আগের অবস্থায় ফিরিয়ে দেওয়া হচ্ছে
+      setBalance(previousBalance); 
+      // ========================================================
+      
       setErrorMsg(err.message || "Failed to place bet.");
       setIsRolling(false);
       throw err;
@@ -321,7 +334,6 @@ export default function LimboGamePage() {
               onClick={activeTab === "manual" ? handleManualRoll : toggleAutoBet} 
               disabled={isRolling && !isAutoBetting}
             >
-              {/* ✅ "Rolling..." থেকে পরিবর্তন করে "Playing..." করা হলো */}
               {isAutoBetting ? "Stop Auto" : isRolling ? "Playing..." : activeTab === "manual" ? "Bet" : "Start Auto"}
             </button>
 
@@ -333,7 +345,8 @@ export default function LimboGamePage() {
                 </div>
                 <div className={`limbo-amount-input-wrap ${isAutoBetting ? 'disabled' : ''}`}>
                   <div className="limbo-currency-icon">
-                    <i className="fa-solid fa-bangladeshi-taka-sign"></i>
+                    {/* ✅ এখানে সবুজ আইকনের জায়গায় ৳ সিম্বল বসানো হয়েছে */}
+                    <span style={{ color: '#fff', fontWeight: 'bold' }}>৳</span>
                   </div>
                   <input type="number" value={betAmount} onChange={(e) => setBetAmount(e.target.value)} placeholder="0.00" disabled={isAutoBetting} />
                   <div className="limbo-quick-btns">
@@ -349,7 +362,8 @@ export default function LimboGamePage() {
                 </div>
                 <div className={`limbo-amount-input-wrap ${isAutoBetting ? 'disabled' : ''}`}>
                   <div className="limbo-currency-icon">
-                    <i className="fa-solid fa-bangladeshi-taka-sign"></i>
+                    {/* ✅ এখানে সবুজ আইকনের জায়গায় ৳ সিম্বল বসানো হয়েছে */}
+                    <span style={{ color: '#fff', fontWeight: 'bold' }}>৳</span>
                   </div>
                   <input type="number" value={(Number(betAmount) * targetMultiplier - Number(betAmount)).toFixed(2)} readOnly placeholder="0.00" />
                 </div>
