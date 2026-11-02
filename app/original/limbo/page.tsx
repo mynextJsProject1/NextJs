@@ -106,7 +106,6 @@ export default function LimboGamePage() {
     if (amountToBet > balance) throw new Error("Insufficient balance.");
     if (targetMultiplier < 1.01) throw new Error("Multiplier must be at least 1.01x");
 
-    // ✅ ১. ক্লিক করার সাথে সাথেই UI থেকে ব্যালেন্স কেটে নেওয়া (Instant Update)
     setBalance(prev => prev - amountToBet);
 
     setIsRolling(true);
@@ -137,7 +136,7 @@ export default function LimboGamePage() {
             setDisplayMultiplier(crashPoint);
             setResult(crashPoint);
             setIsWin(data.is_win);
-            setBalance(data.new_balance); // ডাটাবেস থেকে সঠিক ব্যালেন্স আপডেট হবে
+            setBalance(data.new_balance); 
             
             setHistory(prev => [...prev, { 
               id: Date.now().toString(), 
@@ -159,7 +158,6 @@ export default function LimboGamePage() {
       }
       return data;
     } catch (err: any) {
-      // ✅ ২. কোনো এরর হলে কেটে নেওয়া ব্যালেন্স আবার ফেরত দেওয়া
       setBalance(prev => prev + amountToBet); 
       setErrorMsg(err.message || "Failed to place bet.");
       setIsRolling(false);
@@ -229,34 +227,70 @@ export default function LimboGamePage() {
   const wins = history.filter(h => h.isWin).length;
   const losses = history.filter(h => !h.isWin).length;
 
+  // ✅ নতুন আপডেট করা গ্রাফ জেনারেশন লজিক
   const generateGraph = () => {
-    if (history.length === 0) return null;
+    if (history.length === 0) return <div style={{textAlign: 'center', color: '#a0aab2', padding: '40px 0', fontSize: '12px'}}>No bets placed yet</div>;
     
-    let cumulativeProfit = 0;
-    const points = history.map(h => {
-      cumulativeProfit += h.profit;
-      return cumulativeProfit;
+    let cumulative = 0;
+    const points = [0]; // ০ থেকে শুরু হবে
+    history.forEach(h => {
+      cumulative += h.profit;
+      points.push(cumulative);
     });
 
-    const maxVal = Math.max(...points.map(Math.abs), 10); 
-    const width = Math.max(400, points.length * 60); 
-    const height = 100; 
-    const stepX = (width - 40) / Math.max(points.length - 1, 1);
-    const getY = (val: number) => (height / 2) - (val / maxVal) * (height / 2 - 10);
+    const maxAbs = Math.max(...points.map(Math.abs), 1); 
+    
+    const width = Math.max(400, points.length * 40); 
+    const height = 150; 
+    const centerY = height / 2; // মাঝখানে দাগ
+    const padding = 20;
+    
+    const stepX = (width - 2 * padding) / Math.max(points.length - 1, 1);
+    
+    const getX = (index: number) => padding + index * stepX;
+    const getY = (val: number) => centerY - (val / maxAbs) * (centerY - padding);
+
+    let areaPath = `M ${getX(0)} ${centerY} L ${getX(0)} ${getY(points[0])}`;
+    for (let i = 1; i < points.length; i++) {
+      areaPath += ` L ${getX(i)} ${getY(points[i])}`;
+    }
+    areaPath += ` L ${getX(points.length - 1)} ${centerY} Z`;
 
     const segments = [];
     for (let i = 0; i < points.length - 1; i++) {
-      const x1 = 20 + i * stepX;
+      const x1 = getX(i);
       const y1 = getY(points[i]);
-      const x2 = 20 + (i + 1) * stepX;
+      const x2 = getX(i + 1);
       const y2 = getY(points[i + 1]);
-      const color = points[i + 1] >= points[i] ? "#00E701" : "#ff4d4d";
-      segments.push(<line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke={color} strokeWidth="3" />);
+      
+      // বেসলাইনের উপরে গেলে সবুজ, নিচে গেলে লাল
+      const isGreen = points[i + 1] >= 0;
+      const color = isGreen ? "#00E701" : "#ff4d4d";
+
+      segments.push(
+        <line key={`line-${i}`} x1={x1} y1={y1} x2={x2} y2={y2} stroke={color} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+      );
     }
 
     return (
       <svg viewBox={`0 0 ${width} ${height}`} style={{ width: `${width}px`, height: '100%', display: 'block' }}>
-        <line x1="0" y1={height / 2} x2={width} y2={height / 2} stroke="#23332b" strokeWidth="1" strokeDasharray="4 4" />
+        <defs>
+          <linearGradient id="greenGradient" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#00E701" stopOpacity="0.3"/>
+            <stop offset="100%" stopColor="#00E701" stopOpacity="0"/>
+          </linearGradient>
+        </defs>
+        
+        {/* বেসলাইন (দাগ) */}
+        <line x1="0" y1={centerY} x2={width} y2={centerY} stroke="#2b4236" strokeWidth="1" />
+        
+        {/* সবুজ শেড (শুধু বেসলাইনের উপরে) */}
+        <clipPath id="aboveCenter">
+          <rect x="0" y="0" width={width} height={centerY} />
+        </clipPath>
+        <path d={areaPath} fill="url(#greenGradient)" clipPath="url(#aboveCenter)" />
+
+        {/* গ্রাফ লাইন */}
         {segments}
       </svg>
     );
@@ -334,7 +368,6 @@ export default function LimboGamePage() {
                   <span className="limbo-currency">Balance: {balance.toFixed(2)} BDT</span>
                 </div>
                 <div className={`limbo-amount-input-wrap ${isAutoBetting ? 'disabled' : ''}`}>
-                  {/* ✅ ২. সবুজ গোল আইকনের পরিবর্তে ৳ সিম্বল */}
                   <span style={{ color: 'var(--limbo-muted)', fontSize: '1.1rem', fontWeight: 'bold', marginRight: '8px' }}>৳</span>
                   
                   <input type="number" value={betAmount} onChange={(e) => setBetAmount(e.target.value)} placeholder="0.00" disabled={isAutoBetting} />
@@ -350,7 +383,6 @@ export default function LimboGamePage() {
                   <span className="limbo-currency">0.00000000 BDT</span>
                 </div>
                 <div className={`limbo-amount-input-wrap ${isAutoBetting ? 'disabled' : ''}`}>
-                  {/* ✅ ২. সবুজ গোল আইকনের পরিবর্তে ৳ সিম্বল */}
                   <span style={{ color: 'var(--limbo-muted)', fontSize: '1.1rem', fontWeight: 'bold', marginRight: '8px' }}>৳</span>
 
                   <input type="number" value={(Number(betAmount) * targetMultiplier - Number(betAmount)).toFixed(2)} readOnly placeholder="0.00" />
@@ -533,10 +565,10 @@ export default function LimboGamePage() {
         </div>
       )}
 
-      {/* ================= ✅ Graph/Stats Modal ================= */}
+      {/* ================= ✅ Graph/Stats Modal (Updated) ================= */}
       {isGraphOpen && (
         <div className="limbo-modal-overlay no-blur" onClick={() => setIsGraphOpen(false)}>
-          <div className="limbo-modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '300px' }}>
+          <div className="limbo-modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '340px' }}>
             <div className="limbo-modal-header" style={{ borderBottom: 'none', paddingBottom: '0' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#a0aab2' }}>
                 <i className="fa-solid fa-chart-simple" style={{ fontSize: '18px', color: '#a0aab2' }}></i>
@@ -547,46 +579,57 @@ export default function LimboGamePage() {
               </div>
             </div>
 
-            <div className="limbo-modal-body" style={{ padding: '10px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px' }}>
-                <div style={{ display: 'flex', gap: '8px' }}>
-                  <div style={{ padding: '6px 12px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', background: '#1a2c38', borderRadius: '6px', color: '#fff', cursor: 'pointer' }}>
+            <div className="limbo-modal-body" style={{ padding: '10px 16px 16px 16px' }}>
+              
+              <div className="limbo-live-stats-header">
+                <div className="limbo-live-stats-filters">
+                  <button className="limbo-filter-btn">
                     Bets <i className="fa-solid fa-chevron-down" style={{ fontSize: '10px' }}></i>
-                  </div>
+                  </button>
+                  <button className="limbo-filter-btn">
+                    All <i className="fa-solid fa-chevron-down" style={{ fontSize: '10px' }}></i>
+                  </button>
                 </div>
-                <div style={{ display: 'flex', gap: '12px', alignItems: 'center', color: '#a0aab2' }}>
+                <div className="limbo-live-stats-icons">
                   <i className="fa-solid fa-thumbtack" style={{ transform: 'rotate(45deg)', fontSize: '14px' }}></i>
                   <i className="fa-solid fa-rotate-right" style={{ fontSize: '14px' }}></i>
                 </div>
               </div>
 
-              <div className="limbo-stats-grid" style={{ padding: '12px', background: '#1a2c38', borderRadius: '8px' }}>
-                <div className="limbo-stat-item">
-                  <span className="limbo-stat-label" style={{ fontSize: '0.7rem' }}>Profit</span>
-                  <span className={`limbo-stat-value ${totalProfit >= 0 ? 'text-green' : 'text-red'}`} style={{ fontSize: '1rem', fontWeight: 'bold' }}>
-                    {totalProfit >= 0 ? "+" : ""}{totalProfit.toFixed(2)}
-                  </span>
+              <div className="limbo-stats-layout">
+                <div className="limbo-stats-column">
+                  <div className="limbo-stat-row-new">
+                    <span className="limbo-stat-label-new">Profit</span>
+                    <span className="limbo-stat-value-new" style={{ color: totalProfit >= 0 ? '#00E701' : '#ff4d4d' }}>
+                      {totalProfit >= 0 ? '' : '-'}ARS {Math.abs(totalProfit).toFixed(2)} 
+                      <span className="limbo-tether-icon">₮</span>
+                    </span>
+                  </div>
+                  <div className="limbo-stat-row-new">
+                    <span className="limbo-stat-label-new">Wagered</span>
+                    <span className="limbo-stat-value-new" style={{ color: '#fff' }}>
+                      ARS {totalWagered.toFixed(2)}
+                      <span className="limbo-tether-icon">₮</span>
+                    </span>
+                  </div>
                 </div>
-                <div className="limbo-stat-item">
-                  <span className="limbo-stat-label" style={{ fontSize: '0.7rem' }}>Wagered</span>
-                  <span className="limbo-stat-value" style={{ fontSize: '1rem', fontWeight: 'bold' }}>{totalWagered.toFixed(2)}</span>
-                </div>
-                <div className="limbo-stat-item" style={{ marginTop: '10px' }}>
-                  <span className="limbo-stat-label" style={{ fontSize: '0.7rem' }}>Wins</span>
-                  <span className="limbo-stat-value text-green" style={{ fontSize: '1rem', fontWeight: 'bold' }}>{wins}</span>
-                </div>
-                <div className="limbo-stat-item" style={{ marginTop: '10px' }}>
-                  <span className="limbo-stat-label" style={{ fontSize: '0.7rem' }}>Losses</span>
-                  <span className="limbo-stat-value text-red" style={{ fontSize: '1rem', fontWeight: 'bold' }}>{losses}</span>
+
+                <div className="limbo-stats-divider"></div>
+
+                <div className="limbo-stats-column" style={{ paddingLeft: '10px' }}>
+                  <div className="limbo-stat-row-new">
+                    <span className="limbo-stat-label-new">Wins</span>
+                    <span className="limbo-stat-value-new" style={{ color: '#00E701' }}>{wins}</span>
+                  </div>
+                  <div className="limbo-stat-row-new">
+                    <span className="limbo-stat-label-new">Losses</span>
+                    <span className="limbo-stat-value-new" style={{ color: '#ff4d4d' }}>{losses}</span>
+                  </div>
                 </div>
               </div>
 
-              <div className="limbo-graph-area" ref={graphContainerRef} style={{ height: '120px', marginTop: '10px', borderRadius: '8px', overflowX: 'auto', overflowY: 'hidden' }}>
-                {history.length === 0 ? (
-                  <div style={{ textAlign: 'center', color: '#a0aab2', padding: '40px 0', fontSize: '12px' }}>No bets placed yet</div>
-                ) : (
-                  generateGraph()
-                )}
+              <div className="limbo-graph-area-new" ref={graphContainerRef}>
+                {generateGraph()}
               </div>
             </div>
           </div>
