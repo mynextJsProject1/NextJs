@@ -47,15 +47,15 @@ html, body {
   height: fit-content; 
 }
 
-/* ✅ হিস্টরি সেকশন (ফিক্স করা হয়েছে) */
+/* ✅ হিস্টরি সেকশন */
 .dice-history-wrapper {
   display: flex;
   justify-content: flex-end;
-  align-items: center; /* ✅ পিলগুলো মাঝখানে রাখার জন্য */
+  align-items: center;
   width: 100%;
   margin-bottom: 0; 
   margin-top: 0; 
-  height: 28px; /* ✅ ফিক্সড হাইট, যাতে লেয়াউট শিফট না হয় */
+  height: 28px; 
   overflow: hidden;
   position: relative;
   z-index: 1;
@@ -99,7 +99,7 @@ html, body {
   to { transform: translateX(0); opacity: 1; }
 }
 
-/* ✅ স্লাইডার সেকশন (গ্যাপ আগের মতোই ৮৫ পিক্সেল রাখা হয়েছে) */
+/* ✅ স্লাইডার সেকশন */
 .dice-slider-section {
   margin-bottom: 10px; 
   margin-top: 85px; 
@@ -512,6 +512,7 @@ html, body {
   font-size: 0.85rem;
 }
 
+/* ✅ মডাল স্টাইল (ব্লার সহ) */
 .dice-modal-overlay {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
@@ -523,6 +524,12 @@ html, body {
   z-index: 1000;
   padding: 16px;
   animation: modalFadeIn 0.2s ease-out;
+}
+
+/* ✅ গ্রাফ মডালের জন্য আলাদা ক্লাস (যদি ব্লার বন্ধ করতে চান) */
+.dice-modal-overlay.no-blur {
+  backdrop-filter: none;
+  background: rgba(0, 0, 0, 0.85);
 }
 
 .dice-modal-content {
@@ -622,11 +629,12 @@ html, body {
 .dice-stat-value.text-green { color: var(--dice-accent); }
 .dice-stat-value.text-red { color: var(--dice-danger); }
 
+/* ✅ Graph Area (স্ক্রলিং ঠিক করার জন্য) */
 .dice-graph-area {
   background: var(--dice-card);
   border: 1px solid var(--dice-border);
   border-radius: 4px;
-  height: 80px; 
+  height: 120px; /* ✅ উচ্চতা বাড়ানো হলো যাতে স্মুথ গ্রাফ সুন্দর দেখায় */
   position: relative;
   display: block;
   overflow-x: auto; 
@@ -634,6 +642,7 @@ html, body {
   padding: 0;
 }
 
+/* কাস্টম স্ক্রলবার */
 .dice-graph-area::-webkit-scrollbar {
   height: 4px;
 }
