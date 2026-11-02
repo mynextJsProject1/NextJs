@@ -2,13 +2,17 @@
 @import url('https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@400;700;900&display=swap');
 @import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css');
 
-html, body {
+* {
+  box-sizing: border-box;
   margin: 0;
   padding: 0;
+}
+
+html, body {
   width: 100vw;
   height: 100vh;
   overflow: hidden;
-  background-color: #0d1a17; 
+  background-color: #101c18; 
   font-family: 'Roboto Condensed', sans-serif;
   user-select: none;
 }
@@ -26,10 +30,10 @@ html, body {
   align-items: center;
   justify-content: space-between;
   padding: 6px 10px;
-  background: #16241e;
-  margin: 8px 8px 0 8px;
+  background: #182a22;
+  margin: 8px 10px 0 10px;
   border-radius: 8px;
-  border: 1px solid #233a2e;
+  border: 1px solid #223a2e;
 }
 
 .history-scroll-area {
@@ -41,13 +45,13 @@ html, body {
 .history-scroll-area::-webkit-scrollbar { display: none; }
 
 .top-pill {
-  width: 26px;
-  height: 26px;
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
   display: flex;
   justify-content: center;
   align-items: center;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 900;
   color: #fff;
   flex-shrink: 0;
@@ -57,10 +61,10 @@ html, body {
 .top-pill.black { background: #1a1a1a; border: 1px solid #333; }
 
 .top-timer {
-  background: #08100d;
+  background: #0a120e;
   color: #00E701;
   font-weight: 900;
-  font-size: 14px;
+  font-size: 13px;
   padding: 4px 12px;
   border-radius: 15px;
   letter-spacing: 1px;
@@ -71,20 +75,20 @@ html, body {
   display: flex;
   flex: 1;
   overflow: hidden;
-  padding: 8px;
-  gap: 8px;
+  padding: 8px 6px;
+  gap: 4px;
 }
 
 /* --- LEFT SIDEBAR --- */
 .left-sidebar {
-  width: 38px;
+  width: 36px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  gap: 3px;
 }
 
-.icon-small { color: #a0aab2; font-size: 16px; margin: 4px 0; }
+.icon-small { color: #8899a6; font-size: 14px; margin: 3px 0; }
 
 .left-history-list {
   display: flex;
@@ -98,26 +102,27 @@ html, body {
 
 .left-box {
   width: 100%;
-  height: 24px;
+  height: 22px;
   border-radius: 3px;
   display: flex;
   justify-content: center;
   align-items: center;
   font-weight: 900;
-  font-size: 13px;
+  font-size: 12px;
   color: white;
 }
-.left-box.red { background: #c0392b; border: 1px solid #e74c3c; }
-.left-box.black { background: #1a1a1a; border: 1px solid #444; }
-.left-box.orange { background: #d35400; border: 1px solid #e67e22; }
-.left-box.blue { background: #2980b9; border: 1px solid #3498db; }
+.left-box.red { background: #c0392b; }
+.left-box.black { background: #1a1a1a; border: 1px solid #333; }
+.left-box.orange { background: #d35400; }
+.left-box.blue { background: #2980b9; }
 
 .bottom-nav-icons {
   display: flex;
-  gap: 12px;
+  gap: 10px;
   margin-top: auto;
   color: #fff;
   font-size: 20px;
+  padding-bottom: 5px;
 }
 
 /* --- CENTER AREA --- */
@@ -126,16 +131,15 @@ html, body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  position: relative;
 }
 
 /* --- WHEEL --- */
 .wheel-section {
   position: relative;
-  width: 180px;
-  height: 180px;
-  margin-bottom: 15px;
-  flex-shrink: 0; /* যাতে হুইল চেপে না যায় */
+  width: 150px; /* ছোট করা হয়েছে */
+  height: 150px;
+  margin-bottom: 10px;
+  flex-shrink: 0;
 }
 
 .wheel-pointer {
@@ -143,9 +147,9 @@ html, body {
   top: -10px;
   left: 50%;
   transform: translateX(-50%);
-  border-left: 10px solid transparent;
-  border-right: 10px solid transparent;
-  border-top: 16px solid #f1c40f;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-top: 14px solid #f1c40f;
   z-index: 10;
 }
 
@@ -153,9 +157,9 @@ html, body {
   width: 100%;
   height: 100%;
   border-radius: 50%;
-  background: #1a3d2e;
-  padding: 5px;
-  box-shadow: 0 8px 15px rgba(0,0,0,0.6);
+  background: #1e4233;
+  padding: 4px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.8);
 }
 
 .wheel-rotator {
@@ -176,7 +180,7 @@ html, body {
   transform: translate(-50%, -50%);
   width: 65%;
   height: 65%;
-  background: #12291f;
+  background: #102018;
   border-radius: 50%;
   border: 3px solid #f1c40f;
   display: flex;
@@ -187,7 +191,7 @@ html, body {
 .wheel-center-gold {
   width: 85%;
   height: 85%;
-  background: linear-gradient(135deg, #f1c40f, #c49a0a);
+  background: radial-gradient(circle, #f1c40f, #c49a0a);
   border-radius: 50%;
   display: flex;
   justify-content: center;
@@ -195,68 +199,65 @@ html, body {
   animation: counter-spin 15s linear infinite;
   color: #000;
   font-weight: 900;
-  font-size: 13px;
+  font-size: 11px;
 }
 @keyframes counter-spin { 100% { transform: rotate(-360deg); } }
 
 
-/* --- TABLE CONTAINER --- */
+/* --- TABLE --- */
 .table-container {
   width: 100%;
-  max-width: 340px;
-  background: #1b3e44;
+  max-width: 280px; /* টেবিলের প্রস্থ ছোট করে ঠিক করা হয়েছে */
+  background: #1d404d;
   padding: 3px;
-  border-radius: 6px;
-  border: 1px solid #2f5f68;
+  border-radius: 4px;
+  border: 1px solid #2b5a6b;
 }
 
 /* 
-  এখানেই মূল ম্যাজিক! 
-  Grid টেম্পলেট ফিক্স করে দেওয়া হয়েছে যাতে কোনোভাবেই ভাঙতে না পারে।
-  6 Columns, 13 Rows (1 for 0, 12 for numbers)
+  Grid Layout: 6 columns, 13 rows.
+  Row height is fixed to 18px to make it compact.
 */
 .roulette-table-grid {
   display: grid;
-  grid-template-columns: 22px 22px 1fr 1fr 1fr 30px; 
-  grid-template-rows: repeat(13, 22px); /* প্রতিটি ঘরের হাইট ফিক্স ২২ পিক্সেল */
+  grid-template-columns: 20px 20px repeat(3, 1fr) 26px; 
+  grid-template-rows: 22px repeat(12, 18px); /* ফিক্সড হাইট */
   gap: 1.5px;
 }
 
-/* সেল ডিজাইন */
 .cell {
   display: flex;
   justify-content: center;
   align-items: center;
   color: #fff;
   font-weight: 700;
-  font-size: 12px;
-  background: #234d55;
-  border: 1px solid #30646e;
+  font-size: 11px; /* ফন্ট সাইজ ছোট */
+  background: #22525f;
+  border: 1px solid #347184;
   cursor: pointer;
   position: relative;
   border-radius: 2px;
 }
+.cell:active { background: #183b44; }
 
-.cell:active { background: #183940; }
-
-/* লম্বা টেক্সট (1-18, Even ইত্যাদি) */
+/* ভার্টিকাল টেক্সট (1-18, Even) */
 .vert-text {
   writing-mode: vertical-rl;
   text-orientation: mixed;
   transform: rotate(180deg);
-  font-size: 10px;
+  font-size: 9px;
 }
 
-/* কালার সেট */
-.zero-cell { background: #27ae60; border-color: #2ecc71; font-size: 14px; }
-.cell.red { background: #c0392b; border-color: #e74c3c; font-size: 14px; }
-.cell.black { background: #111; border-color: #333; font-size: 14px; }
+/* কালারস */
+.zero-cell { background: #1e9b4b; border-color: #27ae60; font-size: 13px; border-radius: 4px 4px 0 0; }
+.cell.red { background: #b33128; border-color: #d9534f; font-size: 12px; }
+.cell.black { background: #111; border-color: #333; font-size: 12px; }
 
-.diamond { width: 10px; height: 10px; transform: rotate(45deg); display: inline-block; }
+.diamond { width: 8px; height: 8px; transform: rotate(45deg); display: inline-block; }
 .red-d { background: #e84141; }
 .black-d { background: #000; border: 1px solid #555; }
 
-/* চিপ প্লেসমেন্ট */
+/* চিপ */
 .chip {
   position: absolute;
   top: 50%;
@@ -264,8 +265,8 @@ html, body {
   transform: translate(-50%, -50%);
   background: radial-gradient(circle, #f1c40f, #b8860b);
   color: #000;
-  width: 16px;
-  height: 16px;
+  width: 14px;
+  height: 14px;
   border-radius: 50%;
   display: flex;
   justify-content: center;
@@ -279,75 +280,75 @@ html, body {
 
 /* --- RIGHT SIDEBAR --- */
 .right-sidebar {
-  width: 48px;
+  width: 44px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   padding-top: 5px;
 }
 
 .circle-btn {
-  width: 38px;
-  height: 38px;
+  width: 34px;
+  height: 34px;
   border-radius: 50%;
-  background: radial-gradient(circle at 30% 30%, #2c5a3e, #153021);
-  border: 2px solid #4a7c59;
-  color: #a0aab2;
-  font-size: 16px;
+  background: #1e3329;
+  border: 2px solid #3c5c4a;
+  color: #8899a6;
+  font-size: 14px;
   display: flex;
   justify-content: center;
   align-items: center;
   cursor: pointer;
 }
-.circle-btn.text-btn { font-size: 14px; font-weight: 900; color: #d4af37; }
-.circle-btn.large-btn { width: 46px; height: 46px; font-size: 20px; }
+.circle-btn.text-btn { font-size: 12px; font-weight: 900; color: #d4af37; }
+.circle-btn.large-btn { width: 40px; height: 40px; font-size: 18px; }
 
 .chip-container {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
   margin-top: 10px;
 }
 
 .right-chip {
-  width: 34px;
-  height: 34px;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
   display: flex;
   justify-content: center;
   align-items: center;
   font-weight: 900;
-  font-size: 13px;
+  font-size: 11px;
   cursor: pointer;
-  border: 3px dashed #fff;
+  border: 2px dashed #fff;
 }
 .right-chip:nth-child(1) { background: #e74c3c; color: #fff; }
 .right-chip:nth-child(2) { background: #f1c40f; color: #000; }
 .right-chip:nth-child(3) { background: #ecf0f1; color: #000; border-color: #e74c3c; }
 
-.right-chip.active { transform: scale(1.1); box-shadow: 0 0 10px rgba(255,255,255,0.8); }
+.right-chip.active { transform: scale(1.1); box-shadow: 0 0 8px rgba(255,255,255,0.6); }
 
 .bottom-right-icons {
   margin-top: auto;
   margin-bottom: 5px;
   color: #fff;
-  font-size: 22px;
+  font-size: 20px;
 }
 
 /* ================= BOTTOM INFO BAR ================= */
 .bottom-info-bar {
-  height: 35px;
-  background: #050a08;
+  height: 30px;
+  background: #0a0a0a;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0 8px;
-  color: #a0aab2;
+  padding: 0 10px;
+  color: #8899a6;
   font-size: 9px;
 }
 
 .info-center { text-align: center; line-height: 1.1; }
-.info-right { display: flex; gap: 12px; }
+.info-right { display: flex; gap: 10px; }
 .balance-item { display: flex; flex-direction: column; align-items: flex-end; }
-.balance-item .val { color: #fff; font-size: 13px; font-weight: 900; }
+.balance-item .val { color: #fff; font-size: 12px; font-weight: 900; }
