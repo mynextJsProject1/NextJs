@@ -47,6 +47,7 @@ html, body {
   height: fit-content; 
 }
 
+/* ✅ হিস্টরি সেকশন */
 .dice-history-wrapper {
   display: flex;
   justify-content: flex-end;
@@ -65,7 +66,7 @@ html, body {
   overflow-x: auto;
   padding: 2px 0;
   scrollbar-width: none;
-  scroll-behavior: smooth; /* ✅ স্মুথ স্ক্রলিং এর জন্য */
+  scroll-behavior: smooth; 
 }
 
 .dice-history-container::-webkit-scrollbar {
@@ -97,10 +98,10 @@ html, body {
   to { transform: translateX(0); opacity: 1; }
 }
 
-/* ✅ দূরত্ব ১৩% বাড়িয়ে ৫২ পিক্সেল করা হয়েছে */
+/* ✅ স্লাইডার সেকশন (এখানে গ্যাপ ৮৫ পিক্সেল করা হয়েছে) */
 .dice-slider-section {
   margin-bottom: 10px; 
-  margin-top: 52px; 
+  margin-top: 85px; /* ✅ ৫২ থেকে বাড়িয়ে ৮৫ পিক্সেল করা হলো যাতে পর্যাপ্ত দূরত্ব থাকে */
   position: relative;
   z-index: 2;
 }
@@ -127,6 +128,7 @@ html, body {
   transition: background 0.1s;
 }
 
+/* ✅ রেজাল্ট বক্স */
 .dice-floating-result {
   position: absolute;
   top: -35px; 
