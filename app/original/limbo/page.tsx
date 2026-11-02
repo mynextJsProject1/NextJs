@@ -31,12 +31,12 @@ export default function LimboGamePage() {
   const historyContainerRef = useRef<HTMLDivElement>(null);
   const graphContainerRef = useRef<HTMLDivElement>(null);
 
-  // ট্যাব স্টেট
-  const [activeTab, setActiveTab] = useState<"manual" | "auto" | "advanced">("manual");
+  // ট্যাব স্টেট (Advanced বাদ দেওয়া হয়েছে)
+  const [activeTab, setActiveTab] = useState<"manual" | "auto">("manual");
 
   // Auto Mode State
   const [autoBetCount, setAutoBetCount] = useState("0");
-  const [isAdvanced, setIsAdvanced] = useState(false);
+  const [isAdvanced, setIsAdvanced] = useState(false); // অটো সেটিংসের ভেতরে এখনো থাকবে
   const [onWinMode, setOnWinMode] = useState<"reset" | "increase">("reset");
   const [onWinValue, setOnWinValue] = useState("0");
   const [onLossMode, setOnLossMode] = useState<"reset" | "increase">("reset");
@@ -53,6 +53,9 @@ export default function LimboGamePage() {
   const [isGraphOpen, setIsGraphOpen] = useState(false);
   const [isFairnessOpen, setIsFairnessOpen] = useState(false);
   const [isBetHistoryOpen, setIsBetHistoryOpen] = useState(false); 
+
+  // Fairness Sub-Views
+  const [fairnessView, setFairnessView] = useState<"main" | "change_seed" | "verify_seed">("main");
 
   // Settings
   const [instantBet, setInstantBet] = useState(false);
@@ -231,7 +234,7 @@ export default function LimboGamePage() {
   const wins = history.filter(h => h.isWin).length;
   const losses = history.filter(h => !h.isWin).length;
 
-  // ✅ আপডেট করা গ্রাফ জেনারেশন লজিক
+  // ✅ গ্রাফ জেনারেশন লজিক
   const generateGraph = () => {
     if (history.length === 0) {
       return (
@@ -256,7 +259,7 @@ export default function LimboGamePage() {
     const maxAbs = Math.max(...points.map(Math.abs), 1); 
     const width = Math.max(280, points.length * 10); 
     const height = 140; 
-    const centerY = height / 2; // মাঝখানে দাগ
+    const centerY = height / 2;
     const padding = 15;
     
     const stepX = (width - 2 * padding) / Math.max(points.length - 1, 1);
@@ -305,6 +308,8 @@ export default function LimboGamePage() {
       </svg>
     );
   };
+
+  const latestResult = history.length > 0 ? history[history.length - 1] : null;
 
   return (
     <div className="stake-app">
@@ -476,16 +481,16 @@ export default function LimboGamePage() {
               </div>
             )}
 
+            {/* ✅ Advanced বাটন বাদ দেওয়া হয়েছে */}
             <div className="limbo-bottom-tabs">
               <button className={activeTab === "manual" ? "active" : ""} onClick={() => setActiveTab("manual")} disabled={isAutoBetting}>Manual</button>
               <button className={activeTab === "auto" ? "active" : ""} onClick={() => setActiveTab("auto")} disabled={isAutoBetting}>Auto</button>
-              <button className={activeTab === "advanced" ? "active" : ""} onClick={() => setActiveTab("advanced")} disabled={isAutoBetting}>Advanced</button>
             </div>
 
             <GameBottomBar 
               onSettingsClick={() => setIsSettingsOpen(true)}
               onStatsClick={() => setIsGraphOpen(true)}
-              onFairnessClick={() => setIsFairnessOpen(true)}
+              onFairnessClick={() => { setIsFairnessOpen(true); setFairnessView("main"); }}
             />
 
           </div>
@@ -575,10 +580,9 @@ export default function LimboGamePage() {
         </div>
       )}
 
-      {/* ================= ✅ Graph/Stats Modal (Updated) ================= */}
+      {/* ================= ✅ Graph/Stats Modal ================= */}
       {isGraphOpen && (
         <div className="limbo-modal-overlay no-blur" onClick={() => setIsGraphOpen(false)}>
-          {/* ✅ maxWidth 240px করে ৪০% চিকন করা হয়েছে */}
           <div className="limbo-modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '240px' }}>
             
             <div className="limbo-live-stats-header" style={{ padding: '16px 12px 0 12px' }}>
@@ -590,7 +594,6 @@ export default function LimboGamePage() {
                 <i className="fa-solid fa-thumbtack" style={{ transform: 'rotate(45deg)', fontSize: '12px', cursor: 'pointer' }}></i>
                 <i className="fa-solid fa-rotate-right" style={{ fontSize: '12px', cursor: 'pointer' }}></i>
                 
-                {/* ✅ সরাসরি সাদা SVG আইকন ব্যবহার করা হয়েছে */}
                 <button 
                   onClick={() => setIsGraphOpen(false)} 
                   style={{ background: 'transparent', border: 'none', color: '#ffffff', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center' }}
@@ -635,9 +638,13 @@ export default function LimboGamePage() {
                 </div>
               </div>
 
-              <div className="limbo-graph-area-new" ref={graphContainerRef}>
-                {generateGraph()}
+              {/* ✅ গ্রাফ কার্ডে রাখা হয়েছে */}
+              <div className="limbo-graph-card-wrapper">
+                <div className="limbo-graph-area-new" ref={graphContainerRef}>
+                  {generateGraph()}
+                </div>
               </div>
+
             </div>
           </div>
         </div>
@@ -651,40 +658,122 @@ export default function LimboGamePage() {
               <h3>Provably Fair</h3>
               <button onClick={() => setIsFairnessOpen(false)}>✕</button>
             </div>
+            
             <div className="limbo-modal-body">
-              <p style={{ color: '#aaa', fontSize: '13px', marginBottom: '15px' }}>
-                Limbo uses a provably fair system to ensure every roll is completely random.
-              </p>
               
-              <div className="limbo-fairness-group">
-                <label>Server Seed (Hashed)</label>
-                <div className="limbo-fairness-input">
-                  <code>{serverSeedHash}</code>
-                </div>
-              </div>
+              {/* Main View */}
+              {fairnessView === "main" && (
+                <>
+                  <p style={{ color: '#aaa', fontSize: '13px', marginBottom: '15px' }}>
+                    Limbo uses a provably fair system to ensure every roll is completely random.
+                  </p>
+                  
+                  <div className="limbo-fairness-group">
+                    <label>Server Seed (Hashed)</label>
+                    <div className="limbo-fairness-input">
+                      <code>{serverSeedHash}</code>
+                    </div>
+                  </div>
 
-              <div className="limbo-fairness-group">
-                <label>Client Seed (Editable)</label>
-                <div className="limbo-fairness-input">
-                  <input type="text" value={clientSeed} onChange={(e) => { setClientSeed(e.target.value); setIsSeedVerified(false); }} />
-                </div>
-              </div>
+                  <div className="limbo-fairness-group">
+                    <label>Client Seed (Editable)</label>
+                    <div className="limbo-fairness-input">
+                      <input type="text" value={clientSeed} readOnly />
+                    </div>
+                  </div>
 
-              <div className="limbo-fairness-group">
-                <button className="limbo-btn-secondary" style={{ width: '100%', marginBottom: '10px' }} onClick={() => { const newSeed = Math.random().toString(36).substring(2, 15); setClientSeed(newSeed); setIsSeedVerified(false); }}>
-                  Change Seed
-                </button>
-                <button className={`limbo-btn-secondary ${isSeedVerified ? 'verified' : ''}`} style={{ width: '100%', background: isSeedVerified ? '#00e701' : '', color: isSeedVerified ? '#000' : '' }} onClick={() => setIsSeedVerified(true)}>
-                  {isSeedVerified ? "Seed Verified ✓" : "Verify Seed"}
-                </button>
-              </div>
+                  <div className="limbo-fairness-group">
+                    <label>Seed Verify Number</label>
+                    <div className="limbo-fairness-input">
+                      <code>{nonce}</code>
+                    </div>
+                  </div>
 
-              <div className="limbo-fairness-group">
-                <label>Nonce</label>
-                <div className="limbo-fairness-input">
-                  <code>{nonce}</code>
-                </div>
-              </div>
+                  <div className="limbo-fairness-btn-group">
+                    <button className="limbo-btn-secondary" onClick={() => setFairnessView("change_seed")}>
+                      Change Seed
+                    </button>
+                    <button className="limbo-btn-secondary" onClick={() => setFairnessView("verify_seed")}>
+                      Verify Seed
+                    </button>
+                  </div>
+                </>
+              )}
+
+              {/* Change Seed View */}
+              {fairnessView === "change_seed" && (
+                <>
+                  <button className="limbo-back-btn" onClick={() => setFairnessView("main")}>
+                    <i className="fa-solid fa-arrow-left"></i> Back
+                  </button>
+                  <h4 style={{ color: '#fff', marginTop: 0, marginBottom: '15px' }}>Change Client Seed</h4>
+                  
+                  <div className="limbo-fairness-group">
+                    <label>New Client Seed</label>
+                    <div className="limbo-fairness-input">
+                      <input 
+                        type="text" 
+                        value={clientSeed} 
+                        onChange={(e) => setClientSeed(e.target.value)} 
+                        placeholder="Enter new seed"
+                      />
+                    </div>
+                  </div>
+
+                  <button 
+                    className="limbo-btn-secondary" 
+                    style={{ width: '100%', marginTop: '10px' }}
+                    onClick={() => { setFairnessView("main"); setIsSeedVerified(false); }}
+                  >
+                    Save Seed
+                  </button>
+                </>
+              )}
+
+              {/* Verify Seed View */}
+              {fairnessView === "verify_seed" && (
+                <>
+                  <button className="limbo-back-btn" onClick={() => setFairnessView("main")}>
+                    <i className="fa-solid fa-arrow-left"></i> Back
+                  </button>
+                  <h4 style={{ color: '#fff', marginTop: 0, marginBottom: '15px' }}>Verify Latest Result</h4>
+
+                  {latestResult ? (
+                    <div className="limbo-verify-result-box">
+                      <p>Last Multiplier:</p>
+                      <h4 style={{ color: latestResult.isWin ? '#00E701' : '#ff4d4d' }}>
+                        {latestResult.value.toFixed(2)}x ({latestResult.isWin ? 'Win' : 'Loss'})
+                      </h4>
+                      <p style={{ marginTop: '10px' }}>Verify Number: <strong>{latestResult.nonce}</strong></p>
+                    </div>
+                  ) : (
+                    <p style={{ color: '#aaa', fontSize: '13px' }}>No bets placed yet to verify.</p>
+                  )}
+
+                  <div className="limbo-fairness-group">
+                    <label>Server Seed (Hashed)</label>
+                    <div className="limbo-fairness-input">
+                      <code>{serverSeedHash}</code>
+                    </div>
+                  </div>
+                  
+                  <div className="limbo-fairness-group">
+                    <label>Client Seed</label>
+                    <div className="limbo-fairness-input">
+                      <code>{clientSeed}</code>
+                    </div>
+                  </div>
+
+                  <button 
+                    className={`limbo-btn-secondary ${isSeedVerified ? 'verified' : ''}`} 
+                    style={{ width: '100%', marginTop: '10px', background: isSeedVerified ? '#00e701' : '', color: isSeedVerified ? '#000' : '' }} 
+                    onClick={() => setIsSeedVerified(true)}
+                  >
+                    {isSeedVerified ? "Verified ✓" : "Run Verification"}
+                  </button>
+                </>
+              )}
+
             </div>
           </div>
         </div>
