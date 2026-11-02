@@ -1,0 +1,635 @@
+/* app/original/limbo/limbo.css */
+
+html, body {
+  background-color: #18221E !important;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  overflow-x: hidden;
+}
+
+.stake-app, .stake-main {
+  background-color: #18221E !important;
+  width: 100%;
+}
+
+.limbo-game-container {
+  --limbo-bg: #18221E;         
+  --limbo-card: #1c2a24;       
+  --limbo-input-bg: #111815;   
+  --limbo-border: #2b4236;     
+  --limbo-text: #ffffff;       
+  --limbo-muted: #a0aab2;      
+  --limbo-accent: #00E701;     
+  --limbo-danger: #ff4d4d;     
+
+  background-color: var(--limbo-bg);
+  min-height: 100vh;
+  width: 100%;
+  color: var(--limbo-text);
+  font-family: inherit;
+  
+  display: flex;
+  flex-direction: column;
+  align-items: center; 
+  padding-bottom: 10px; 
+}
+
+.limbo-main-area {
+  padding: 8px; 
+  margin: 2px auto; 
+  max-width: 600px; 
+  width: calc(100% - 12px); 
+  border: 1px solid var(--limbo-border); 
+  border-radius: 12px; 
+  background-color: var(--limbo-card); 
+  box-sizing: border-box;
+  height: fit-content; 
+}
+
+/* ✅ হিস্টরি সেকশন */
+.limbo-history-wrapper {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 10px; 
+  margin-top: 0; 
+  height: 28px; 
+  overflow: hidden;
+  position: relative;
+  z-index: 1;
+}
+
+.limbo-history-container {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding: 2px 0;
+  scrollbar-width: none;
+  scroll-behavior: smooth; 
+}
+
+.limbo-history-container::-webkit-scrollbar {
+  display: none;
+}
+
+.limbo-history-item {
+  flex-shrink: 0;
+  padding: 5px 12px;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 0.75rem;
+  animation: slideInFromRight 0.3s ease-out;
+}
+
+.limbo-history-item.win {
+  background: var(--limbo-accent);
+  color: #000;
+}
+
+.limbo-history-item.lose {
+  background: var(--limbo-input-bg);
+  color: var(--limbo-text);
+  border: 1px solid var(--limbo-border);
+}
+
+@keyframes slideInFromRight {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+/* ✅ মাল্টিপ্লায়ার ডিসপ্লে (মাঝখানে বড় করে) */
+.limbo-display-area {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 160px; /* অ্যানিমেশনের জন্য জায়গা */
+  margin-bottom: 20px;
+}
+
+.limbo-multiplier-text {
+  font-size: 4rem;
+  font-weight: 900;
+  color: #ffffff;
+  transition: color 0.2s;
+  text-shadow: 0 4px 10px rgba(0,0,0,0.5);
+}
+
+.limbo-multiplier-text.rolling {
+  color: var(--limbo-muted);
+}
+
+.limbo-multiplier-text.win {
+  color: var(--limbo-accent);
+  animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.limbo-multiplier-text.lose {
+  color: var(--limbo-danger);
+  animation: shake 0.4s ease-in-out;
+}
+
+@keyframes popIn {
+  0% { transform: scale(0.8); }
+  100% { transform: scale(1); }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-10px); }
+  75% { transform: translateX(10px); }
+}
+
+/* ✅ ইনপুট গ্রিড */
+.limbo-inputs-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.limbo-input-group label {
+  display: block;
+  color: var(--limbo-muted);
+  font-size: 0.8rem;
+  margin-bottom: 6px;
+  white-space: nowrap;
+}
+
+.limbo-input-wrapper {
+  background: var(--limbo-input-bg);
+  border: 1px solid var(--limbo-border);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  padding: 0 10px;
+  height: 44px;
+}
+
+.limbo-input-wrapper input {
+  width: 100%;
+  background: transparent;
+  border: none;
+  color: var(--limbo-text);
+  font-size: 1rem;
+  outline: none;
+  font-weight: 700;
+}
+
+.limbo-input-wrapper i, 
+.limbo-input-wrapper span {
+  color: var(--limbo-muted);
+  font-size: 0.9rem;
+}
+
+/* ✅ বেট বাটন */
+.limbo-bet-btn {
+  width: 100%;
+  padding: 14px;
+  background: var(--limbo-accent); 
+  color: #000; 
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: background 0.2s;
+  margin-bottom: 15px; 
+  min-height: 50px;
+}
+
+.limbo-bet-btn:hover { background: #00c701; } 
+.limbo-bet-btn.rolling { opacity: 0.7; cursor: not-allowed; }
+
+/* ✅ অ্যামাউন্ট সেকশন */
+.limbo-amount-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px; 
+  margin-bottom: 15px;
+}
+
+.limbo-label-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.limbo-label-row label {
+  color: var(--limbo-muted);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.limbo-currency {
+  color: var(--limbo-muted);
+  font-size: 0.75rem;
+}
+
+.limbo-amount-input-wrap {
+  background: var(--limbo-input-bg);
+  border: 1px solid var(--limbo-border);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  padding: 0 10px;
+  height: 44px;
+  width: 100%; 
+  box-sizing: border-box; 
+}
+
+.limbo-currency-icon {
+  background: var(--limbo-accent);
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #000;
+  font-size: 10px;
+  margin-right: 10px;
+  font-weight: bold;
+  flex-shrink: 0;
+}
+
+.limbo-amount-input-wrap input {
+  flex: 1;
+  min-width: 0; 
+  background: transparent;
+  border: none;
+  color: var(--limbo-text);
+  font-size: 1rem;
+  outline: none;
+  font-weight: 700;
+}
+
+.limbo-quick-btns {
+  display: flex;
+  gap: 5px;
+  flex-shrink: 0;
+}
+
+.limbo-quick-btns button {
+  background: var(--limbo-border);
+  border: none;
+  color: var(--limbo-text);
+  width: 36px;
+  height: 36px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 0.8rem;
+}
+
+.limbo-quick-btns button:hover { background: #365244; }
+
+/* ✅ ট্যাব এবং Auto Mode UI (Dice থেকে হুবহু নেওয়া) */
+.limbo-bottom-tabs {
+  display: flex;
+  background: var(--limbo-input-bg);
+  border: 1px solid var(--limbo-border);
+  border-radius: 8px;
+  padding: 3px;
+  margin: 0;
+}
+
+.limbo-bottom-tabs button {
+  flex: 1;
+  padding: 10px 12px;
+  background: transparent;
+  border: none;
+  color: var(--limbo-muted);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.limbo-bottom-tabs button.active {
+  background: var(--limbo-border);
+  color: var(--limbo-text);
+}
+
+.limbo-auto-settings {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 15px;
+  background: var(--limbo-card); 
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid var(--limbo-border);
+}
+
+.auto-advanced-toggle {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 5px;
+}
+
+.auto-advanced-toggle label {
+  color: var(--limbo-text);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.toggle-switch {
+  width: 46px;
+  height: 24px;
+  background: var(--limbo-border);
+  border-radius: 12px;
+  position: relative;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.toggle-switch.active {
+  background: var(--limbo-accent);
+}
+
+.toggle-knob {
+  width: 18px;
+  height: 18px;
+  background: #fff;
+  border-radius: 50%;
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  transition: transform 0.3s;
+}
+
+.toggle-switch.active .toggle-knob {
+  transform: translateX(22px);
+}
+
+.advanced-options {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--limbo-border);
+}
+
+.adv-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.adv-row label {
+  color: var(--limbo-muted);
+  font-size: 0.8rem;
+}
+
+.adv-inputs {
+  display: flex;
+  gap: 10px;
+}
+
+.adv-inputs select {
+  flex: 1;
+  background: var(--limbo-input-bg); 
+  border: 1px solid var(--limbo-border);
+  color: var(--limbo-text);
+  padding: 0 10px;
+  border-radius: 8px;
+  outline: none;
+  font-size: 0.85rem;
+}
+
+.limbo-bet-btn.stop-btn {
+  background: var(--limbo-danger); 
+  color: #fff;
+}
+
+.limbo-input-wrapper.disabled,
+.limbo-amount-input-wrap.disabled {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+/* ✅ মডাল স্টাইল (Graph, Settings, Fairness) */
+.limbo-modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(24, 34, 30, 0.85); 
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 16px;
+  animation: modalFadeIn 0.2s ease-out;
+}
+
+.limbo-modal-overlay.no-blur {
+  backdrop-filter: none;
+  background: rgba(0, 0, 0, 0.85);
+}
+
+.limbo-modal-content {
+  background: var(--limbo-card); 
+  border: 1px solid var(--limbo-border); 
+  border-radius: 12px;
+  width: 100%;
+  max-width: 400px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  animation: modalSlideUp 0.25s ease-out;
+}
+
+.limbo-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--limbo-border);
+}
+
+.limbo-modal-header h3 {
+  margin: 0;
+  color: #ffffff;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.limbo-modal-header button {
+  background: transparent;
+  border: none;
+  color: #a0aab2;
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 4px;
+  transition: color 0.2s;
+}
+
+.limbo-modal-header button:hover {
+  color: #ffffff;
+}
+
+.limbo-modal-body {
+  padding: 16px;
+  overflow-y: auto;
+}
+
+.limbo-setting-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px dashed var(--limbo-border);
+}
+
+.limbo-setting-row:last-child {
+  border-bottom: none;
+}
+
+.limbo-setting-row span {
+  color: #ffffff;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.limbo-stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  background: var(--limbo-input-bg);
+  padding: 6px;
+  border-radius: 4px;
+  border: 1px solid var(--limbo-border);
+  margin-bottom: 6px;
+}
+
+.limbo-stat-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.limbo-stat-label {
+  color: var(--limbo-muted);
+  font-size: 0.6rem;
+  font-weight: 600;
+}
+
+.limbo-stat-value {
+  color: var(--limbo-text);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.limbo-stat-value.text-green { color: var(--limbo-accent); }
+.limbo-stat-value.text-red { color: var(--limbo-danger); }
+
+.limbo-graph-area {
+  background: var(--limbo-card);
+  border: 1px solid var(--limbo-border);
+  border-radius: 4px;
+  height: 120px; 
+  position: relative;
+  display: block;
+  overflow-x: auto; 
+  overflow-y: hidden;
+  padding: 0;
+}
+
+.limbo-graph-area::-webkit-scrollbar {
+  height: 4px;
+}
+.limbo-graph-area::-webkit-scrollbar-track {
+  background: transparent;
+}
+.limbo-graph-area::-webkit-scrollbar-thumb {
+  background: var(--limbo-border);
+  border-radius: 4px;
+}
+
+.limbo-fairness-group {
+  margin-bottom: 16px;
+}
+
+.limbo-fairness-group label {
+  display: block;
+  color: var(--limbo-muted);
+  font-size: 0.8rem;
+  margin-bottom: 6px;
+  font-weight: 600;
+}
+
+.limbo-fairness-input {
+  background: var(--limbo-input-bg);
+  border: 1px solid var(--limbo-border);
+  border-radius: 8px;
+  padding: 10px;
+}
+
+.limbo-fairness-input code {
+  color: var(--limbo-accent); 
+  font-size: 0.8rem;
+  word-break: break-all;
+  font-family: monospace;
+}
+
+.limbo-fairness-input input {
+  width: 100%;
+  background: transparent;
+  border: none;
+  color: #ffffff;
+  font-size: 0.85rem;
+  outline: none;
+}
+
+@keyframes modalFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes modalSlideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.limbo-btn-secondary {
+  background: var(--limbo-border);
+  color: #ffffff;
+  border: none;
+  padding: 10px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.limbo-btn-secondary:hover {
+  background: #365244;
+}
+
+.limbo-btn-secondary.verified {
+  background: var(--limbo-accent) !important;
+  color: #000 !important;
+  font-weight: bold;
+}
+
+/* মোবাইলের জন্য রেসপন্সিভ */
+@media (max-width: 500px) {
+  .limbo-main-area {
+    margin: 2px auto; 
+    padding: 8px;
+    width: calc(100% - 10px);
+  }
+  .limbo-input-group label { font-size: 0.75rem; }
+  .limbo-input-wrapper input { font-size: 0.9rem; }
+  .limbo-input-wrapper { padding: 0 8px; height: 40px; }
+  .limbo-input-wrapper i, .limbo-input-wrapper span { font-size: 0.8rem; }
+  .limbo-inputs-grid { gap: 8px; }
+  .limbo-multiplier-text { font-size: 3.5rem; }
+}
