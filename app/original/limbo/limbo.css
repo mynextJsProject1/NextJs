@@ -697,8 +697,16 @@ html, body {
   gap: 4px;
 }
 
+/* ✅ গ্রাফ কার্ড স্টাইল */
+.limbo-graph-card-wrapper {
+  background: #1a2c38;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #2b4236;
+}
+
 .limbo-graph-area-new {
-  height: 140px; /* উচ্চতা সামান্য কমানো হয়েছে */
+  height: 140px; 
   background: #0f212e;
   border-radius: 8px;
   overflow-x: auto;
@@ -707,7 +715,6 @@ html, body {
   position: relative;
 }
 
-/* Custom Scrollbar for graph */
 .limbo-graph-area-new::-webkit-scrollbar {
   height: 4px;
 }
@@ -717,4 +724,53 @@ html, body {
 .limbo-graph-area-new::-webkit-scrollbar-thumb {
   background: #2b4236;
   border-radius: 4px;
+}
+
+/* ✅ Fairness Modal নতুন স্টাইল */
+.limbo-fairness-btn-group {
+  display: flex;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.limbo-fairness-btn-group button {
+  flex: 1;
+}
+
+.limbo-back-btn {
+  background: transparent;
+  border: none;
+  color: #a0aab2;
+  font-size: 0.9rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0;
+  margin-bottom: 15px;
+  font-weight: 600;
+}
+
+.limbo-back-btn:hover {
+  color: #fff;
+}
+
+.limbo-verify-result-box {
+  background: #1a2c38;
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 15px;
+  border: 1px solid #2b4236;
+}
+
+.limbo-verify-result-box p {
+  margin: 0 0 5px 0;
+  font-size: 0.8rem;
+  color: #a0aab2;
+}
+
+.limbo-verify-result-box h4 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: bold;
 }
