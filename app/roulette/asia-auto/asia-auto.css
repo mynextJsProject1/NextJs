@@ -1,0 +1,292 @@
+/* app/roulette/asia-auto/asia-auto.css */
+
+html, body {
+  background-color: #18221E !important;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  overflow-x: hidden;
+}
+
+.stake-app, .stake-main {
+  background-color: #18221E !important;
+  width: 100%;
+}
+
+.roulette-container {
+  --rou-bg: #18221E;
+  --rou-card: #1c2a24;
+  --rou-border: #2b4236;
+  --rou-text: #ffffff;
+  --rou-muted: #a0aab2;
+  --rou-accent: #00E701;
+  --rou-danger: #ff4d4d;
+  --rou-red: #ff4d4d;
+  --rou-black: #2f4553;
+
+  background-color: var(--rou-bg);
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  padding: 10px;
+}
+
+.roulette-main-area {
+  width: 100%;
+  max-width: 800px; /* রুলেট টেবিলের জন্য একটু চওড়া */
+  background-color: var(--rou-card);
+  border: 1px solid var(--rou-border);
+  border-radius: 12px;
+  padding: 15px;
+  box-sizing: border-box;
+}
+
+/* ✅ টপ হিস্টরি */
+.roulette-history {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 10px;
+  scrollbar-width: none;
+  justify-content: flex-end;
+}
+
+.roulette-history::-webkit-scrollbar {
+  display: none;
+}
+
+.history-ball {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  font-weight: bold;
+  color: #fff;
+  flex-shrink: 0;
+}
+.history-ball.green { background-color: var(--rou-accent); color: #000; }
+.history-ball.red { background-color: var(--rou-red); }
+.history-ball.black { background-color: var(--rou-black); }
+
+/* ✅ রুলেট হুইল */
+.roulette-wheel-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 20px 0;
+}
+
+.roulette-wheel {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  background: conic-gradient(
+    #ff4d4d 0deg 10deg, #2f4553 10deg 20deg, #ff4d4d 20deg 30deg, #2f4553 30deg 40deg,
+    #00E701 40deg 50deg, #2f4553 50deg 60deg, #ff4d4d 60deg 70deg, #2f4553 70deg 80deg,
+    #ff4d4d 80deg 90deg, #2f4553 90deg 100deg, #ff4d4d 100deg 110deg, #2f4553 110deg 120deg,
+    #ff4d4d 120deg 130deg, #2f4553 130deg 140deg, #ff4d4d 140deg 150deg, #2f4553 150deg 160deg,
+    #ff4d4d 160deg 170deg, #2f4553 170deg 180deg, #ff4d4d 180deg 190deg, #2f4553 190deg 200deg,
+    #ff4d4d 200deg 210deg, #2f4553 210deg 220deg, #ff4d4d 220deg 230deg, #2f4553 230deg 240deg,
+    #ff4d4d 240deg 250deg, #2f4553 250deg 260deg, #ff4d4d 260deg 270deg, #2f4553 270deg 280deg,
+    #ff4d4d 280deg 290deg, #2f4553 290deg 300deg, #ff4d4d 300deg 310deg, #2f4553 310deg 320deg,
+    #ff4d4d 320deg 330deg, #2f4553 330deg 340deg, #ff4d4d 340deg 350deg, #2f4553 350deg 360deg
+  );
+  border: 4px solid #111815;
+  box-shadow: 0 0 20px rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 3s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.roulette-wheel.spinning {
+  animation: spinWheel 3s linear infinite;
+}
+
+@keyframes spinWheel {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(1440deg); } /* ৪ বার ঘুরবে */
+}
+
+.wheel-center {
+  width: 100px;
+  height: 100px;
+  background-color: #1c2a24;
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: bold;
+  border: 2px solid #2b4236;
+}
+
+.roulette-timer {
+  margin-top: 15px;
+  background-color: var(--rou-border);
+  color: #fff;
+  padding: 6px 20px;
+  border-radius: 20px;
+  font-weight: bold;
+  font-size: 1rem;
+  letter-spacing: 1px;
+}
+
+/* ✅ বেটিং টেবিল */
+.roulette-betting-area {
+  margin-bottom: 20px;
+}
+
+.betting-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.bet-cell {
+  background-color: #111815;
+  border: 1px solid var(--rou-border);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s;
+  border-radius: 4px;
+}
+
+.bet-cell:hover {
+  background-color: #2b4236;
+  border-color: #00E701;
+}
+
+/* নাম্বার গ্রিড */
+.numbers-grid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 2px;
+}
+
+.zero-cell {
+  width: 100%;
+  height: 40px;
+  margin-bottom: 2px;
+  background-color: var(--rou-accent) !important;
+  color: #000 !important;
+}
+
+.numbers-grid .bet-cell {
+  height: 40px;
+}
+
+.red-num { background-color: var(--rou-red) !important; }
+.black-num { background-color: var(--rou-black) !important; }
+.green-num { background-color: var(--rou-accent) !important; color: #000 !important; }
+
+/* আউটসাইড বেটস */
+.outside-bets {
+  display: grid;
+  grid-template-columns: repeat(9, 1fr);
+  gap: 2px;
+  margin-top: 2px;
+}
+
+.outside-cell {
+  height: 40px;
+  font-size: 0.75rem;
+}
+
+/* ✅ কন্ট্রোল প্যানেল (চিপস) */
+.roulette-control-panel {
+  background-color: #111815;
+  border: 1px solid var(--rou-border);
+  border-radius: 8px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.chips-container {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+.chip {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 2px dashed #a0aab2;
+  background-color: var(--rou-card);
+  color: #fff;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.chip.active {
+  border: 2px solid var(--rou-accent);
+  background-color: rgba(0, 231, 1, 0.1);
+  color: var(--rou-accent);
+  transform: scale(1.1);
+}
+
+.action-buttons {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+
+.btn-secondary {
+  background-color: var(--rou-border);
+  color: #fff;
+  border: none;
+  padding: 12px;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-secondary:hover { background-color: #365244; }
+
+.btn-primary {
+  background-color: var(--rou-accent);
+  color: #000;
+  border: none;
+  padding: 12px;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-primary:hover { background-color: #00c701; }
+
+/* মোবাইলের জন্য রেসপন্সিভ */
+@media (max-width: 600px) {
+  .numbers-grid {
+    grid-template-columns: repeat(6, 1fr); /* মোবাইলে ৬টি কলাম হবে */
+  }
+  .outside-bets {
+    grid-template-columns: repeat(3, 1fr); /* মোবাইলে ৩টি কলাম হবে */
+  }
+  .action-buttons {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .chip {
+    width: 36px;
+    height: 36px;
+    font-size: 0.8rem;
+  }
+}
