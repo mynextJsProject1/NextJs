@@ -138,14 +138,18 @@ export default function LimboGamePage() {
             setIsWin(data.is_win);
             setBalance(data.new_balance); 
             
-            setHistory(prev => [...prev, { 
-              id: Date.now().toString(), 
-              value: crashPoint, 
-              isWin: data.is_win, 
-              profit: data.profit,
-              nonce: nonce,
-              betAmount: amountToBet
-            }]);
+            // ✅ History-তে সর্বোচ্চ ১০,০০০ বেট পয়েন্ট জমা থাকবে
+            setHistory(prev => {
+              const newHistory = [...prev, { 
+                id: Date.now().toString(), 
+                value: crashPoint, 
+                isWin: data.is_win, 
+                profit: data.profit,
+                nonce: nonce,
+                betAmount: amountToBet
+              }];
+              return newHistory.slice(-10000); 
+            });
             
             setNonce(prev => prev + 1);
             setIsRolling(false);
@@ -227,7 +231,7 @@ export default function LimboGamePage() {
   const wins = history.filter(h => h.isWin).length;
   const losses = history.filter(h => !h.isWin).length;
 
-  // ✅ নতুন আপডেট করা গ্রাফ জেনারেশন লজিক
+  // ✅ নতুন আপডেট করা গ্রাফ জেনারেশন লজিক (১০,০০০ পয়েন্ট সাপোর্ট করে)
   const generateGraph = () => {
     if (history.length === 0) return <div style={{textAlign: 'center', color: '#a0aab2', padding: '40px 0', fontSize: '12px'}}>No bets placed yet</div>;
     
@@ -240,7 +244,8 @@ export default function LimboGamePage() {
 
     const maxAbs = Math.max(...points.map(Math.abs), 1); 
     
-    const width = Math.max(400, points.length * 40); 
+    // ১০,০০০ পয়েন্টের জন্য width স্কেলিং করা হয়েছে যাতে ব্রাউজার ক্র্যাশ না করে
+    const width = Math.max(400, points.length * 10); 
     const height = 150; 
     const centerY = height / 2; // মাঝখানে দাগ
     const padding = 20;
@@ -263,12 +268,11 @@ export default function LimboGamePage() {
       const x2 = getX(i + 1);
       const y2 = getY(points[i + 1]);
       
-      // বেসলাইনের উপরে গেলে সবুজ, নিচে গেলে লাল
       const isGreen = points[i + 1] >= 0;
       const color = isGreen ? "#00E701" : "#ff4d4d";
 
       segments.push(
-        <line key={`line-${i}`} x1={x1} y1={y1} x2={x2} y2={y2} stroke={color} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+        <line key={`line-${i}`} x1={x1} y1={y1} x2={x2} y2={y2} stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
       );
     }
 
@@ -569,47 +573,35 @@ export default function LimboGamePage() {
       {isGraphOpen && (
         <div className="limbo-modal-overlay no-blur" onClick={() => setIsGraphOpen(false)}>
           <div className="limbo-modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '340px' }}>
-            <div className="limbo-modal-header" style={{ borderBottom: 'none', paddingBottom: '0' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#a0aab2' }}>
+            
+            <div className="limbo-live-stats-header" style={{ padding: '16px 16px 0 16px' }}>
+              <div className="limbo-live-stats-title">
                 <i className="fa-solid fa-chart-simple" style={{ fontSize: '18px', color: '#a0aab2' }}></i>
                 <h3 style={{ fontSize: '1.1rem', color: '#fff', margin: 0, fontWeight: 'bold' }}>Live Stats</h3>
               </div>
-              <div style={{ display: 'flex', gap: '15px' }}>
-                <button onClick={() => setIsGraphOpen(false)} style={{ fontSize: '1.2rem', color: '#a0aab2', background: 'transparent', border: 'none', cursor: 'pointer' }}><i className="fa-solid fa-xmark"></i></button>
+              <div className="limbo-live-stats-icons">
+                <i className="fa-solid fa-thumbtack" style={{ transform: 'rotate(45deg)', fontSize: '14px', cursor: 'pointer' }}></i>
+                <i className="fa-solid fa-rotate-right" style={{ fontSize: '14px', cursor: 'pointer' }}></i>
+                <button onClick={() => setIsGraphOpen(false)} style={{ fontSize: '0.8rem', color: '#fff', background: 'transparent', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
+                  <i className="fa-solid fa-xmark"></i>
+                </button>
               </div>
             </div>
 
-            <div className="limbo-modal-body" style={{ padding: '10px 16px 16px 16px' }}>
+            <div className="limbo-modal-body" style={{ padding: '15px 16px 16px 16px' }}>
               
-              <div className="limbo-live-stats-header">
-                <div className="limbo-live-stats-filters">
-                  <button className="limbo-filter-btn">
-                    Bets <i className="fa-solid fa-chevron-down" style={{ fontSize: '10px' }}></i>
-                  </button>
-                  <button className="limbo-filter-btn">
-                    All <i className="fa-solid fa-chevron-down" style={{ fontSize: '10px' }}></i>
-                  </button>
-                </div>
-                <div className="limbo-live-stats-icons">
-                  <i className="fa-solid fa-thumbtack" style={{ transform: 'rotate(45deg)', fontSize: '14px' }}></i>
-                  <i className="fa-solid fa-rotate-right" style={{ fontSize: '14px' }}></i>
-                </div>
-              </div>
-
               <div className="limbo-stats-layout">
                 <div className="limbo-stats-column">
                   <div className="limbo-stat-row-new">
                     <span className="limbo-stat-label-new">Profit</span>
                     <span className="limbo-stat-value-new" style={{ color: totalProfit >= 0 ? '#00E701' : '#ff4d4d' }}>
-                      {totalProfit >= 0 ? '' : '-'}ARS {Math.abs(totalProfit).toFixed(2)} 
-                      <span className="limbo-tether-icon">₮</span>
+                      {totalProfit >= 0 ? '' : '-'}৳ {Math.abs(totalProfit).toFixed(2)} 
                     </span>
                   </div>
                   <div className="limbo-stat-row-new">
                     <span className="limbo-stat-label-new">Wagered</span>
                     <span className="limbo-stat-value-new" style={{ color: '#fff' }}>
-                      ARS {totalWagered.toFixed(2)}
-                      <span className="limbo-tether-icon">₮</span>
+                      ৳ {totalWagered.toFixed(2)}
                     </span>
                   </div>
                 </div>
