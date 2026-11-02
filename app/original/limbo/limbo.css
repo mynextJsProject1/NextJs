@@ -638,31 +638,20 @@ html, body {
 .limbo-live-stats-header {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   margin-bottom: 15px;
 }
 
-.limbo-live-stats-filters {
-  display: flex;
-  gap: 8px;
-}
-
-.limbo-filter-btn {
-  padding: 6px 12px;
+.limbo-live-stats-title {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 0.85rem;
-  background: #243542;
-  border-radius: 6px;
-  color: #fff;
-  cursor: pointer;
-  border: none;
-  font-weight: 600;
+  color: #a0aab2;
 }
 
 .limbo-live-stats-icons {
   display: flex;
-  gap: 12px;
+  gap: 15px;
   align-items: center;
   color: #a0aab2;
 }
@@ -706,19 +695,6 @@ html, body {
   display: flex;
   align-items: center;
   gap: 6px;
-}
-
-.limbo-tether-icon {
-  background: #26a17b;
-  color: #fff;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 11px;
-  font-weight: bold;
 }
 
 .limbo-graph-area-new {
