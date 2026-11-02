@@ -1,337 +1,437 @@
 /* app/roulette/asia-auto/asia-auto.css */
 
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@400;700;900&display=swap');
+@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css');
+
 html, body {
-  background-color: #18221E !important;
   margin: 0;
   padding: 0;
-  width: 100%;
-  overflow-x: hidden;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background-color: #0f1c17; /* গাঢ় সবুজ/নীল ব্যাকগ্রাউন্ড */
+  font-family: 'Roboto Condensed', sans-serif;
+  user-select: none;
 }
 
-.stake-app {
-  background-color: #18221E;
-  min-height: 100vh;
+.roulette-fullscreen-app {
   display: flex;
   flex-direction: column;
+  width: 100%;
+  height: 100%;
 }
 
-.roulette-main-container {
+/* ================= TOP HISTORY BAR ================= */
+.top-history-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: #1a2c24;
+  border-bottom: 2px solid #0d1612;
+  margin: 10px 10px 0 10px;
+  border-radius: 12px;
+  border: 1px solid #2b4236;
+}
+
+.history-scroll-area {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.history-scroll-area::-webkit-scrollbar { display: none; }
+
+.top-history-pill {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 13px;
+  font-weight: 900;
+  color: #fff;
+  flex-shrink: 0;
+  box-shadow: inset 0 -2px 5px rgba(0,0,0,0.3);
+}
+.top-history-pill.green { background: #00E701; color: #000; }
+.top-history-pill.red { background: #e84141; }
+.top-history-pill.black { background: #222; border: 1px solid #555; }
+
+.top-timer {
+  background: #0d1612;
+  color: #00E701;
+  font-weight: 900;
+  font-size: 16px;
+  padding: 5px 15px;
+  border-radius: 20px;
+  letter-spacing: 1px;
+}
+
+/* ================= MAIN CONTENT AREA ================= */
+.main-content-area {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+  padding: 10px;
+  gap: 10px;
+}
+
+/* --- LEFT SIDEBAR --- */
+.left-sidebar {
+  width: 45px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.left-icon {
+  color: #a0aab2;
+  font-size: 18px;
+  margin-bottom: 5px;
+}
+
+.left-history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  overflow-y: auto;
+  scrollbar-width: none;
+  width: 100%;
+}
+.left-history-list::-webkit-scrollbar { display: none; }
+
+.left-history-box {
+  width: 100%;
+  height: 28px;
+  border-radius: 4px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-weight: 900;
+  font-size: 14px;
+  color: white;
+  box-shadow: inset 0 0 5px rgba(0,0,0,0.5);
+}
+.left-history-box.red { background: #e84141; border: 1px solid #ff7b6b; }
+.left-history-box.black { background: #1a1a1a; border: 1px solid #444; }
+.left-history-box.orange { background: #e67e22; border: 1px solid #f39c12; }
+.left-history-box.blue { background: #2980b9; border: 1px solid #3498db; }
+
+.left-icon-small {
+  color: #a0aab2;
+  font-size: 14px;
+  margin: 5px 0;
+}
+
+.bottom-left-nav {
+  display: flex;
+  gap: 15px;
+  margin-top: auto;
+  margin-bottom: 5px;
+  color: #fff;
+  font-size: 24px;
+}
+
+/* --- CENTER GAME AREA --- */
+.center-game-area {
   flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 10px;
-  max-width: 600px;
-  margin: 0 auto;
-  width: 100%;
-}
-
-/* টপ বার */
-.roulette-top-bar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
-  background: #1c2a24;
-  border: 1px solid #2b4236;
-  padding: 8px 12px;
-  border-radius: 10px;
-  margin-bottom: 15px;
-}
-
-.roulette-history {
-  display: flex;
-  gap: 5px;
-  overflow-x: auto;
-  scrollbar-width: none;
-}
-.roulette-history::-webkit-scrollbar { display: none; }
-
-.history-pill {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-size: 11px;
-  font-weight: bold;
-  color: #fff;
-  flex-shrink: 0;
-}
-
-.history-pill.green { background: #00E701; color: #000; }
-.history-pill.red { background: #ff4d4d; }
-.history-pill.black { background: #111; border: 1px solid #333; }
-
-.roulette-timer {
-  color: #a0aab2;
-  font-size: 13px;
-  background: #111815;
-  padding: 5px 10px;
-  border-radius: 20px;
-}
-.roulette-timer strong { color: #00E701; }
-
-/* রুলেট হুইল */
-.roulette-wheel-section {
   position: relative;
-  width: 100%;
-  display: flex;
-  justify-content: center;
+}
+
+/* Wheel */
+.wheel-container {
+  position: relative;
+  margin-top: 10px;
   margin-bottom: 20px;
+  width: 220px;
+  height: 220px;
 }
 
 .wheel-pointer {
   position: absolute;
-  top: -10px;
+  top: -12px;
   left: 50%;
   transform: translateX(-50%);
   width: 0;
   height: 0;
-  border-left: 10px solid transparent;
-  border-right: 10px solid transparent;
-  border-top: 18px solid #FFD700;
+  border-left: 12px solid transparent;
+  border-right: 12px solid transparent;
+  border-top: 20px solid #f1c40f;
   z-index: 10;
+  filter: drop-shadow(0 2px 2px rgba(0,0,0,0.5));
 }
 
-.roulette-wheel-wrapper {
-  width: 180px;
-  height: 180px;
+.wheel-wrapper {
+  width: 100%;
+  height: 100%;
   border-radius: 50%;
-  padding: 8px;
-  background: #2b4236;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.8);
+  padding: 6px;
+  background: #1a2c24; /* Outer ring */
+  box-shadow: 0 10px 20px rgba(0,0,0,0.6), inset 0 0 10px rgba(0,0,0,0.8);
 }
 
-.roulette-wheel {
+.wheel-rotator {
   width: 100%;
   height: 100%;
   border-radius: 50%;
   position: relative;
-  animation: spin 20s linear infinite; 
+  animation: spin 15s linear infinite;
+  border: 2px solid #f1c40f; /* Inner gold border */
 }
 
 @keyframes spin { 100% { transform: rotate(360deg); } }
 
-.wheel-inner-circle {
+.wheel-inner-ring {
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
   width: 60%;
   height: 60%;
-  background: #1c2a24;
+  background: #1a2c24;
   border-radius: 50%;
-  border: 3px solid #FFD700;
+  border: 4px solid #f1c40f;
   display: flex;
   justify-content: center;
   align-items: center;
 }
 
-.wheel-center {
-  width: 70%;
-  height: 70%;
-  background: linear-gradient(135deg, #FFD700, #b8860b);
+.wheel-center-gold {
+  width: 80%;
+  height: 80%;
+  background: radial-gradient(circle, #f1c40f, #d4ac0d);
   border-radius: 50%;
   display: flex;
   justify-content: center;
   align-items: center;
-  animation: counter-spin 20s linear infinite; 
+  animation: counter-spin 15s linear infinite;
+  box-shadow: inset 0 0 10px rgba(0,0,0,0.3);
 }
 
 @keyframes counter-spin { 100% { transform: rotate(-360deg); } }
 
-.wheel-center span {
+.wheel-center-gold span {
   color: #000;
   font-weight: 900;
-  font-size: 11px;
+  font-size: 14px;
+  font-style: italic;
 }
 
-/* ================= Flexbox Vertical Table UI ================= */
-.roulette-table-container {
+/* --- ROULETTE TABLE --- */
+.roulette-table-wrapper {
   width: 100%;
-  background: #111815;
-  padding: 10px;
-  border-radius: 12px;
-  border: 1px solid #2b4236;
-  margin-bottom: 15px;
-}
-
-.table-header-actions {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 10px;
-}
-
-.btn-clear {
-  background: rgba(255, 77, 77, 0.1);
-  color: #ff4d4d;
-  border: 1px solid #ff4d4d;
-  padding: 4px 10px;
+  max-width: 320px;
+  background: #1a3d45; /* Table BG */
+  padding: 4px;
   border-radius: 6px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+}
+
+.roulette-table-grid {
+  display: grid;
+  grid-template-columns: 24px 24px repeat(3, 1fr) 34px; /* 6 Columns */
+  grid-template-rows: 24px repeat(12, 24px); /* 1 Top row + 12 number rows */
+  gap: 2px;
+}
+
+.empty-cell { background: transparent; }
+.col-outside { grid-column: 1; }
+.col-dozens { grid-column: 2; }
+.col-2to1 { grid-column: 6; }
+.col-num1 { grid-column: 3; }
+.col-num2 { grid-column: 4; }
+.col-num3 { grid-column: 5; }
+
+.row-span-2 { grid-row: span 2; }
+.row-span-4 { grid-row: span 4; }
+
+/* Specific placements */
+.zero-spot {
+  grid-column: 3 / 6;
+  grid-row: 1;
+  background: #27ae60;
+  border: 1px solid #2ecc71;
+}
+
+/* Outside Bets (1-18, Even etc) */
+.bet-spot.outside-bet {
+  background: #214b56;
+  border: 1px solid #356b78;
+  font-size: 10px;
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  transform: rotate(180deg);
+}
+.bet-spot.red-bet, .bet-spot.black-bet {
+  background: #214b56;
+  border: 1px solid #356b78;
+}
+.diamond-icon {
+  width: 10px;
+  height: 10px;
+  transform: rotate(45deg);
+}
+.red-diamond { background: #e84141; }
+.black-diamond { background: #111; border: 1px solid #555; }
+
+/* Dozens */
+.bet-spot.dozen-bet {
+  background: #214b56;
+  border: 1px solid #356b78;
+  font-size: 11px;
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  transform: rotate(180deg);
+}
+
+/* 2:1 */
+.bet-spot.col-2to1 {
+  background: #214b56;
+  border: 1px solid #356b78;
   font-size: 12px;
-  font-weight: bold;
-  cursor: pointer;
 }
 
-.total-bet-display {
-  color: #FFD700;
-  font-size: 13px;
-  font-weight: bold;
-}
-
-/* ফ্লেক্সবক্স গ্রিড সিস্টেম */
-.roulette-grid-layout {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  gap: 2px;
-}
-
-.grid-row {
-  display: flex;
-  width: 100%;
-  gap: 2px;
-}
-
-.main-row {
-  align-items: stretch; /* সব কলাম সমান উচ্চতার হবে */
-}
-
-/* কলামগুলোর নির্দিষ্ট প্রস্থ */
-.outside-col, .outside-col-width { width: 16%; }
-.dozens-col, .dozens-col-width { width: 16%; }
-.col-2to1, .col-2to1-width { width: 16%; }
-.nums-col { flex: 1; } /* বাকি জায়গা ৩টি নাম্বার কলামে সমান ভাগ হবে */
-
-.empty-cell {
-  flex: none;
-}
-
-.top-row .zero-spot { 
-  flex: 1; 
-  display: flex; 
-  justify-content: center; 
-  align-items: center; 
-  background: #00E701; 
-  color: #000; 
-  font-weight: 900; 
-  border-radius: 4px;
-  border: 1px solid #00c800;
-  min-height: 30px;
-}
-
-/* ভেতরের কলাম */
-.col {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-/* উচ্চতা মেলানোর জন্য Flex ব্যবহার */
-.flex-1 { flex: 1; } /* ১২টি রো-এর জন্য */
-.flex-2 { flex: 2; } /* ৬টি রো-এর জন্য */
-.flex-4 { flex: 4; } /* ৩টি রো-এর জন্য */
-
-/* বেস স্পট ডিজাইন */
+/* Numbers Base */
 .bet-spot {
   display: flex;
   justify-content: center;
   align-items: center;
   color: #fff;
-  font-weight: bold;
-  font-size: 13px;
-  border-radius: 4px;
+  font-weight: 700;
   cursor: pointer;
   position: relative;
   user-select: none;
-  background: #1a2c38;
-  border: 1px solid #2b4236;
-  padding: 4px 0;
-  transition: opacity 0.1s ease;
 }
-
-.bet-spot:hover { opacity: 0.8; }
-.bet-spot:active { transform: scale(0.96); }
-
-/* কালার সেট */
-.bet-spot.red { background: #ff4d4d; border-color: #e64545; }
-.bet-spot.black { background: #222; border-color: #444; }
-
-.outside-bet, .dozen-bet, .col-bet {
-  font-size: 10px;
-  text-align: center;
+.bet-spot.num-cell {
+  font-size: 14px;
+  border-radius: 2px;
 }
+.bet-spot.red { background: #c0392b; border: 1px solid #e74c3c; }
+.bet-spot.black { background: #111; border: 1px solid #333; }
 
-.red-bet, .black-bet {
-  flex-direction: column;
-  gap: 2px;
-  font-size: 10px;
-}
+.bet-spot:active { transform: scale(0.95); }
 
-/* ডায়মন্ড আইকন */
-.diamond {
-  width: 8px;
-  height: 8px;
-  transform: rotate(45deg);
-  display: block;
-}
-.red-diamond { background-color: #ff4d4d; border: 1px solid #ff9999; }
-.black-diamond { background-color: #000; border: 1px solid #555; }
-
-/* ================= চিপ বসানোর ডিজাইন ================= */
-.placed-chip {
+/* Placed Chip */
+.table-chip {
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background: radial-gradient(circle at 30% 30%, #ffd700, #b8860b);
+  background: radial-gradient(circle, #f1c40f, #d4ac0d);
   color: #000;
-  width: 22px;
-  height: 22px;
+  width: 18px;
+  height: 18px;
   border-radius: 50%;
   display: flex;
   justify-content: center;
   align-items: center;
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 900;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.8), inset 0 0 4px rgba(255,255,255,0.5);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.8);
   border: 1px dashed #000;
   z-index: 5;
   pointer-events: none;
 }
 
-/* ================= চিপ সিলেকশন বার ================= */
-.roulette-chips-bar {
+/* --- RIGHT SIDEBAR --- */
+.right-sidebar {
+  width: 55px;
   display: flex;
-  justify-content: center;
-  gap: 10px;
-  width: 100%;
-  overflow-x: auto;
-  padding-bottom: 10px;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding-top: 10px;
 }
 
-.chip-btn {
-  width: 45px;
-  height: 45px;
-  flex-shrink: 0;
+.circle-btn {
+  width: 42px;
+  height: 42px;
   border-radius: 50%;
-  background: #1a2c38;
-  border: 2px solid #2b4236;
-  color: #fff;
-  font-weight: 900;
+  background: radial-gradient(circle at 30% 30%, #3c5c4a, #1a2c24);
+  border: 2px solid #556b2f;
+  color: #a0aab2;
+  font-size: 18px;
   display: flex;
   justify-content: center;
   align-items: center;
   cursor: pointer;
-  transition: all 0.2s;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.5), inset 0 2px 4px rgba(255,255,255,0.1);
+}
+.circle-btn.text-btn { font-size: 16px; font-weight: 900; color: #d4af37; }
+.circle-btn.large-btn { width: 50px; height: 50px; font-size: 22px; }
+
+.chip-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 10px;
 }
 
-.chip-btn.active {
-  border-color: #FFD700;
-  background: #2b4236;
-  box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
-  transform: translateY(-5px);
+.chip-btn.right-chip {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-weight: 900;
+  font-size: 14px;
+  cursor: pointer;
+  border: 3px dashed #fff;
+  box-shadow: 0 3px 6px rgba(0,0,0,0.5);
+}
+.chip-btn.right-chip:nth-child(1) { background: #e74c3c; color: #fff; }
+.chip-btn.right-chip:nth-child(2) { background: #f1c40f; color: #000; border-color: #fff; }
+.chip-btn.right-chip:nth-child(3) { background: #ecf0f1; color: #000; border-color: #e74c3c; }
+
+.chip-btn.right-chip.active {
+  transform: scale(1.1);
+  box-shadow: 0 0 10px rgba(255,255,255,0.8);
+}
+
+.bottom-right-icons {
+  margin-top: auto;
+  margin-bottom: 10px;
+  color: #fff;
+  font-size: 24px;
+  cursor: pointer;
+}
+
+/* ================= BOTTOM INFO BAR ================= */
+.bottom-info-bar {
+  height: 40px;
+  background: #050a08;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 10px;
+  color: #a0aab2;
+  font-size: 10px;
+}
+
+.info-center {
+  text-align: center;
+  line-height: 1.2;
+}
+
+.info-right {
+  display: flex;
+  gap: 15px;
+}
+
+.balance-item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+.balance-item .val {
+  color: #fff;
+  font-size: 14px;
+  font-weight: 900;
 }
