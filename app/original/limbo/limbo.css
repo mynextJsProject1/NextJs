@@ -775,7 +775,7 @@ html, body {
   font-weight: bold;
 }
 
-/* ✅ নতুন Live Stats Modal Layout (থিম কালারসহ) */
+/* ✅ নতুন Live Stats Modal Layout */
 .limbo-live-stats-header {
   display: flex;
   justify-content: space-between;
@@ -787,25 +787,32 @@ html, body {
   display: flex;
   align-items: center;
   gap: 6px;
-  color: var(--limbo-muted);
+  color: #a0aab2;
 }
 
 .limbo-live-stats-icons {
   display: flex;
   gap: 12px;
   align-items: center;
-  color: var(--limbo-muted);
+  color: #a0aab2;
 }
 
-/* স্ট্যাটস কার্ড */
-.limbo-stats-layout {
-  background: var(--limbo-input-bg);
-  padding: 12px;
+/* ✅ মেইন কার্ড কন্টেইনার */
+.limbo-stats-main-card {
+  background: #1B2A23;
+  padding: 10px;
   border-radius: 8px;
-  border: 1px solid var(--limbo-border);
   display: flex;
-  gap: 12px;
-  margin-bottom: 12px;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.limbo-stats-layout {
+  background: #1a2c38;
+  padding: 10px;
+  border-radius: 8px;
+  display: flex;
+  gap: 10px;
 }
 
 .limbo-stats-column {
@@ -817,7 +824,7 @@ html, body {
 
 .limbo-stats-divider {
   width: 1px;
-  background: var(--limbo-border);
+  background: #2b4236;
 }
 
 .limbo-stat-row-new {
@@ -827,7 +834,7 @@ html, body {
 }
 
 .limbo-stat-label-new {
-  color: var(--limbo-muted);
+  color: #a0aab2;
   font-size: 0.7rem;
   font-weight: 600;
 }
@@ -840,22 +847,73 @@ html, body {
   gap: 4px;
 }
 
-/* গ্রাফ কার্ড */
+/* ✅ গ্রাফ কার্ড স্টাইল */
 .limbo-graph-card-wrapper {
-  background: var(--limbo-input-bg);
-  padding: 10px;
+  background: #1a2c38;
+  padding: 8px;
   border-radius: 8px;
-  border: 1px solid var(--limbo-border);
+  border: 1px solid #2b4236;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .limbo-graph-area-new {
   height: 140px; 
-  background: transparent;
-  border-radius: 8px;
-  overflow: hidden; /* স্ক্রল বন্ধ করার জন্য */
+  background: #0f212e;
+  border-radius: 6px;
+  overflow: hidden; /* ✅ স্ক্রল বন্ধ করা হয়েছে */
   border: none;
   position: relative;
   width: 100%;
+}
+
+/* ✅ Fairness Modal নতুন স্টাইল */
+.limbo-fairness-btn-group {
+  display: flex;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.limbo-fairness-btn-group button {
+  flex: 1;
+}
+
+.limbo-back-btn {
+  background: transparent;
+  border: none;
+  color: #a0aab2;
+  font-size: 0.9rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0;
+  margin-bottom: 15px;
+  font-weight: 600;
+}
+
+.limbo-back-btn:hover {
+  color: #fff;
+}
+
+.limbo-verify-result-box {
+  background: #1a2c38;
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 15px;
+  border: 1px solid #2b4236;
+}
+
+.limbo-verify-result-box p {
+  margin: 0 0 5px 0;
+  font-size: 0.8rem;
+  color: #a0aab2;
+}
+
+.limbo-verify-result-box h4 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: bold;
 }
 
 /* ✅ Fairness Modal নতুন স্টাইল */
