@@ -110,11 +110,7 @@ export default function MyProfilePage() {
           <span className={`profile-status-badge ${isActive ? 'status-active' : 'status-blocked'}`}>
             {profile.account_status || "Active"}
           </span>
-          {profile.status_reason && (
-            <p style={{ color: "#ff4d4d", fontSize: "0.8rem", marginTop: "8px" }}>
-              Reason: {profile.status_reason}
-            </p>
-          )}
+          {/* ✅ Reason: লেখাটি সরিয়ে ফেলা হয়েছে */}
         </div>
 
         {/* ২. ওয়ালেট এবং ব্যালেন্স */}
@@ -166,27 +162,38 @@ export default function MyProfilePage() {
           </div>
         </div>
 
-        {/* ৪. ভেরিফিকেশন স্ট্যাটাস */}
+        {/* ৪. ভেরিফিকেশন স্ট্যাটাস (ক্লিক করলে user-settings এ যাবে) */}
         <div className="profile-section-card">
           <h3><i className="fa-solid fa-shield-halved"></i> Verification Status</h3>
           
-          <div className="profile-info-row">
+          <div className="profile-info-row clickable" onClick={() => router.push("/user-settings/")}>
             <span>Email Verified</span>
-            <span className={`verify-badge ${profile.email_verified ? 'verify-yes' : 'verify-no'}`}>
-              {profile.email_verified ? "Verified" : "Not Verified"}
-            </span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span className={`verify-badge ${profile.email_verified ? 'verify-yes' : 'verify-no'}`}>
+                {profile.email_verified ? "Verified" : "Not Verified"}
+              </span>
+              <i className="fa-solid fa-chevron-right" style={{ fontSize: '10px', color: '#A0AAB2' }}></i>
+            </div>
           </div>
-          <div className="profile-info-row">
+
+          <div className="profile-info-row clickable" onClick={() => router.push("/user-settings/")}>
             <span>Identity (KYC)</span>
-            <span className={`verify-badge ${profile.identify_verified ? 'verify-yes' : 'verify-no'}`}>
-              {profile.identify_verified ? "Verified" : "Not Verified"}
-            </span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span className={`verify-badge ${profile.identify_verified ? 'verify-yes' : 'verify-no'}`}>
+                {profile.identify_verified ? "Verified" : "Not Verified"}
+              </span>
+              <i className="fa-solid fa-chevron-right" style={{ fontSize: '10px', color: '#A0AAB2' }}></i>
+            </div>
           </div>
-          <div className="profile-info-row">
+
+          <div className="profile-info-row clickable" onClick={() => router.push("/user-settings/")}>
             <span>Address Verified</span>
-            <span className={`verify-badge ${profile.address_verified ? 'verify-yes' : 'verify-no'}`}>
-              {profile.address_verified ? "Verified" : "Not Verified"}
-            </span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span className={`verify-badge ${profile.address_verified ? 'verify-yes' : 'verify-no'}`}>
+                {profile.address_verified ? "Verified" : "Not Verified"}
+              </span>
+              <i className="fa-solid fa-chevron-right" style={{ fontSize: '10px', color: '#A0AAB2' }}></i>
+            </div>
           </div>
         </div>
 
