@@ -50,7 +50,7 @@ export default function MinesGamePage() {
   const [isAutoBetting, setIsAutoBetting] = useState(false);
   const [autoStats, setAutoStats] = useState({ bets: 0, profit: 0 });
   const isAutoRef = useRef(false);
-  const [autoTiles, setAutoTiles] = useState("3"); // অটোতে কয়টি ঘর খুলবে
+  const [autoTiles, setAutoTiles] = useState("3"); 
   const [autoBetCount, setAutoBetCount] = useState("0");
   const [isAdvanced, setIsAdvanced] = useState(false);
   const [onWinMode, setOnWinMode] = useState<"reset" | "increase">("reset");
@@ -260,7 +260,7 @@ export default function MinesGamePage() {
     }
   };
 
-  // 🤖 অটো বেট লুপ (মূল লজিক)
+  // 🤖 অটো বেট লুপ (র‍্যান্ডম ঘর খোলার লজিকসহ)
   const runAutoLoop = async (currentBet: number, currentCount: number, currentProfit: number) => {
     if (!isAutoRef.current) return;
 
@@ -298,9 +298,18 @@ export default function MinesGamePage() {
       let isRoundWin = false;
       let currentMultiplier = 1.00;
 
-      // ২. ঘর খোলা (লুপ চালিয়ে)
+      // ✅ র‍্যান্ডম পুল তৈরি করা (০ থেকে ২৪ পর্যন্ত)
+      let availableTiles = Array.from({ length: 25 }, (_, i) => i);
+
+      // ২. ঘর খোলা (র‍্যান্ডমলি)
       for (let i = 0; i < tilesToReveal; i++) {
-        const tileIndex = i; // ০, ১, ২, ৩ নাম্বার ঘর খুলবে
+        // র‍্যান্ডম ইনডেক্স বেছে নেওয়া
+        const randomIndex = Math.floor(Math.random() * availableTiles.length);
+        const tileIndex = availableTiles[randomIndex];
+        
+        // পুল থেকে ঘরটি মুছে ফেলা, যাতে পরের বার আবার না আসে
+        availableTiles.splice(randomIndex, 1);
+
         await new Promise(res => setTimeout(res, instantBet ? 10 : 300)); // ডিলে
 
         const { data: tileData, error: tileError } = await supabase.rpc("reveal_mines_tile", {
@@ -665,7 +674,6 @@ export default function MinesGamePage() {
       }} />
 
       {/* ================= ✅ Modals ================= */}
-      {/* Settings, Bet History, Graph, Fairness (আগের মতোই থাকবে) */}
       {isSettingsOpen && (
         <div className="limbo-modal-overlay" onClick={() => setIsSettingsOpen(false)}>
           <div className="limbo-modal-content" onClick={e => e.stopPropagation()}>
