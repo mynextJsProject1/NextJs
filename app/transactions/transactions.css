@@ -1,12 +1,17 @@
 /* app/transactions/transactions.css */
 .transactions-page {
-  --txn-bg: #18231F;
+  --txn-bg: #18221E;
   --txn-card: #1B2A23;
   --txn-border: #263C32;
   --txn-text: #FFFFFF;
   --txn-muted: #A0ADB0;
   --txn-accent: #00E701;
   --txn-bg-input: #121816;
+
+  /* ✅ পেজের ব্যাকগ্রাউন্ড কালার এবং ফুল স্ক্রিন হাইট */
+  background-color: var(--txn-bg);
+  min-height: 100vh;
+  width: 100%;
 }
 
 .transactions-page .transactions-main {
