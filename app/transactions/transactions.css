@@ -1,11 +1,12 @@
 /* app/transactions/transactions.css */
 .transactions-page {
-  --txn-bg: #0f212e;
-  --txn-card: #1a2c38;
-  --txn-border: #2f4553;
-  --txn-text: #ffffff;
-  --txn-muted: #b1bad3;
-  --txn-accent: #00e701;
+  --txn-bg: #18231F;
+  --txn-card: #1B2A23;
+  --txn-border: #263C32;
+  --txn-text: #FFFFFF;
+  --txn-muted: #A0ADB0;
+  --txn-accent: #00E701;
+  --txn-bg-input: #121816;
 }
 
 .transactions-page .transactions-main {
@@ -166,7 +167,7 @@
 .transactions-page .bet-header {
   display: flex;
   justify-content: space-between;
-  border-bottom: 1px solid rgba(255,255,255,0.05);
+  border-bottom: 1px solid var(--txn-border);
   padding-bottom: 8px;
   margin-bottom: 8px;
 }
