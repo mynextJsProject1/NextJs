@@ -1,0 +1,84 @@
+/* app/original/mines/mines.css */
+@import "../limbo/limbo.css";
+
+/* মাইনস গ্রিড স্টাইল */
+.mines-grid-container {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+  margin: 15px 0;
+  padding: 10px;
+  background: var(--limbo-card);
+  border-radius: 12px;
+  border: 1px solid var(--limbo-border);
+}
+
+.mines-tile {
+  background: var(--limbo-input-bg);
+  border: 1px solid var(--limbo-border);
+  border-radius: 8px;
+  aspect-ratio: 1 / 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  user-select: none;
+  box-shadow: 0 3px 0 var(--limbo-border);
+}
+
+.mines-tile:hover:not(.revealed):not(.disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 0 var(--limbo-border);
+  background: #1c2a24;
+}
+
+.mines-tile:active:not(.revealed):not(.disabled) {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 var(--limbo-border);
+}
+
+.mines-tile.revealed {
+  background: #0d1612;
+  box-shadow: none;
+  cursor: default;
+  border-color: transparent;
+}
+
+.mines-tile.safe {
+  color: var(--limbo-accent);
+  background: rgba(0, 231, 1, 0.1);
+  border: 1px solid rgba(0, 231, 1, 0.3);
+}
+
+.mines-tile.bomb {
+  color: var(--limbo-danger);
+  background: rgba(255, 77, 77, 0.1);
+  border: 1px solid rgba(255, 77, 77, 0.3);
+  animation: shake 0.4s ease-in-out;
+}
+
+.mines-tile.disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* কাস্টম সিলেক্ট ড্রপডাউন */
+.mines-select {
+  background: var(--limbo-input-bg);
+  border: 1px solid var(--limbo-border);
+  color: var(--limbo-text);
+  padding: 0 10px;
+  border-radius: 8px;
+  outline: none;
+  font-size: 0.9rem;
+  height: 44px;
+  width: 100%;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.mines-select:focus {
+  border-color: var(--limbo-accent);
+}
