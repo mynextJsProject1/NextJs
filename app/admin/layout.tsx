@@ -18,6 +18,8 @@ const menuItems = [
   { name: "Referral Claims", path: "/admin/referral-claims", icon: "fa-users" },
 { name: "Referral Settings", path: "/admin/refer-settings", icon: "fa-gear" },
   { name: "Bonus Transfers", path: "/admin/bonus-transfers", icon: "fa-money-bill-transfer" },
+    { name: "Games Grids Category", path: "/admin/games", icon: "fa-money-bill-transfer" },
+    { name: "Main Landing Page Grid and Categories", path: "/admin/main-landing", icon: "fa-money-bill-transfer" },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
