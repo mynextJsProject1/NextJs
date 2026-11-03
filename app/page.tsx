@@ -1,263 +1,159 @@
+/* app/page.tsx */
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { createClient } from "../lib/supabase/client";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
-import Sidebar from "../components/Sidebar";
-import ChatDrawer from "../components/ChatDrawer";
-import { createClient } from "../lib/supabase/client";
+import "./page.css";
 
-const games = [
-  { name: "Lucky Slots", category: "Slots", image: "https://images.unsplash.com/photo-1511512578047-dfb367046420?w=400" },
-  { name: "Golden Casino", category: "Popular", image: "https://images.unsplash.com/photo-1606167668584-78701c57f13d?w=400" },
-  { name: "Royal Play", category: "Slots", image: "https://images.unsplash.com/photo-1596838132731-3301c3fd4317?w=400" },
-  { name: "Neon Games", category: "Popular", image: "https://images.unsplash.com/photo-1542751371-adc38448a05e?w=400" },
-  { name: "Sports Arena", category: "Sports", image: "https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=400" },
-  { name: "Adventure", category: "Popular", image: "https://images.unsplash.com/photo-1542751371-adc38448a05e?w=400" },
-];
-
-const categories = ["All", "Popular", "Slots", "Sports"];
-
-type Banner = {
-  id: number;
+type LandingItem = {
+  id: string;
+  section_type: string;
+  title: string;
+  subtitle: string | null;
   image_url: string;
+  route_path: string;
+  sort_order: number;
 };
 
-export default function Home() {
-  const [activePage, setActivePage] = useState("home");
-  const [activeCategory, setActiveCategory] = useState("All");
-  const [search, setSearch] = useState("");
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [chatOpen, setChatOpen] = useState(false);
+export default function HomePage() {
+  const router = useRouter();
+  const [supabase] = useState(() => createClient());
+  
+  const [landingData, setLandingData] = useState<LandingItem[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const [banners, setBanners] = useState<Banner[]>([]);
-  const [bannerIndex, setBannerIndex] = useState(0);
-  const touchStartX = useRef<number | null>(null);
-
+  // ডেটা ফেচ করা
   useEffect(() => {
-    let cancelled = false;
+    const fetchLandingData = async () => {
+      setLoading(true);
+      try {
+        const { data, error } = await supabase
+          .from("landing_page_items")
+          .select("*")
+          .eq("is_active", true)
+          .order("sort_order", { ascending: true });
 
-    async function loadBanners() {
-      const supabase = createClient();
-
-      const { data, error } = await supabase
-        .from("banners")
-        .select("id, image_url")
-        .eq("is_active", true)
-        .order("id", { ascending: false });
-
-      if (error) {
-        console.error("Banner loading failed:", error.message);
-        return;
+        if (error) throw error;
+        if (data) setLandingData(data);
+      } catch (err) {
+        console.error("Error fetching landing data:", err);
+      } finally {
+        setLoading(false);
       }
-
-      if (!cancelled) {
-        setBanners(data ?? []);
-        setBannerIndex(0);
-      }
-    }
-
-    loadBanners();
-
-    return () => {
-      cancelled = true;
     };
-  }, []);
 
-  useEffect(() => {
-    if (banners.length < 2) return;
+    void fetchLandingData();
+  }, [supabase]);
 
-    const timer = window.setInterval(() => {
-      setBannerIndex((current) => (current + 1) % banners.length);
-    }, 4000);
+  // সেকশন অনুযায়ী ডেটা ফিল্টার করা
+  const recommendedItems = landingData.filter(item => item.section_type === "recommended");
+  const categoryItems = landingData.filter(item => item.section_type === "category");
 
-    return () => window.clearInterval(timer);
-  }, [banners.length]);
-
-  function previousBanner() {
-    setBannerIndex((current) =>
-      (current - 1 + banners.length) % banners.length
-    );
-  }
-
-  function nextBanner() {
-    setBannerIndex((current) =>
-      (current + 1) % banners.length
-    );
-  }
-
-  function navigate(page: string) {
-    if (page === "chat") {
-      setChatOpen(true);
-      return;
-    }
-
-    setActivePage(page);
-    setActiveCategory("All");
-    setSearch("");
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }
-
-  const filteredGames = games.filter((game) => {
-    const matchesCategory =
-      activeCategory === "All" || game.category === activeCategory;
-    const matchesSearch = game.name.toLowerCase().includes(search.toLowerCase());
-    return matchesCategory && matchesSearch;
-  });
-
-  const visibleGames =
-    activePage === "sports"
-      ? games.filter((game) => game.category === "Sports")
-      : filteredGames;
+  // ডিফল্ট ছবি (যদি ইমেজ লোড না হয়)
+  const fallbackImg = "https://via.placeholder.com/300x200/1B2A23/00E701?text=Game";
 
   return (
-    <div className="stake-app">
-      <Header
-        onMenuClick={() => setMenuOpen(true)}
-        onHomeClick={() => navigate("home")}
+    <div className="landing-page">
+      {/* ✅ হেডার কম্পোনেন্ট */}
+      <Header 
+        onMenuClick={() => router.push("/")} 
+        onHomeClick={() => router.push("/")} 
       />
 
-      <main className="stake-main">
-        {banners.length > 0 && (
-          <section
-            className="stake-banner"
-            onTouchStart={(event) => {
-              touchStartX.current = event.touches[0].clientX;
-            }}
-            onTouchEnd={(event) => {
-              if (touchStartX.current === null) return;
-
-              const difference =
-                touchStartX.current - event.changedTouches[0].clientX;
-
-              if (difference > 40) nextBanner();
-              if (difference < -40) previousBanner();
-
-              touchStartX.current = null;
-            }}
-          >
-            <img
-              key={banners[bannerIndex].id}
-              className="stake-banner-image"
-              src={banners[bannerIndex].image_url}
-              alt="Promotional banner"
-            />
-
-            {banners.length > 1 && (
-              <>
-                <button
-                  className="stake-banner-arrow stake-banner-prev"
-                  type="button"
-                  aria-label="Previous banner"
-                  onClick={previousBanner}
-                >
-                  &#8249;
-                </button>
-
-                <button
-                  className="stake-banner-arrow stake-banner-next"
-                  type="button"
-                  aria-label="Next banner"
-                  onClick={nextBanner}
-                >
-                  &#8250;
-                </button>
-
-                <div className="stake-banner-dots">
-                  {banners.map((banner, index) => (
-                    <button
-                      key={banner.id}
-                      type="button"
-                      aria-label={`Show banner ${index + 1}`}
-                      className={`stake-banner-dot ${
-                        index === bannerIndex ? "active" : ""
-                      }`}
-                      onClick={() => setBannerIndex(index)}
-                    />
+      <main className="landing-main">
+        
+        {loading ? (
+          <div className="landing-loading">Loading Games...</div>
+        ) : (
+          <>
+            {/* ✅ ১. Recommended Section */}
+            {recommendedItems.length > 0 && (
+              <div className="landing-section">
+                <div className="landing-header">
+                  <h2>
+                    Recommended <span className="badge">Casino</span>
+                  </h2>
+                  <button className="view-all-btn" onClick={() => router.push("/play-category")}>
+                    All
+                  </button>
+                </div>
+                
+                <div className="horizontal-scroll">
+                  {recommendedItems.map((item) => (
+                    <div 
+                      key={item.id} 
+                      className="recommended-card" 
+                      onClick={() => router.push(`/${item.route_path}`)}
+                    >
+                      <img 
+                        src={item.image_url} 
+                        alt={item.title} 
+                        onError={(e) => { (e.target as HTMLImageElement).src = fallbackImg; }}
+                      />
+                      <div className="rec-info">
+                        <h3>{item.title}</h3>
+                        {item.subtitle && <p>{item.subtitle}</p>}
+                      </div>
+                    </div>
                   ))}
                 </div>
-              </>
+              </div>
             )}
-          </section>
+
+            {/* ✅ ২. Categories Section */}
+            {categoryItems.length > 0 && (
+              <div className="landing-section">
+                <div className="landing-header">
+                  <h2>
+                    Categories <span className="badge-outline">1xGames</span>
+                  </h2>
+                </div>
+                
+                <div className="horizontal-scroll">
+                  {categoryItems.map((item) => (
+                    <div 
+                      key={item.id} 
+                      className="category-card" 
+                      onClick={() => router.push(`/${item.route_path}`)}
+                    >
+                      <img 
+                        src={item.image_url} 
+                        alt={item.title} 
+                        onError={(e) => { (e.target as HTMLImageElement).src = fallbackImg; }}
+                      />
+                      <div className="cat-overlay">
+                        <h3>{item.title}</h3>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* যদি কোনো ডেটা না থাকে */}
+            {landingData.length === 0 && (
+              <div className="landing-loading">
+                No games available right now. Please add games from Admin Panel.
+              </div>
+            )}
+          </>
         )}
-
-        <div className="stake-search">
-          <input
-            type="search"
-            placeholder="Search games..."
-            aria-label="Search games"
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-          />
-        </div>
-
-        <div className="stake-section-heading">
-          <h2>
-            {activePage === "sports"
-              ? "Sports"
-              : activePage === "casino"
-                ? "Casino Games"
-                : "Explore Games"}
-          </h2>
-          <button
-            className="stake-view-all"
-            type="button"
-            onClick={() => {
-              setActivePage("casino");
-              setActiveCategory("All");
-            }}
-          >
-            View All →
-          </button>
-        </div>
-
-        {activePage !== "sports" && (
-          <div className="stake-categories">
-            {categories.map((category) => (
-              <button
-                key={category}
-                type="button"
-                className={`stake-category ${
-                  activeCategory === category ? "active" : ""
-                }`}
-                onClick={() => setActiveCategory(category)}
-              >
-                {category}
-              </button>
-            ))}
-          </div>
-        )}
-
-        <div className="stake-game-grid">
-          {visibleGames.length > 0 ? (
-            visibleGames.map((game) => (
-              <article className="stake-game-card" key={game.name}>
-                <img
-                  className="stake-game-image"
-                  src={game.image}
-                  alt={game.name}
-                  loading="lazy"
-                />
-                <div className="stake-game-name">{game.name}</div>
-              </article>
-            ))
-          ) : (
-            <p className="stake-empty">No games found.</p>
-          )}
-        </div>
-
-        <footer className="stake-footer">
-          © 2026 Gazicasino. All rights reserved.
-        </footer>
+        
       </main>
 
-      <Footer activePage={activePage} onNavigate={navigate} />
-      <Sidebar
-        isOpen={menuOpen}
-        onClose={() => setMenuOpen(false)}
-        onNavigate={navigate}
+      {/* ✅ ফুটার কম্পোনেন্ট */}
+      <Footer
+        activePage="home"
+        onNavigate={(page) => {
+          if (page === "home") router.push("/");
+          else if (page === "chat") router.push("/live-support/");
+          else if (page === "casino") router.push("/play-category/");
+          else if (page === "sports") router.push("/");
+        }}
       />
-      <ChatDrawer isOpen={chatOpen} onClose={() => setChatOpen(false)} />
     </div>
   );
 }
