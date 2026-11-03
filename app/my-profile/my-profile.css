@@ -1,0 +1,178 @@
+/* app/my-profile/my-profile.css */
+.my-profile-page {
+  --bg-primary: #18221E;
+  --bg-card: #1B2A23;
+  --bg-input: #111815;
+  --border-color: #2B4236;
+  --text-primary: #FFFFFF;
+  --text-secondary: #A0AAB2;
+  --color-primary: #00E701;
+  --color-danger: #ff4d4d;
+
+  background-color: var(--bg-primary);
+  min-height: 100vh;
+  width: 100%;
+  font-family: inherit;
+}
+
+.my-profile-main {
+  padding: 1rem 0.8rem 3rem;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* Header & Avatar Section */
+.profile-header-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  padding: 24px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+.profile-avatar {
+  width: 80px;
+  height: 80px;
+  background: var(--bg-input);
+  border: 2px solid var(--color-primary);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  font-weight: bold;
+  color: var(--color-primary);
+  margin-bottom: 12px;
+}
+
+.profile-header-card h2 {
+  margin: 0 0 4px 0;
+  color: var(--text-primary);
+  font-size: 1.4rem;
+}
+
+.profile-game-id {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  margin-bottom: 10px;
+}
+
+.profile-status-badge {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.status-active { background: rgba(0, 231, 1, 0.1); color: var(--color-primary); border: 1px solid rgba(0, 231, 1, 0.3); }
+.status-blocked { background: rgba(255, 77, 77, 0.1); color: var(--color-danger); border: 1px solid rgba(255, 77, 77, 0.3); }
+
+/* Cards */
+.profile-section-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.profile-section-card h3 {
+  color: var(--text-primary);
+  font-size: 1.05rem;
+  margin: 0 0 16px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.profile-section-card h3 i {
+  color: var(--color-primary);
+}
+
+/* Financial Grid */
+.profile-balance-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.balance-item {
+  background: var(--bg-input);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.balance-item span {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+}
+
+.balance-item strong {
+  font-size: 1.1rem;
+  color: var(--text-primary);
+}
+
+.balance-item.main-balance strong {
+  color: var(--color-primary);
+}
+
+/* Info Rows */
+.profile-info-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border-color);
+  font-size: 0.9rem;
+}
+
+.profile-info-row:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.profile-info-row span {
+  color: var(--text-secondary);
+}
+
+.profile-info-row strong {
+  color: var(--text-primary);
+  text-align: right;
+  max-width: 60%;
+}
+
+/* Verification Badges */
+.verify-badge {
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: bold;
+}
+.verify-yes { background: rgba(0, 231, 1, 0.15); color: var(--color-primary); }
+.verify-no { background: rgba(255, 77, 77, 0.15); color: var(--color-danger); }
+
+/* Loading */
+.profile-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 50vh;
+  color: var(--color-primary);
+  gap: 12px;
+}
+.profile-loading i {
+  font-size: 2.5rem;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  100% { transform: rotate(360deg); }
+}
