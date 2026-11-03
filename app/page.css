@@ -1,0 +1,189 @@
+/* app/page.css */
+
+.landing-page {
+  --bg-primary: #18221E;
+  --bg-card: #1B2A23;
+  --bg-input: #121816;
+  --border-color: #263C32;
+  --text-primary: #FFFFFF;
+  --text-secondary: #A0ADB0;
+  --color-primary: #00E701;
+
+  background-color: var(--bg-primary);
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  font-family: inherit;
+}
+
+.landing-main {
+  flex: 1;
+  padding: 16px 0 80px 0; /* নিচে ফুটারের জন্য জায়গা */
+  max-width: 900px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* Common Section Styles */
+.landing-section {
+  margin-bottom: 24px;
+}
+
+.landing-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 16px;
+  margin-bottom: 12px;
+}
+
+.landing-header h2 {
+  color: var(--text-primary);
+  font-size: 1.2rem;
+  font-weight: 800;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.badge {
+  font-size: 0.7rem;
+  background: rgba(255, 77, 77, 0.1);
+  color: #ff4d4d;
+  border: 1px solid rgba(255, 77, 77, 0.3);
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-weight: 600;
+}
+
+.badge-outline {
+  font-size: 0.7rem;
+  background: transparent;
+  color: var(--color-primary);
+  border: 1px solid var(--color-primary);
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-weight: 600;
+}
+
+.view-all-btn {
+  background: var(--bg-card);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.view-all-btn:hover {
+  border-color: var(--color-primary);
+}
+
+/* Horizontal Scrolling Logic */
+.horizontal-scroll {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding: 0 16px 10px 16px;
+  scrollbar-width: none; /* Firefox */
+}
+
+.horizontal-scroll::-webkit-scrollbar {
+  display: none; /* Chrome/Safari */
+}
+
+/* Recommended Card */
+.recommended-card {
+  flex-shrink: 0;
+  width: 220px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.recommended-card:active {
+  transform: scale(0.98);
+}
+
+.recommended-card img {
+  width: 100%;
+  height: 120px;
+  object-fit: cover;
+  display: block;
+}
+
+.rec-info {
+  padding: 12px;
+}
+
+.rec-info h3 {
+  color: var(--text-primary);
+  font-size: 0.95rem;
+  margin: 0 0 4px 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rec-info p {
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  margin: 0;
+}
+
+/* Category Card */
+.category-card {
+  flex-shrink: 0;
+  width: 140px;
+  height: 180px;
+  border-radius: 16px;
+  overflow: hidden;
+  position: relative;
+  cursor: pointer;
+  border: 1px solid var(--border-color);
+  transition: transform 0.2s;
+}
+
+.category-card:active {
+  transform: scale(0.98);
+}
+
+.category-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.cat-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  padding: 30px 12px 12px 12px;
+  background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, transparent 100%);
+}
+
+.cat-overlay h3 {
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  margin: 0;
+  text-align: center;
+  font-weight: bold;
+}
+
+/* Loading & Empty States */
+.landing-loading {
+  text-align: center;
+  color: var(--color-primary);
+  padding: 40px 20px;
+  font-size: 1rem;
+}
