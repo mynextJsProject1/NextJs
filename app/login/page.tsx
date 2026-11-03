@@ -29,8 +29,9 @@ export default function LoginPage() {
         throw new Error("Supabase configuration is missing.");
       }
 
+      // ✅ এখানে auth-manager এর জায়গায় super-action করা হয়েছে
       const response = await fetch(
-        `${url}/functions/v1/auth-manager`,
+        `${url}/functions/v1/super-action`,
         {
           method: "POST",
           headers: {
@@ -89,7 +90,6 @@ export default function LoginPage() {
       <main className="stake-main auth-main">
         <section className="auth-card">
           
-          {/* ✅ লাল দাগ দেওয়া আইকন এবং লেখা সরিয়ে ফেলা হয়েছে */}
           <h1 className="auth-title" style={{ marginTop: '0', marginBottom: '24px' }}>Login to your account</h1>
 
           <form onSubmit={handleLogin} className="auth-form">
