@@ -24,6 +24,16 @@ type HistoryItem = {
   betAmount: number;
 };
 
+type SuggestedGame = {
+  id: string;
+  game_name: string;
+  game_image: string;
+  game_link: string;
+  border_color: string;
+  ribbon_color: string;
+  ribbon_text: string;
+};
+
 export default function MinesGamePage() {
   const router = useRouter();
   const supabase = useMemo(() => createClient(), []);
@@ -60,8 +70,9 @@ export default function MinesGamePage() {
   const [stopOnProfit, setStopOnProfit] = useState("0.00");
   const [stopOnLoss, setStopOnLoss] = useState("0.00");
 
-  // হিস্টোরি ও গ্রাফ
+  // হিস্টোরি, গ্রাফ ও সাজেশন
   const [history, setHistory] = useState<HistoryItem[]>([]);
+  const [suggestedGames, setSuggestedGames] = useState<SuggestedGame[]>([]);
   const historyContainerRef = useRef<HTMLDivElement>(null);
   const graphContainerRef = useRef<HTMLDivElement>(null);
 
@@ -93,14 +104,25 @@ export default function MinesGamePage() {
   };
 
   useEffect(() => {
-    const fetchBalance = async () => {
+    const fetchData = async () => {
+      // ১. ব্যালেন্স ফেচ
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         const { data } = await supabase.from("profiles").select("balance").eq("id", user.id).single();
         if (data) setBalance(Number(data.balance) || 0);
       }
+
+      // ২. সাজেস্টেড গেমস ফেচ
+      const { data: suggestData } = await supabase
+        .from("suggested_game")
+        .select("*")
+        .eq("is_active", true)
+        .order("sort_order", { ascending: true });
+      
+      if (suggestData) setSuggestedGames(suggestData);
     };
-    void fetchBalance();
+    
+    void fetchData();
     return () => { isAutoRef.current = false; };
   }, [supabase]);
 
@@ -260,7 +282,7 @@ export default function MinesGamePage() {
     }
   };
 
-  // 🤖 অটো বেট লুপ (র‍্যান্ডম ঘর খোলার লজিকসহ)
+  // 🤖 অটো বেট লুপ
   const runAutoLoop = async (currentBet: number, currentCount: number, currentProfit: number) => {
     if (!isAutoRef.current) return;
 
@@ -281,7 +303,6 @@ export default function MinesGamePage() {
     setErrorMsg("");
 
     try {
-      // ১. গেম শুরু
       const { data: startData, error: startError } = await supabase.rpc("start_mines_game", {
         p_bet_amount: currentBet,
         p_mines_count: minesCount
@@ -297,20 +318,14 @@ export default function MinesGamePage() {
       let roundProfit = 0;
       let isRoundWin = false;
       let currentMultiplier = 1.00;
-
-      // ✅ র‍্যান্ডম পুল তৈরি করা (০ থেকে ২৪ পর্যন্ত)
       let availableTiles = Array.from({ length: 25 }, (_, i) => i);
 
-      // ২. ঘর খোলা (র‍্যান্ডমলি)
       for (let i = 0; i < tilesToReveal; i++) {
-        // র‍্যান্ডম ইনডেক্স বেছে নেওয়া
         const randomIndex = Math.floor(Math.random() * availableTiles.length);
         const tileIndex = availableTiles[randomIndex];
-        
-        // পুল থেকে ঘরটি মুছে ফেলা, যাতে পরের বার আবার না আসে
         availableTiles.splice(randomIndex, 1);
 
-        await new Promise(res => setTimeout(res, instantBet ? 10 : 300)); // ডিলে
+        await new Promise(res => setTimeout(res, instantBet ? 10 : 300));
 
         const { data: tileData, error: tileError } = await supabase.rpc("reveal_mines_tile", {
           p_game_id: startData.game_id,
@@ -320,7 +335,6 @@ export default function MinesGamePage() {
         if (tileError) throw tileError;
 
         if (tileData.is_bomb) {
-          // বোমায় ক্লিক
           isRoundWin = false;
           roundProfit = -currentBet;
           tileData.bombs.forEach((bIdx: number) => { newTilesState[bIdx] = { ...newTilesState[bIdx], isRevealed: true, isBomb: true }; });
@@ -328,14 +342,12 @@ export default function MinesGamePage() {
           playSound("lose");
           break; 
         } else {
-          // সেফ ঘর
           currentMultiplier = tileData.new_multiplier;
           newTilesState[tileIndex] = { ...newTilesState[tileIndex], isRevealed: true, isBomb: false };
           setTiles([...newTilesState]);
           playSound("click");
 
           if (i === tilesToReveal - 1) {
-            // কাঙ্ক্ষিত ঘর খোলা শেষ, ক্যাশআউট
             const { data: cashoutData, error: cashoutError } = await supabase.rpc("cashout_mines", { p_game_id: startData.game_id });
             if (cashoutError) throw cashoutError;
             
@@ -350,7 +362,6 @@ export default function MinesGamePage() {
         }
       }
 
-      // ৩. স্ট্যাটস আপডেট
       const newCount = currentCount + 1;
       const newProfit = currentProfit + roundProfit;
       setAutoStats({ bets: newCount, profit: newProfit });
@@ -359,7 +370,6 @@ export default function MinesGamePage() {
         id: Date.now().toString(), value: isRoundWin ? currentMultiplier : 0, isWin: isRoundWin, profit: roundProfit, nonce: nonce + newCount, betAmount: currentBet
       }]);
 
-      // ৪. পরবর্তী বেট সাইজ (On Win/Loss)
       let nextBet = currentBet;
       if (isRoundWin && onWinMode === "increase") {
         nextBet = currentBet + (currentBet * Number(onWinValue) / 100);
@@ -368,7 +378,6 @@ export default function MinesGamePage() {
       }
       setBetAmount(nextBet.toFixed(2));
 
-      // ৫. আবার লুপ শুরু
       if (isAutoRef.current) {
         setTimeout(() => runAutoLoop(nextBet, newCount, newProfit), 1200); 
       }
@@ -381,13 +390,11 @@ export default function MinesGamePage() {
     }
   };
 
-  // 📊 স্ট্যাটস ক্যালকুলেশন
   const totalWagered = history.reduce((sum, item) => sum + item.betAmount, 0);
   const totalProfit = history.reduce((sum, item) => sum + item.profit, 0);
   const wins = history.filter(h => h.isWin).length;
   const losses = history.filter(h => !h.isWin).length;
 
-  // 📈 গ্রাফ জেনারেশন
   const generateGraph = () => {
     if (history.length === 0) {
       return (
@@ -476,7 +483,6 @@ export default function MinesGamePage() {
               </div>
             )}
 
-            {/* ✅ মাইনস গ্রিড */}
             <div className="mines-grid-container">
               {tiles.map((tile) => (
                 <div
@@ -523,7 +529,6 @@ export default function MinesGamePage() {
               </div>
             </div>
 
-            {/* মেইন বেট / ক্যাশআউট বাটন */}
             {activeTab === "manual" ? (
               isPlaying ? (
                 <button className="limbo-bet-btn" onClick={handleCashout} disabled={isProcessing || multiplier <= 1.00} style={{ background: multiplier > 1 ? 'var(--limbo-accent)' : '#365244', color: multiplier > 1 ? '#000' : '#fff' }}>
@@ -567,7 +572,6 @@ export default function MinesGamePage() {
               </div>
             </div>
 
-            {/* ✅ Auto Settings Panel */}
             {activeTab === "auto" && (
               <div className="limbo-auto-settings">
                 {isAutoBetting && (
@@ -663,6 +667,38 @@ export default function MinesGamePage() {
             />
 
           </div>
+
+          {/* ✅ Suggested Games Section */}
+          {suggestedGames.length > 0 && (
+            <div className="suggested-section">
+              <h2 className="suggested-title">
+                <i className="fa-solid fa-gamepad" style={{ color: '#00E701' }}></i> Suggested Games
+              </h2>
+              <div className="suggested-grid">
+                {suggestedGames.map((game) => (
+                  <div 
+                    key={game.id} 
+                    className="premium-game-card" 
+                    style={{ border: `2px solid ${game.border_color || '#00E701'}` }}
+                    onClick={() => router.push(`/${game.game_link}`)}
+                  >
+                    <img 
+                      src={game.game_image} 
+                      alt={game.game_name} 
+                      className="premium-card-img"
+                      onError={(e) => { (e.target as HTMLImageElement).src = "https://via.placeholder.com/300x400/1B2A23/00E701?text=Game"; }}
+                    />
+                    <div className="premium-card-overlay"></div>
+                    <div className="premium-card-ribbon" style={{ backgroundColor: game.ribbon_color || '#00E701', color: '#000' }}>
+                      {game.ribbon_text || "SHUFFLE"}
+                    </div>
+                    <h3 className="premium-card-title">{game.game_name}</h3>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
         </div>
       </main>
 
