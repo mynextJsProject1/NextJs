@@ -1,12 +1,17 @@
 /* app/redeem/redeem.css */
 .redeem-page {
-  --redeem-bg: #18231F;
+  --redeem-bg: #18221E;
   --redeem-card: #1B2A23;
   --redeem-border: #263C32;
   --redeem-text: #FFFFFF;
   --redeem-muted: #A0ADB0;
   --redeem-accent: #00E701;
   --redeem-input-bg: #121816;
+
+  /* ✅ পেজের ব্যাকগ্রাউন্ড কালার এবং ফুল স্ক্রিন হাইট */
+  background-color: var(--redeem-bg);
+  min-height: 100vh;
+  width: 100%;
 }
 
 .redeem-page .redeem-main {
