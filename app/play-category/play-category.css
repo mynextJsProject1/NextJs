@@ -1,0 +1,183 @@
+/* app/play-category/play-category.css */
+.play-category-page {
+  --bg-primary: #18221E;
+  --bg-card: #1B2A23;
+  --bg-input: #121816;
+  --border-color: #263C32;
+  --text-primary: #FFFFFF;
+  --text-secondary: #A0ADB0;
+  --color-primary: #00E701;
+
+  background-color: var(--bg-primary);
+  min-height: 100vh;
+  width: 100%;
+  font-family: inherit;
+  padding-bottom: 70px; /* ফুটারের জন্য জায়গা */
+}
+
+.pc-main {
+  padding: 16px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+/* Search Bar */
+.pc-search-wrap {
+  position: relative;
+  margin-bottom: 20px;
+}
+
+.pc-search-wrap input {
+  width: 100%;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  padding: 12px 16px 12px 40px;
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-size: 0.95rem;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.pc-search-wrap input:focus {
+  border-color: var(--color-primary);
+}
+
+.pc-search-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-secondary);
+  font-size: 1rem;
+}
+
+/* Section Header */
+.pc-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.pc-section-header h2 {
+  font-size: 1.3rem;
+  color: var(--text-primary);
+  margin: 0;
+  font-weight: bold;
+}
+
+.pc-view-all {
+  color: var(--color-primary);
+  font-size: 0.85rem;
+  font-weight: bold;
+  text-decoration: none;
+}
+
+/* Categories */
+.pc-categories {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding-bottom: 12px;
+  margin-bottom: 16px;
+  scrollbar-width: none; /* Firefox */
+}
+
+.pc-categories::-webkit-scrollbar {
+  display: none; /* Chrome/Safari */
+}
+
+.pc-cat-btn {
+  background: transparent;
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  padding: 8px 20px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.pc-cat-btn.active {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: #000;
+}
+
+/* Game Grid */
+.pc-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+@media (min-width: 600px) {
+  .pc-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (min-width: 900px) {
+  .pc-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* Game Card */
+.pc-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.2s, border-color 0.2s;
+  display: flex;
+  flex-direction: column;
+}
+
+.pc-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--color-primary);
+}
+
+/* স্ক্রিনশটের মতো সিলেক্টেড গেমের সবুজ বর্ডার */
+.pc-card.highlight {
+  border: 2px solid var(--color-primary);
+}
+
+.pc-card-img-wrap {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  background: var(--bg-input);
+  position: relative;
+}
+
+.pc-card-img-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.pc-card-title {
+  padding: 12px 10px;
+  text-align: center;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Empty / Loading State */
+.pc-empty {
+  text-align: center;
+  color: var(--text-secondary);
+  padding: 40px 20px;
+  font-size: 0.95rem;
+}
