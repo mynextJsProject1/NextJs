@@ -191,9 +191,24 @@ export default function MinesGamePage() {
                   className={`mines-tile ${tile.isRevealed ? 'revealed' : ''} ${tile.isRevealed && tile.isBomb ? 'bomb' : ''} ${tile.isRevealed && !tile.isBomb ? 'safe' : ''} ${!isPlaying ? 'disabled' : ''}`}
                   onClick={() => handleRevealTile(tile.index)}
                 >
-                  {/* ✅ PNG বা ইমোজির বদলে FontAwesome আইকন */}
+                  {/* ✅ SVG আইকন ব্যবহার করা হয়েছে (PNG বা ফন্ট ছাড়াই কাজ করবে) */}
                   {tile.isRevealed && (
-                    <i className={`fa-solid ${tile.isBomb ? 'fa-bomb' : 'fa-gem'}`}></i>
+                    tile.isBomb ? (
+                      // বোমা আইকন
+                      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <circle cx="12" cy="14" r="7"></circle>
+                        <path d="M16.24 7.76a4 4 0 0 1 2.83 2.83"></path>
+                        <path d="M21 4l-2 2"></path>
+                        <path d="M18 3l1 1"></path>
+                      </svg>
+                    ) : (
+                      // হীরা আইকন
+                      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M6 3h12l4 6-10 13L2 9z"></path>
+                        <path d="M11 3L8 9l4 13 4-13-3-6"></path>
+                        <path d="M2 9h20"></path>
+                      </svg>
+                    )
                   )}
                 </div>
               ))}
@@ -307,7 +322,7 @@ export default function MinesGamePage() {
         else if (page === "sports") router.push("/");
       }} />
 
-      {/* ================= ✅ Settings Modal ================= */}
+      {/* ================= ✅ Modals ================= */}
       {isSettingsOpen && (
         <div className="limbo-modal-overlay" onClick={() => setIsSettingsOpen(false)}>
           <div className="limbo-modal-content" onClick={e => e.stopPropagation()}>
@@ -328,7 +343,6 @@ export default function MinesGamePage() {
         </div>
       )}
 
-      {/* ================= ✅ Bet History Modal ================= */}
       {isBetHistoryOpen && (
         <div className="limbo-modal-overlay" onClick={() => setIsBetHistoryOpen(false)}>
           <div className="limbo-modal-content" onClick={e => e.stopPropagation()}>
@@ -343,7 +357,6 @@ export default function MinesGamePage() {
         </div>
       )}
 
-      {/* ================= ✅ Graph/Stats Modal (Placeholder) ================= */}
       {isGraphOpen && (
         <div className="limbo-modal-overlay no-blur" onClick={() => setIsGraphOpen(false)}>
           <div className="limbo-modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '240px' }}>
@@ -358,7 +371,6 @@ export default function MinesGamePage() {
         </div>
       )}
 
-      {/* ================= ✅ Fairness Modal (Placeholder) ================= */}
       {isFairnessOpen && (
         <div className="limbo-modal-overlay" onClick={() => setIsFairnessOpen(false)}>
           <div className="limbo-modal-content" onClick={e => e.stopPropagation()}>
