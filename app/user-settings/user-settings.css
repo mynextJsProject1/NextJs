@@ -7,6 +7,11 @@
   --set-muted: #A0AAB2;
   --set-accent: #00E701;
   --set-input-bg: #111815;
+
+  /* ✅ পেজের ব্যাকগ্রাউন্ড কালার এবং ফুল স্ক্রিন হাইট */
+  background-color: var(--set-bg);
+  min-height: 100vh;
+  width: 100%;
 }
 
 .settings-page .settings-main {
