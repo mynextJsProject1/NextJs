@@ -18,46 +18,60 @@ type LandingItem = {
   sort_order: number;
 };
 
+type Banner = {
+  id: number;
+  image_url: string;
+};
+
 export default function HomePage() {
   const router = useRouter();
   const [supabase] = useState(() => createClient());
   
   const [landingData, setLandingData] = useState<LandingItem[]>([]);
+  const [banners, setBanners] = useState<Banner[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // ডেটা ফেচ করা
+  // ডেটা ফেচ করা (ল্যান্ডিং কার্ড এবং ব্যানার)
   useEffect(() => {
-    const fetchLandingData = async () => {
+    const fetchData = async () => {
       setLoading(true);
       try {
-        const { data, error } = await supabase
+        // ১. ল্যান্ডিং কার্ড ফেচ
+        const { data: landingRes } = await supabase
           .from("landing_page_items")
           .select("*")
           .eq("is_active", true)
           .order("sort_order", { ascending: true });
 
-        if (error) throw error;
-        if (data) setLandingData(data);
+        if (landingRes) setLandingData(landingRes);
+
+        // ২. ব্যানার ফেচ (banners টেবিল থেকে)
+        const { data: bannerRes } = await supabase
+          .from("banners")
+          .select("id, image_url")
+          .eq("is_active", true)
+          .order("created_at", { ascending: false });
+
+        if (bannerRes) setBanners(bannerRes);
+
       } catch (err) {
-        console.error("Error fetching landing data:", err);
+        console.error("Error fetching data:", err);
       } finally {
         setLoading(false);
       }
     };
 
-    void fetchLandingData();
+    void fetchData();
   }, [supabase]);
 
   // সেকশন অনুযায়ী ডেটা ফিল্টার করা
   const recommendedItems = landingData.filter(item => item.section_type === "recommended");
   const categoryItems = landingData.filter(item => item.section_type === "category");
 
-  // ডিফল্ট ছবি (যদি ইমেজ লোড না হয়)
-  const fallbackImg = "https://via.placeholder.com/300x200/1B2A23/00E701?text=Game";
+  const fallbackImg = "https://via.placeholder.com/300x200/1B2A23/00E701?text=Image";
 
   return (
     <div className="landing-page">
-      {/* ✅ হেডার কম্পোনেন্ট */}
       <Header 
         onMenuClick={() => router.push("/")} 
         onHomeClick={() => router.push("/")} 
@@ -66,16 +80,30 @@ export default function HomePage() {
       <main className="landing-main">
         
         {loading ? (
-          <div className="landing-loading">Loading Games...</div>
+          <div className="landing-loading">Loading...</div>
         ) : (
           <>
-            {/* ✅ ১. Recommended Section */}
+            {/* ✅ ১. ব্যানার সেকশন (হেডারের ঠিক নিচে) */}
+            {banners.length > 0 && (
+              <div className="banner-scroll">
+                {banners.map((banner) => (
+                  <img 
+                    key={banner.id}
+                    src={banner.image_url}
+                    alt="Banner"
+                    className="banner-img"
+                    onError={(e) => { (e.target as HTMLImageElement).src = fallbackImg; }}
+                  />
+                ))}
+              </div>
+            )}
+
+            {/* ✅ ২. Recommended Section */}
             {recommendedItems.length > 0 && (
               <div className="landing-section">
                 <div className="landing-header">
-                  <h2>
-                    Recommended <span className="badge">Casino</span>
-                  </h2>
+                  {/* ✅ Casino ব্যাজ সরানো হয়েছে */}
+                  <h2>Recommended</h2>
                   <button className="view-all-btn" onClick={() => router.push("/play-category")}>
                     All
                   </button>
@@ -88,28 +116,24 @@ export default function HomePage() {
                       className="recommended-card" 
                       onClick={() => router.push(`/${item.route_path}`)}
                     >
+                      {/* ✅ টাইটেল ও সাবটাইটেল সরানো হয়েছে */}
                       <img 
                         src={item.image_url} 
-                        alt={item.title} 
+                        alt="Game" 
                         onError={(e) => { (e.target as HTMLImageElement).src = fallbackImg; }}
                       />
-                      <div className="rec-info">
-                        <h3>{item.title}</h3>
-                        {item.subtitle && <p>{item.subtitle}</p>}
-                      </div>
                     </div>
                   ))}
                 </div>
               </div>
             )}
 
-            {/* ✅ ২. Categories Section */}
+            {/* ✅ ৩. Categories Section */}
             {categoryItems.length > 0 && (
               <div className="landing-section">
                 <div className="landing-header">
-                  <h2>
-                    Categories <span className="badge-outline">1xGames</span>
-                  </h2>
+                  {/* ✅ 1xGames ব্যাজ সরানো হয়েছে */}
+                  <h2>Categories</h2>
                 </div>
                 
                 <div className="horizontal-scroll">
@@ -119,24 +143,21 @@ export default function HomePage() {
                       className="category-card" 
                       onClick={() => router.push(`/${item.route_path}`)}
                     >
+                      {/* ✅ টাইটেল ও ওভারলে সরানো হয়েছে */}
                       <img 
                         src={item.image_url} 
-                        alt={item.title} 
+                        alt="Category" 
                         onError={(e) => { (e.target as HTMLImageElement).src = fallbackImg; }}
                       />
-                      <div className="cat-overlay">
-                        <h3>{item.title}</h3>
-                      </div>
                     </div>
                   ))}
                 </div>
               </div>
             )}
 
-            {/* যদি কোনো ডেটা না থাকে */}
-            {landingData.length === 0 && (
+            {landingData.length === 0 && banners.length === 0 && (
               <div className="landing-loading">
-                No games available right now. Please add games from Admin Panel.
+                No data available right now.
               </div>
             )}
           </>
@@ -144,7 +165,6 @@ export default function HomePage() {
         
       </main>
 
-      {/* ✅ ফুটার কম্পোনেন্ট */}
       <Footer
         activePage="home"
         onNavigate={(page) => {
