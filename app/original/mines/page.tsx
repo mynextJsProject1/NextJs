@@ -29,7 +29,7 @@ export default function MinesGamePage() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   
-  // গ্রিড স্টেট
+  // গ্রিড ও মাল্টিপ্লায়ার স্টেট
   const [tiles, setTiles] = useState<Tile[]>(Array.from({ length: 25 }, (_, i) => ({ index: i, isRevealed: false, isBomb: false })));
   const [multiplier, setMultiplier] = useState(1.00);
   const [profit, setProfit] = useState(0);
@@ -74,6 +74,7 @@ export default function MinesGamePage() {
         setIsPlaying(true);
         setMultiplier(1.00);
         setProfit(0);
+        
         // গ্রিড রিসেট
         setTiles(Array.from({ length: 25 }, (_, i) => ({ index: i, isRevealed: false, isBomb: false })));
       }
@@ -182,7 +183,7 @@ export default function MinesGamePage() {
               </div>
             )}
 
-            {/* মাইনস গ্রিড */}
+            {/* মাইনস গ্রিড (৫x৫) */}
             <div className="mines-grid-container">
               {tiles.map((tile) => (
                 <div
@@ -190,7 +191,10 @@ export default function MinesGamePage() {
                   className={`mines-tile ${tile.isRevealed ? 'revealed' : ''} ${tile.isRevealed && tile.isBomb ? 'bomb' : ''} ${tile.isRevealed && !tile.isBomb ? 'safe' : ''} ${!isPlaying ? 'disabled' : ''}`}
                   onClick={() => handleRevealTile(tile.index)}
                 >
-                  {tile.isRevealed ? (tile.isBomb ? "💣" : "💎") : ""}
+                  {/* ✅ PNG বা ইমোজির বদলে FontAwesome আইকন */}
+                  {tile.isRevealed && (
+                    <i className={`fa-solid ${tile.isBomb ? 'fa-bomb' : 'fa-gem'}`}></i>
+                  )}
                 </div>
               ))}
             </div>
@@ -232,7 +236,7 @@ export default function MinesGamePage() {
                 disabled={isProcessing || multiplier <= 1.00}
                 style={{ background: multiplier > 1 ? 'var(--limbo-accent)' : '#365244', color: multiplier > 1 ? '#000' : '#fff' }}
               >
-                {isProcessing ? "Processing..." : `Cashout ৳ ${(Number(betAmount) * multiplier).toFixed(2)}`}
+                {isProcessing ? "Processing..." : multiplier > 1 ? `Cashout ৳ ${(Number(betAmount) * multiplier).toFixed(2)}` : "Pick a Tile"}
               </button>
             ) : (
               <button 
@@ -333,7 +337,7 @@ export default function MinesGamePage() {
               <button onClick={() => setIsBetHistoryOpen(false)}>✕</button>
             </div>
             <div className="limbo-modal-body">
-                <p style={{ textAlign: 'center', color: '#aaa' }}>History is not integrated in this demo.</p>
+                <p style={{ textAlign: 'center', color: '#aaa' }}>History is not integrated yet.</p>
             </div>
           </div>
         </div>
