@@ -1,11 +1,12 @@
 /* app/user-settings/user-settings.css */
 .settings-page {
-  --set-bg: #0f212e;
-  --set-card: #1a2c38;
-  --set-border: #2f4553;
-  --set-text: #ffffff;
-  --set-muted: #b1bad3;
-  --set-accent: #00e701;
+  --set-bg: #18231F;
+  --set-card: #1B2A23;
+  --set-input-bg: #121816;
+  --set-border: #263C32;
+  --set-text: #FFFFFF;
+  --set-muted: #A0ADB0;
+  --set-accent: #00E701;
 }
 
 .settings-page .settings-main {
@@ -87,7 +88,7 @@
   display: flex;
   justify-content: space-between;
   padding: 10px 0;
-  border-bottom: 1px solid rgba(255,255,255,0.05);
+  border-bottom: 1px solid var(--set-border);
   font-size: 0.9rem;
 }
 .settings-page .info-row:last-child { border-bottom: none; }
@@ -101,19 +102,19 @@
 .settings-page .verify-header h3 { margin: 0; font-size: 0.95rem; color: var(--set-text); }
 .settings-page .verify-desc { font-size: 0.8rem; color: var(--set-muted); margin: 0; }
 .settings-page .verify-form { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
-.settings-page .verify-form input { background: #0f212e; border: 1px solid var(--set-border); padding: 10px; border-radius: 6px; color: #fff; font-size: 0.9rem; outline: none; }
+.settings-page .verify-form input { background: var(--set-input-bg); border: 1px solid var(--set-border); padding: 10px; border-radius: 6px; color: var(--set-text); font-size: 0.9rem; outline: none; }
 .settings-page .verify-form input:focus { border-color: var(--set-accent); }
 .settings-page .verify-form button { background: var(--set-accent); color: #000; font-weight: bold; padding: 10px; border: none; border-radius: 6px; cursor: pointer; }
 
 /* Security Form */
 .settings-page .settings-form { display: flex; flex-direction: column; gap: 10px; }
 .settings-page .settings-form label { font-size: 0.8rem; color: var(--set-muted); }
-.settings-page .settings-form input { background: #0f212e; border: 1px solid var(--set-border); padding: 10px; border-radius: 6px; color: #fff; outline: none; }
+.settings-page .settings-form input { background: var(--set-input-bg); border: 1px solid var(--set-border); padding: 10px; border-radius: 6px; color: var(--set-text); outline: none; }
 .settings-page .settings-form input:focus { border-color: var(--set-accent); }
 .settings-page .settings-form button { background: var(--set-accent); color: #000; font-weight: bold; padding: 12px; border: none; border-radius: 6px; cursor: pointer; margin-top: 8px; }
 
 /* Sessions */
 .settings-page .session-list { display: flex; flex-direction: column; gap: 12px; }
-.settings-page .session-item { display: flex; align-items: flex-start; background: rgba(0,0,0,0.2); padding: 12px; border-radius: 8px; border: 1px solid var(--set-border); }
+.settings-page .session-item { display: flex; align-items: flex-start; background: var(--set-input-bg); padding: 12px; border-radius: 8px; border: 1px solid var(--set-border); }
 
 .settings-page .text-green { color: var(--set-accent) !important; }
