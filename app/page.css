@@ -19,10 +19,35 @@
 
 .landing-main {
   flex: 1;
-  padding: 16px 0 80px 0; /* নিচে ফুটারের জন্য জায়গা */
+  padding: 16px 0 80px 0;
   max-width: 900px;
   margin: 0 auto;
   width: 100%;
+}
+
+/* ✅ নতুন ব্যানার স্টাইল */
+.banner-scroll {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding: 0 16px 16px 16px;
+  scrollbar-width: none;
+}
+
+.banner-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.banner-img {
+  width: 100%;
+  min-width: 320px;
+  max-width: 400px;
+  height: auto;
+  aspect-ratio: 2 / 1;
+  object-fit: cover;
+  border-radius: 12px;
+  flex-shrink: 0;
+  border: 1px solid var(--border-color);
 }
 
 /* Common Section Styles */
@@ -43,29 +68,6 @@
   font-size: 1.2rem;
   font-weight: 800;
   margin: 0;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.badge {
-  font-size: 0.7rem;
-  background: rgba(255, 77, 77, 0.1);
-  color: #ff4d4d;
-  border: 1px solid rgba(255, 77, 77, 0.3);
-  padding: 2px 8px;
-  border-radius: 12px;
-  font-weight: 600;
-}
-
-.badge-outline {
-  font-size: 0.7rem;
-  background: transparent;
-  color: var(--color-primary);
-  border: 1px solid var(--color-primary);
-  padding: 2px 8px;
-  border-radius: 12px;
-  font-weight: 600;
 }
 
 .view-all-btn {
@@ -90,17 +92,18 @@
   gap: 12px;
   overflow-x: auto;
   padding: 0 16px 10px 16px;
-  scrollbar-width: none; /* Firefox */
+  scrollbar-width: none;
 }
 
 .horizontal-scroll::-webkit-scrollbar {
-  display: none; /* Chrome/Safari */
+  display: none;
 }
 
-/* Recommended Card */
+/* ✅ Recommended Card (টেক্সট বাদ দেওয়ায় শুধু সুন্দর ছবি থাকবে) */
 .recommended-card {
   flex-shrink: 0;
-  width: 220px;
+  width: 240px;
+  height: 140px; /* ছবির সাইজ */
   background: var(--bg-card);
   border: 1px solid var(--border-color);
   border-radius: 16px;
@@ -115,38 +118,18 @@
 
 .recommended-card img {
   width: 100%;
-  height: 120px;
+  height: 100%;
   object-fit: cover;
   display: block;
 }
 
-.rec-info {
-  padding: 12px;
-}
-
-.rec-info h3 {
-  color: var(--text-primary);
-  font-size: 0.95rem;
-  margin: 0 0 4px 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.rec-info p {
-  color: var(--text-secondary);
-  font-size: 0.75rem;
-  margin: 0;
-}
-
-/* Category Card */
+/* ✅ Category Card (টেক্সট বাদ) */
 .category-card {
   flex-shrink: 0;
-  width: 140px;
+  width: 150px;
   height: 180px;
   border-radius: 16px;
   overflow: hidden;
-  position: relative;
   cursor: pointer;
   border: 1px solid var(--border-color);
   transition: transform 0.2s;
@@ -161,23 +144,6 @@
   height: 100%;
   object-fit: cover;
   display: block;
-}
-
-.cat-overlay {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  padding: 30px 12px 12px 12px;
-  background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, transparent 100%);
-}
-
-.cat-overlay h3 {
-  color: var(--text-primary);
-  font-size: 0.9rem;
-  margin: 0;
-  text-align: center;
-  font-weight: bold;
 }
 
 /* Loading & Empty States */
