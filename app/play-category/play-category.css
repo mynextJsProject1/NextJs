@@ -181,3 +181,63 @@
   padding: 40px 20px;
   font-size: 0.95rem;
 }
+
+/* Game Grid */
+.pc-grid {
+  display: grid;
+  /* ✅ ৩টি কলাম পাশাপাশি রাখার জন্য */
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px; /* সাইজ ছোট হওয়ায় গ্যাপ একটু কমানো হয়েছে */
+}
+
+/* বড় স্ক্রিনের জন্য কলাম সংখ্যা বাড়ানো (অপশনাল) */
+@media (min-width: 600px) {
+  .pc-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+@media (min-width: 900px) {
+  .pc-grid {
+    grid-template-columns: repeat(6, 1fr);
+  }
+}
+
+/* Game Card */
+.pc-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 8px; /* কার্ডের কোনা সামান্য কম গোল করা হয়েছে */
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.2s, border-color 0.2s;
+  display: flex;
+  flex-direction: column;
+}
+
+.pc-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--color-primary);
+}
+
+/* স্ক্রিনশটের মতো সিলেক্টেড গেমের সবুজ বর্ডার */
+.pc-card.highlight {
+  border: 2px solid var(--color-primary);
+}
+
+.pc-card-img-wrap {
+  width: 100%;
+  /* ✅ কার্ডের উচ্চতা কমানোর জন্য aspect-ratio পরিবর্তন করা হলো */
+  aspect-ratio: 3 / 4; 
+  background: var(--bg-input);
+  position: relative;
+}
+
+.pc-card-img-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* .pc-card-title স্টাইলটি মুছে ফেলা হয়েছে যেহেতু আমরা টাইটেল দেখাবো না */
