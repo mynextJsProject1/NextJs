@@ -161,7 +161,7 @@ export default function Header({
     router.push("/login/");
   };
 
-  // CSS ভ্যারিয়েবলগুলো ড্রয়ারের জন্য আপডেট করা হয়েছে
+  // CSS ভ্যারিয়েবলগুলো ড্রয়ারের জন্য
   const drawerStyles = {
     overlay: {
       position: "fixed" as const,
@@ -234,11 +234,11 @@ export default function Header({
 
   return (
     <>
-      {/* ✅ হেডারের ব্যাকগ্রাউন্ড কালার #18221E করা হয়েছে */}
+      {/* ✅ হেডারের ব্যাকগ্রাউন্ড কালার #184f35 করা হয়েছে */}
       <header 
         className="stake-header" 
         style={{ 
-          backgroundColor: "#18221E", 
+          backgroundColor: "#184f35", 
           borderBottom: "1px solid var(--border-color, #263C32)" 
         }}
       >
@@ -258,7 +258,7 @@ export default function Header({
               aria-hidden="true"
             >
               <path
-                d="M3 6H21M3 12H21M3 18H21"
+                d="M4 6H20M4 12H20M4 18H20"
                 stroke="#FFFFFF"
                 strokeWidth="2"
                 strokeLinecap="round"
@@ -427,11 +427,11 @@ export default function Header({
         <div style={drawerStyles.menuContainer}>
           <div 
             style={drawerStyles.menuItem} 
-            onClick={() => handleNavigate("/my-account/")}
+            onClick={() => handleNavigate("/my-profile/")} /* ✅ my-account থেকে my-profile করা হয়েছে */
             onMouseEnter={(e) => { e.currentTarget.style.color = "#FFFFFF"; e.currentTarget.style.backgroundColor = "var(--bg-input, #121816)"; }}
             onMouseLeave={(e) => { e.currentTarget.style.color = "var(--text-secondary, #A0ADB0)"; e.currentTarget.style.backgroundColor = "transparent"; }}
           >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
             Profile
           </div>
           
@@ -441,7 +441,7 @@ export default function Header({
             onMouseEnter={(e) => { e.currentTarget.style.color = "#FFFFFF"; e.currentTarget.style.backgroundColor = "var(--bg-input, #121816)"; }}
             onMouseLeave={(e) => { e.currentTarget.style.color = "var(--text-secondary, #A0ADB0)"; e.currentTarget.style.backgroundColor = "transparent"; }}
           >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11.562 3.266a.5.5 0 0 1 .876 0L15.39 8.87a1 1 0 0 0 1.516.294L21.183 5.5a.5.5 0 0 1 .798.519l-2.834 10.246a1 1 0 0 1-.956.734H5.81a1 1 0 0 1-.957-.734L2.02 6.02a.5.5 0 0 1 .798-.519l4.276 3.664a1 1 0 0 0 1.516-.294l3.952-5.605z"/></svg>
             VIP
           </div>
 
@@ -451,8 +451,19 @@ export default function Header({
             onMouseEnter={(e) => { e.currentTarget.style.color = "#FFFFFF"; e.currentTarget.style.backgroundColor = "var(--bg-input, #121816)"; }}
             onMouseLeave={(e) => { e.currentTarget.style.color = "var(--text-secondary, #A0ADB0)"; e.currentTarget.style.backgroundColor = "transparent"; }}
           >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="5" width="18" height="14" rx="2" ry="2"></rect><line x1="3" y1="10" x2="21" y2="10"></line><path d="M7 15h2"></path><path d="M15 15h2"></path></svg>
             Transactions
+          </div>
+
+          {/* ✅ নতুন Notification বাটন */}
+          <div 
+            style={drawerStyles.menuItem} 
+            onClick={() => handleNavigate("/notifications/")}
+            onMouseEnter={(e) => { e.currentTarget.style.color = "#FFFFFF"; e.currentTarget.style.backgroundColor = "var(--bg-input, #121816)"; }}
+            onMouseLeave={(e) => { e.currentTarget.style.color = "var(--text-secondary, #A0ADB0)"; e.currentTarget.style.backgroundColor = "transparent"; }}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+            Notification
           </div>
 
           <div 
@@ -491,7 +502,7 @@ export default function Header({
             onMouseEnter={(e) => { e.currentTarget.style.color = "#FFFFFF"; e.currentTarget.style.backgroundColor = "var(--bg-input, #121816)"; }}
             onMouseLeave={(e) => { e.currentTarget.style.color = "var(--text-secondary, #A0ADB0)"; e.currentTarget.style.backgroundColor = "transparent"; }}
           >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"></path><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"></path></svg>
             Live Support
           </div>
         </div>
