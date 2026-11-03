@@ -85,24 +85,38 @@
 
 /* Suggested Games Section */
 .suggested-section {
-  margin-top: 30px;
-  padding: 0 10px;
+  margin-top: 20px;
+  width: 100%;
+  max-width: 600px;
+  padding: 0 8px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start; /* ✅ বাম দিক থেকে শুরু হবে */
 }
 
 .suggested-title {
   color: var(--limbo-text);
   font-size: 1.2rem;
   font-weight: 800;
-  margin-bottom: 15px;
+  margin-bottom: 12px;
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
+/* ✅ গ্রিডের বদলে হরাইজন্টাল স্ক্রল (ডান থেকে বামে) */
 .suggested-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  display: flex;
   gap: 12px;
+  overflow-x: auto;
+  padding-bottom: 10px;
+  width: 100%;
+  scrollbar-width: none; /* Firefox */
+}
+
+.suggested-grid::-webkit-scrollbar {
+  display: none; /* Chrome/Safari */
 }
 
 /* ✅ প্রিমিয়াম কার্ড স্টাইল */
@@ -117,6 +131,10 @@
   justify-content: flex-end;
   transition: transform 0.2s ease;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+  
+  /* ✅ স্ক্রল করার জন্য কার্ডের সাইজ ফিক্স করা হলো */
+  flex-shrink: 0;
+  width: 130px; 
 }
 
 .premium-game-card:hover {
@@ -148,26 +166,27 @@
   top: 0;
   left: 50%;
   transform: translateX(-50%);
-  padding: 4px 16px;
+  padding: 3px 12px;
   border-bottom-left-radius: 8px;
   border-bottom-right-radius: 8px;
-  font-size: 0.65rem;
+  font-size: 0.6rem;
   font-weight: 800;
   color: #fff;
   text-transform: uppercase;
   letter-spacing: 1px;
   z-index: 3;
   box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+  white-space: nowrap;
 }
 
 .premium-card-title {
   position: relative;
   z-index: 3;
   text-align: center;
-  font-size: 1.5rem;
+  font-size: 1.2rem;
   font-weight: 900;
   color: #fff;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
   text-transform: uppercase;
   letter-spacing: 1px;
   text-shadow: 2px 2px 4px rgba(0,0,0,0.8), 0 0 10px rgba(0,0,0,0.5);
