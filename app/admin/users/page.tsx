@@ -32,6 +32,9 @@ export default function AdminUsersPage() {
   const [newStatus, setNewStatus] = useState("active");
   const [statusReason, setStatusReason] = useState("");
   
+  // ✅ পাসওয়ার্ড রিসেটের জন্য নতুন স্টেট
+  const [newPassword, setNewPassword] = useState("");
+  
   const [actionLoading, setActionLoading] = useState(false);
   const [message, setMessage] = useState("");
 
@@ -96,6 +99,7 @@ export default function AdminUsersPage() {
     setNewBalance(user.balance.toString());
     setNewStatus(user.account_status || "active");
     setStatusReason(user.status_reason || "");
+    setNewPassword(""); // ✅ মডাল ওপেন হলে পাসওয়ার্ড ফিল্ড খালি করে দেওয়া
     setMessage("");
   };
 
@@ -110,6 +114,7 @@ export default function AdminUsersPage() {
       const balanceNum = Number(newBalance);
       if (isNaN(balanceNum) || balanceNum < 0) throw new Error("Invalid balance amount.");
 
+      // ১. প্রোফাইল আপডেট (ব্যালেন্স ও স্ট্যাটাস)
       const { error } = await supabase
         .from("profiles")
         .update({ 
@@ -120,6 +125,32 @@ export default function AdminUsersPage() {
         .eq("id", editingUser.id);
 
       if (error) throw error;
+
+      // ২. ✅ যদি অ্যাডমিন নতুন পাসওয়ার্ড লিখে থাকে, তবে Edge Function কল করে পাসওয়ার্ড চেঞ্জ করা
+      if (newPassword.trim().length > 0) {
+        if (newPassword.length < 6) throw new Error("Password must be at least 6 characters long.");
+
+        const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+        const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+        const res = await fetch(`${url}/functions/v1/reset-password`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${anonKey}`
+          },
+          body: JSON.stringify({ 
+            userId: editingUser.id, 
+            newPassword: newPassword 
+          }),
+        });
+
+        const data = await res.json();
+        
+        if (!res.ok) {
+          throw new Error(data.error || "Profile updated, but password reset failed.");
+        }
+      }
 
       setMessage("User updated successfully!");
       
@@ -255,6 +286,17 @@ export default function AdminUsersPage() {
                   value={newBalance}
                   onChange={e => setNewBalance(e.target.value)}
                   required
+                />
+              </div>
+
+              {/* ✅ নতুন পাসওয়ার্ড ফিল্ড */}
+              <div className="pm-field">
+                <label>New Password (Leave blank to keep unchanged)</label>
+                <input 
+                  type="text" 
+                  value={newPassword}
+                  onChange={e => setNewPassword(e.target.value)}
+                  placeholder="Enter new password"
                 />
               </div>
 
