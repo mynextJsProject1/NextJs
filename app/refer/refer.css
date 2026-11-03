@@ -1,12 +1,18 @@
 /* app/refer/refer.css */
 .refer-page {
-  --refer-bg: #0f212e;
-  --refer-card: #1a2c38;
-  --refer-border: #2f4553;
-  --refer-text: #ffffff;
-  --refer-muted: #b1bad3;
-  --refer-accent: #00e701;
+  --refer-bg: #18221E;
+  --refer-card: #1B2A23;
+  --refer-border: #263C32;
+  --refer-text: #FFFFFF;
+  --refer-muted: #A0ADB0;
+  --refer-accent: #00E701;
   --refer-orange: #f58220;
+  --refer-input-bg: #121816;
+
+  /* ✅ পেজের ব্যাকগ্রাউন্ড কালার এবং ফুল স্ক্রিন হাইট */
+  background-color: var(--refer-bg);
+  min-height: 100vh;
+  width: 100%;
 }
 
 .refer-page .refer-main {
@@ -97,7 +103,7 @@
 }
 .refer-page .refer-link-box {
   display: flex;
-  background: #0f212e;
+  background: var(--refer-input-bg);
   border: 1px solid var(--refer-border);
   border-radius: 8px;
   overflow: hidden;
@@ -290,7 +296,7 @@
   color: var(--refer-muted);
 }
 .refer-page .refer-input-group input {
-  background: #0f212e;
+  background: var(--refer-input-bg);
   border: 1px solid var(--refer-border);
   padding: 12px;
   border-radius: 8px;
