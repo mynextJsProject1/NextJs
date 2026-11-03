@@ -91,7 +91,7 @@ export default function Header({
       if (!id) {
         setBalance(0);
         setLoading(false);
-        setIsDrawerOpen(false); // অথেনটিকেশন না থাকলে ড্রয়ার বন্ধ হয়ে যাবে
+        setIsDrawerOpen(false);
       } else {
         setLoading(true);
         window.setTimeout(() => {
@@ -150,20 +150,18 @@ export default function Header({
     router.push("/wallets/");
   }
 
-  // ড্রয়ার মেনু আইটেম ক্লিক হ্যান্ডলার
   const handleNavigate = (path: string) => {
     setIsDrawerOpen(false);
     router.push(path);
   };
 
-  // লগআউট হ্যান্ডলার
   const handleLogout = async () => {
     await supabase.auth.signOut();
     setIsDrawerOpen(false);
     router.push("/login/");
   };
 
-  // CSS ভ্যারিয়েবলগুলো ড্রয়ারের জন্য
+  // CSS ভ্যারিয়েবলগুলো ড্রয়ারের জন্য আপডেট করা হয়েছে
   const drawerStyles = {
     overlay: {
       position: "fixed" as const,
@@ -236,7 +234,14 @@ export default function Header({
 
   return (
     <>
-      <header className="stake-header">
+      {/* ✅ হেডারের ব্যাকগ্রাউন্ড কালার #18221E করা হয়েছে */}
+      <header 
+        className="stake-header" 
+        style={{ 
+          backgroundColor: "#18221E", 
+          borderBottom: "1px solid var(--border-color, #263C32)" 
+        }}
+      >
         <div className="stake-header-left">
           <button
             className="stake-menu-btn"
@@ -319,7 +324,6 @@ export default function Header({
                 Wallet
               </button>
 
-              {/* ✅ প্রোফাইল বাটনে ক্লিক করলে এখন ড্রয়ার ওপেন হবে */}
               <button
                 type="button"
                 onClick={() => setIsDrawerOpen(true)}
@@ -405,7 +409,7 @@ export default function Header({
       <div style={drawerStyles.drawer}>
         {/* Drawer Header */}
         <div style={drawerStyles.header}>
-          <span style={{ color: "var(--text-primary, #fff)", fontSize: "16px", fontWeight: "bold" }}>
+          <span style={{ color: "var(--text-primary, #FFFFFF)", fontSize: "16px", fontWeight: "bold" }}>
             My Account
           </span>
           <button 
@@ -424,7 +428,7 @@ export default function Header({
           <div 
             style={drawerStyles.menuItem} 
             onClick={() => handleNavigate("/my-account/")}
-            onMouseEnter={(e) => { e.currentTarget.style.color = "#fff"; e.currentTarget.style.backgroundColor = "var(--bg-input, #121816)"; }}
+            onMouseEnter={(e) => { e.currentTarget.style.color = "#FFFFFF"; e.currentTarget.style.backgroundColor = "var(--bg-input, #121816)"; }}
             onMouseLeave={(e) => { e.currentTarget.style.color = "var(--text-secondary, #A0ADB0)"; e.currentTarget.style.backgroundColor = "transparent"; }}
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
@@ -434,7 +438,7 @@ export default function Header({
           <div 
             style={drawerStyles.menuItem} 
             onClick={() => handleNavigate("/my-level/")}
-            onMouseEnter={(e) => { e.currentTarget.style.color = "#fff"; e.currentTarget.style.backgroundColor = "var(--bg-input, #121816)"; }}
+            onMouseEnter={(e) => { e.currentTarget.style.color = "#FFFFFF"; e.currentTarget.style.backgroundColor = "var(--bg-input, #121816)"; }}
             onMouseLeave={(e) => { e.currentTarget.style.color = "var(--text-secondary, #A0ADB0)"; e.currentTarget.style.backgroundColor = "transparent"; }}
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
@@ -444,7 +448,7 @@ export default function Header({
           <div 
             style={drawerStyles.menuItem} 
             onClick={() => handleNavigate("/transactions/")}
-            onMouseEnter={(e) => { e.currentTarget.style.color = "#fff"; e.currentTarget.style.backgroundColor = "var(--bg-input, #121816)"; }}
+            onMouseEnter={(e) => { e.currentTarget.style.color = "#FFFFFF"; e.currentTarget.style.backgroundColor = "var(--bg-input, #121816)"; }}
             onMouseLeave={(e) => { e.currentTarget.style.color = "var(--text-secondary, #A0ADB0)"; e.currentTarget.style.backgroundColor = "transparent"; }}
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
@@ -454,7 +458,7 @@ export default function Header({
           <div 
             style={drawerStyles.menuItem} 
             onClick={() => handleNavigate("/redeem/")}
-            onMouseEnter={(e) => { e.currentTarget.style.color = "#fff"; e.currentTarget.style.backgroundColor = "var(--bg-input, #121816)"; }}
+            onMouseEnter={(e) => { e.currentTarget.style.color = "#FFFFFF"; e.currentTarget.style.backgroundColor = "var(--bg-input, #121816)"; }}
             onMouseLeave={(e) => { e.currentTarget.style.color = "var(--text-secondary, #A0ADB0)"; e.currentTarget.style.backgroundColor = "transparent"; }}
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 12 20 22 4 22 4 12"></polyline><rect x="2" y="7" width="20" height="5"></rect><line x1="12" y1="22" x2="12" y2="7"></line><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"></path><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"></path></svg>
@@ -464,7 +468,7 @@ export default function Header({
           <div 
             style={drawerStyles.menuItem} 
             onClick={() => handleNavigate("/refer/")}
-            onMouseEnter={(e) => { e.currentTarget.style.color = "#fff"; e.currentTarget.style.backgroundColor = "var(--bg-input, #121816)"; }}
+            onMouseEnter={(e) => { e.currentTarget.style.color = "#FFFFFF"; e.currentTarget.style.backgroundColor = "var(--bg-input, #121816)"; }}
             onMouseLeave={(e) => { e.currentTarget.style.color = "var(--text-secondary, #A0ADB0)"; e.currentTarget.style.backgroundColor = "transparent"; }}
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
@@ -474,7 +478,7 @@ export default function Header({
           <div 
             style={drawerStyles.menuItem} 
             onClick={() => handleNavigate("/user-settings/")}
-            onMouseEnter={(e) => { e.currentTarget.style.color = "#fff"; e.currentTarget.style.backgroundColor = "var(--bg-input, #121816)"; }}
+            onMouseEnter={(e) => { e.currentTarget.style.color = "#FFFFFF"; e.currentTarget.style.backgroundColor = "var(--bg-input, #121816)"; }}
             onMouseLeave={(e) => { e.currentTarget.style.color = "var(--text-secondary, #A0ADB0)"; e.currentTarget.style.backgroundColor = "transparent"; }}
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
@@ -484,7 +488,7 @@ export default function Header({
           <div 
             style={drawerStyles.menuItem} 
             onClick={() => handleNavigate("/live-support/")}
-            onMouseEnter={(e) => { e.currentTarget.style.color = "#fff"; e.currentTarget.style.backgroundColor = "var(--bg-input, #121816)"; }}
+            onMouseEnter={(e) => { e.currentTarget.style.color = "#FFFFFF"; e.currentTarget.style.backgroundColor = "var(--bg-input, #121816)"; }}
             onMouseLeave={(e) => { e.currentTarget.style.color = "var(--text-secondary, #A0ADB0)"; e.currentTarget.style.backgroundColor = "transparent"; }}
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
