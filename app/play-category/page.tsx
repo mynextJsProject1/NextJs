@@ -73,7 +73,6 @@ export default function PlayCategoryPage() {
 
   return (
     <div className="play-category-page">
-      {/* ✅ হেডার (আপনার প্রজেক্টের হেডারটি এখানে বসানো হয়েছে) */}
       <Header 
         onMenuClick={() => router.push("/")} 
         onHomeClick={() => router.push("/")} 
@@ -92,13 +91,7 @@ export default function PlayCategoryPage() {
           />
         </div>
 
-        {/* সেকশন টাইটেল */}
-        <div className="pc-section-header">
-          <h2>Casino Games</h2>
-          <span className="pc-view-all" onClick={() => setActiveCategory("all")}>
-            View All →
-          </span>
-        </div>
+        {/* ✅ Casino Games এবং View All সেকশনটি সরিয়ে দেওয়া হয়েছে */}
 
         {/* ক্যাটাগরি বাটনসমূহ */}
         <div className="pc-categories">
@@ -130,11 +123,10 @@ export default function PlayCategoryPage() {
             {filteredGames.map((game, index) => (
               <div 
                 key={game.id} 
-                className={`pc-card ${index === 2 ? "highlight" : ""}`} // স্ক্রিনশটের মতো ৩ নাম্বার কার্ডে সবুজ বর্ডার
+                className={`pc-card ${index === 2 ? "highlight" : ""}`} 
                 onClick={() => router.push(`/${game.route_path}`)}
               >
                 <div className="pc-card-img-wrap">
-                  {/* ডিফল্ট ছবি ফলব্যাক */}
                   <img 
                     src={game.image_url} 
                     alt={game.title} 
@@ -143,7 +135,7 @@ export default function PlayCategoryPage() {
                     }}
                   />
                 </div>
-                <h3 className="pc-card-title">{game.title}</h3>
+                {/* ✅ গেমের টাইটেল (<h3 className="pc-card-title">) সরিয়ে ফেলা হয়েছে */}
               </div>
             ))}
           </div>
@@ -156,7 +148,7 @@ export default function PlayCategoryPage() {
         onNavigate={(page) => {
           if (page === "home") router.push("/");
           else if (page === "chat") router.push("/live-support/");
-          else if (page === "casino") router.push("/play-category/"); // Casino বাটনে ক্লিক করলে এখানে আসবে
+          else if (page === "casino") router.push("/play-category/");
           else if (page === "sports") router.push("/");
         }}
       />
