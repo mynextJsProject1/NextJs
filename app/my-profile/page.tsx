@@ -65,11 +65,6 @@ export default function MyProfilePage() {
     void fetchProfile();
   }, [supabase, router]);
 
-  const getInitials = (name: string) => {
-    if (!name) return "U";
-    return name.split(" ").map(n => n[0]).join("").substring(0, 2).toUpperCase();
-  };
-
   const formatDate = (dateString: string) => {
     if (!dateString) return "N/A";
     const date = new Date(dateString);
@@ -100,17 +95,13 @@ export default function MyProfilePage() {
       
       <main className="my-profile-main">
         
-        {/* ১. প্রোফাইল হেডার (অ্যাভাটার ও নাম) */}
-        <div className="profile-header-card">
-          <div className="profile-avatar">
-            {getInitials(profile.full_name)}
-          </div>
+        {/* ১. প্রোফাইল হেডার (MR অ্যাভাটার সরিয়ে ফেলা হয়েছে) */}
+        <div className="profile-header-card" style={{ paddingTop: '30px', paddingBottom: '30px' }}>
           <h2>{profile.full_name || "Unknown User"}</h2>
-          <div className="profile-game-id">Game ID: {profile.game_id || "N/A"}</div>
-          <span className={`profile-status-badge ${isActive ? 'status-active' : 'status-blocked'}`}>
+          <div className="profile-game-id" style={{ marginTop: '8px' }}>Game ID: {profile.game_id || "N/A"}</div>
+          <span className={`profile-status-badge ${isActive ? 'status-active' : 'status-blocked'}`} style={{ marginTop: '12px' }}>
             {profile.account_status || "Active"}
           </span>
-          {/* ✅ Reason: লেখাটি সরিয়ে ফেলা হয়েছে */}
         </div>
 
         {/* ২. ওয়ালেট এবং ব্যালেন্স */}
@@ -162,10 +153,11 @@ export default function MyProfilePage() {
           </div>
         </div>
 
-        {/* ৪. ভেরিফিকেশন স্ট্যাটাস (ক্লিক করলে user-settings এ যাবে) */}
+        {/* ৪. ভেরিফিকেশন স্ট্যাটাস (নতুন অর্ডার ও নাম অনুযায়ী) */}
         <div className="profile-section-card">
           <h3><i className="fa-solid fa-shield-halved"></i> Verification Status</h3>
           
+          {/* Email Verified */}
           <div className="profile-info-row clickable" onClick={() => router.push("/user-settings/")}>
             <span>Email Verified</span>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -176,21 +168,23 @@ export default function MyProfilePage() {
             </div>
           </div>
 
-          <div className="profile-info-row clickable" onClick={() => router.push("/user-settings/")}>
-            <span>Identity (KYC)</span>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span className={`verify-badge ${profile.identify_verified ? 'verify-yes' : 'verify-no'}`}>
-                {profile.identify_verified ? "Verified" : "Not Verified"}
-              </span>
-              <i className="fa-solid fa-chevron-right" style={{ fontSize: '10px', color: '#A0AAB2' }}></i>
-            </div>
-          </div>
-
+          {/* Address Verified */}
           <div className="profile-info-row clickable" onClick={() => router.push("/user-settings/")}>
             <span>Address Verified</span>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <span className={`verify-badge ${profile.address_verified ? 'verify-yes' : 'verify-no'}`}>
                 {profile.address_verified ? "Verified" : "Not Verified"}
+              </span>
+              <i className="fa-solid fa-chevron-right" style={{ fontSize: '10px', color: '#A0AAB2' }}></i>
+            </div>
+          </div>
+
+          {/* Identity (KYC) Optional */}
+          <div className="profile-info-row clickable" onClick={() => router.push("/user-settings/")}>
+            <span>Identity (KYC) Optional</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span className={`verify-badge ${profile.identify_verified ? 'verify-yes' : 'verify-no'}`}>
+                {profile.identify_verified ? "Verified" : "Not Verified"}
               </span>
               <i className="fa-solid fa-chevron-right" style={{ fontSize: '10px', color: '#A0AAB2' }}></i>
             </div>
