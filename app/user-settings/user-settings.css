@@ -1,12 +1,12 @@
 /* app/user-settings/user-settings.css */
 .settings-page {
-  --set-bg: #18231F;
-  --set-card: #1B2A23;
-  --set-input-bg: #121816;
-  --set-border: #263C32;
+  --set-bg: #18221E;
+  --set-card: #1C2A24;
+  --set-border: #2B4236;
   --set-text: #FFFFFF;
-  --set-muted: #A0ADB0;
+  --set-muted: #A0AAB2;
   --set-accent: #00E701;
+  --set-input-bg: #111815;
 }
 
 .settings-page .settings-main {
