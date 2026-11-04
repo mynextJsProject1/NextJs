@@ -1,36 +1,36 @@
 /* app/original/dragon-tower/dragon-tower.css */
 @import "../limbo/limbo.css";
 
-/* মেইন কন্টেইনার */
+/* পেজ যাতে স্ক্রল না হয় */
 .limbo-main-area {
-  height: calc(100dvh - 70px); /* মোবাইলে স্ক্রল বন্ধ করতে */
+  height: calc(100dvh - 120px);
   display: flex;
   flex-direction: column;
   padding-bottom: 60px;
 }
 
-/* ড্রাগনের মাথা (ছবির মতো ব্যাকগ্রাউন্ডসহ) */
+/* ড্রাগন হেড কন্টেইনার (ছবির আদলে) */
 .dragon-head-container {
   display: flex;
   justify-content: center;
-  align-items: center;
-  height: 80px;
+  align-items: flex-end;
+  height: 60px;
   margin-top: -10px;
-  margin-bottom: -10px;
+  margin-bottom: -15px;
   position: relative;
   z-index: 10;
 }
 
 .dragon-head {
-  width: 140px;
-  height: 140px;
+  width: 110px;
+  height: 110px;
   animation: floatSway 4s ease-in-out infinite alternate;
   filter: drop-shadow(0 0 15px rgba(0, 229, 255, 0.6));
 }
 
 @keyframes floatSway {
   0% { transform: translateY(0) scale(1); }
-  100% { transform: translateY(-4px) scale(1.02); }
+  100% { transform: translateY(-5px) scale(1.05); }
 }
 
 .dragon-eye {
@@ -42,24 +42,25 @@
   100% { fill: #FFFFFF; opacity: 1; filter: drop-shadow(0 0 8px #00E5FF); }
 }
 
-/* গ্রিড ডিজাইন (ছবির মতো সলিড বক্স) */
+/* ড্রাগন টাওয়ার গ্রিড (৪ কলাম, ৯ রো) */
 .dragon-grid {
   display: flex;
-  flex-direction: column-reverse; 
+  flex-direction: column-reverse; /* নিচ থেকে উপরে */
   gap: 4px; 
-  background: #1e2229; /* ছবির মতো ডার্ক ব্লু/গ্রে */
+  background: #1A2431; /* ছবির মতো ডার্ক ব্লু */
   padding: 6px; 
   border-radius: 8px;
-  border: 3px solid #3b4754; /* মোটা বর্ডার */
+  border: 4px solid #3B4A5C; /* পাথরের মোটা বর্ডার */
   flex: 1;
   min-height: 0;
   margin-bottom: 10px;
 }
 
 .level-row {
-  display: flex;
-  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
   gap: 4px;
+  flex: 1;
   opacity: 0.4;
   pointer-events: none;
   transition: all 0.3s ease;
@@ -70,19 +71,18 @@
   pointer-events: auto;
 }
 
-/* বক্স বা ঘর */
+/* ডিমের ঘর */
 .egg-tile {
-  flex: 1;
   height: 100%;
-  background: #11151a; /* ডার্ক স্লট */
-  border: 1px solid #29313a;
-  border-radius: 6px;
+  background: #121820; /* ডার্ক স্লট */
+  border: 1px solid #2A3644;
+  border-radius: 4px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   position: relative;
-  box-shadow: inset 0 0 8px rgba(0,0,0,0.8);
+  box-shadow: inset 0 0 10px rgba(0,0,0,0.8);
 }
 
 /* পেছনের ক্রস (X) মার্ক */
@@ -99,20 +99,20 @@
 }
 
 .level-row.active .egg-tile:hover {
-  background: #2a343e;
-  border-color: #4a5a6a;
+  background: #1E2836;
+  border-color: #4A5A6A;
 }
 
-/* ডিম খোলার পর (Safe) */
+/* সেফ ডিম (Win) */
 .egg-tile.safe {
-  background: #11151a;
-  border-color: #29313a;
+  background: #121820;
+  border-color: #2A3644;
 }
 
 /* ড্রাগন (Loss) */
 .egg-tile.dragon {
-  background: #2a0d0d;
-  border: 2px solid #ff3333;
+  background: #2A0D0D;
+  border: 2px solid #FF3333;
   box-shadow: 0 0 15px rgba(255, 51, 51, 0.5);
 }
 
