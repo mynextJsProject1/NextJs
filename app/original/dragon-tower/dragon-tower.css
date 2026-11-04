@@ -1,28 +1,35 @@
 /* app/original/dragon-tower/dragon-tower.css */
 @import "../limbo/limbo.css";
 
-/* ড্রাগন হেড কন্টেইনার (গ্রিডের সাথে ওভারল্যাপ হবে না) */
+.limbo-main-area {
+  /* পুরো পেজ যাতে স্ক্রল না হয় */
+  height: calc(100vh - 120px);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+/* ড্রাগন হেড কন্টেইনার */
 .dragon-head-container {
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 90px; 
-  margin-top: 10px;
-  margin-bottom: 10px;
+  height: 70px; /* স্পেস ফিক্স করা হলো */
+  margin-top: 5px;
   position: relative;
   z-index: 10;
 }
 
 .dragon-head {
-  width: 130px;
-  height: 130px;
+  width: 120px;
+  height: 120px;
   animation: floatSway 3s ease-in-out infinite alternate;
-  filter: drop-shadow(0 10px 15px rgba(0, 200, 255, 0.4));
+  filter: drop-shadow(0 5px 10px rgba(0, 200, 255, 0.5));
 }
 
 @keyframes floatSway {
   0% { transform: translateY(0) scale(1); }
-  100% { transform: translateY(-8px) scale(1.05); }
+  100% { transform: translateY(-5px) scale(1.03); }
 }
 
 .dragon-eye {
@@ -34,26 +41,27 @@
   100% { fill: #00E5FF; opacity: 1; filter: drop-shadow(0 0 10px #00E5FF); }
 }
 
-/* ড্রাগন টাওয়ার গ্রিড (স্ক্রল ছাড়া ফিট করার জন্য) */
+/* ড্রাগন টাওয়ার গ্রিড (স্ক্রল বন্ধ) */
 .dragon-grid {
   display: flex;
   flex-direction: column-reverse; 
   gap: 4px; 
   background: var(--limbo-card);
-  padding: 8px; 
+  padding: 6px; 
   border-radius: 12px;
   border: 1px solid var(--limbo-border);
+  
+  /* মোবাইলে ফিট হওয়ার জন্য ফ্লেক্সিবল হাইট */
+  flex: 1; 
+  max-height: 55vh; 
   margin-bottom: 10px;
-  height: calc(100vh - 380px); /* স্ক্রিন সাইজ অনুযায়ী ফিট হবে */
-  min-height: 320px;
-  max-height: 400px;
 }
 
 .level-row {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 4px;
-  height: 100%; 
+  flex: 1; /* প্রতিটি রো সমান জায়গা নেবে */
   opacity: 0.4;
   pointer-events: none;
   transition: all 0.3s ease;
