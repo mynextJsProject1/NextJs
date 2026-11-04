@@ -144,14 +144,14 @@ export default function CrashGamePage() {
     if (graphContainerRef.current) graphContainerRef.current.scrollLeft = graphContainerRef.current.scrollWidth;
   }, [history]);
 
-  // 🟢 ১. বিমান ওড়ার লজিক (শুধু লোকাল টাইমার ব্যবহার)
+  // 🟢 ১. বিমান ওড়ার লজিক
   const startFlying = useCallback((bet: number, nonceAtStart: number, targetCrashPoint: number) => {
     setIsPlaying(true);
     setIsProcessing(false);
     roundSettledRef.current = false;
     
     const cp = Number(targetCrashPoint) > 1 ? Number(targetCrashPoint) : 2.0;
-    const startTime = Date.now();
+    const startTime = Date.now(); // লোকাল টাইম
 
     if (animRef.current) clearInterval(animRef.current);
 
@@ -185,11 +185,16 @@ export default function CrashGamePage() {
           },
         ]);
         setNonce((n) => n + 1);
+        
+        // 🟢 অটো বেট পুনরায় চালু করা
+        if (isAutoRef.current) {
+          setTimeout(() => runAutoLoop(bet, 1, -bet), 2000);
+        }
       }
     }, ANIM_MS);
   }, [playSound, stopAnimations]);
 
-  // 🟢 ২. লোকাল ১৫ সেকেন্ডের কাউন্টডাউন
+  // 🟢 ২. ১৫ সেকেন্ডের কাউন্টডাউন
   const startCountdown = useCallback((bet: number, nonceAtStart: number, cp: number) => {
     setCountdown(15);
     if (countdownRef.current) clearInterval(countdownRef.current);
@@ -289,6 +294,11 @@ export default function CrashGamePage() {
           },
         ]);
         setNonce((n) => n + 1);
+        
+        // 🟢 অটো বেট পুনরায় চালু করা
+        if (isAutoRef.current) {
+          setTimeout(() => runAutoLoop(Number(betAmount), 1, Number(data.profit)), 2000);
+        }
       } else {
         const cp = Number(data.crash_point) || claimedMult;
         setCurrentMultiplier(cp);
@@ -311,6 +321,11 @@ export default function CrashGamePage() {
           },
         ]);
         setNonce((n) => n + 1);
+
+        // 🟢 অটো বেট পুনরায় চালু করা
+        if (isAutoRef.current) {
+          setTimeout(() => runAutoLoop(Number(betAmount), 1, -Number(betAmount)), 2000);
+        }
       }
     } catch (err: any) {
       setErrorMsg(err.message || "Failed to cashout.");
@@ -320,88 +335,7 @@ export default function CrashGamePage() {
     }
   };
 
-  // 🟢 ৫. অটো রাউন্ড প্লে (লোকাল টাইমার)
-  const playAutoRound = useCallback(
-    (gid: string, bet: number, target: number, crashP: number): Promise<{ won: boolean; cashoutMult?: number; crashPoint?: number }> =>
-      new Promise((resolve) => {
-        let settled = false;
-        roundSettledRef.current = false;
-        const cp = Number(crashP) > 1 ? Number(crashP) : 2.0;
-        const safeTarget = Number(target) > 1 ? Number(target) : 2.0;
-
-        setCountdown(15);
-        const targetTime = Date.now() + 15000;
-
-        const countdownInterval = window.setInterval(() => {
-          const now = Date.now();
-          const remaining = Math.max(0, Math.ceil((targetTime - now) / 1000));
-          setCountdown(remaining);
-
-          if (now >= targetTime) {
-            clearInterval(countdownInterval);
-            setCountdown(0);
-            setIsPlaying(true);
-            const startTime = Date.now();
-
-            const animId = window.setInterval(async () => {
-              if (settled) return;
-              if (!isAutoRef.current) {
-                settled = true;
-                clearInterval(animId);
-                return resolve({ won: false });
-              }
-
-              const elapsed = (Date.now() - startTime) / 1000;
-              const local = Math.pow(GROWTH_BASE, elapsed);
-              setCurrentMultiplier(local);
-
-              if (local >= safeTarget) {
-                settled = true;
-                clearInterval(animId);
-                roundSettledRef.current = true;
-                try {
-                  const { data } = await supabase.rpc("cashout_crash", { p_game_id: gid, p_clicked_mult: safeTarget });
-                  if (data?.won) {
-                    setBalance(data.new_balance);
-                    setCurrentMultiplier(Number(data.cashout_mult));
-                    setHasCashedOut(true);
-                    setIsPlaying(false);
-                    setProfit(Number(data.profit) || bet * Number(data.cashout_mult) - bet);
-                    playSound("win");
-                    resolve({ won: true, cashoutMult: Number(data.cashout_mult) });
-                  } else {
-                    const realCp = Number(data?.crash_point) || safeTarget;
-                    setCurrentMultiplier(realCp);
-                    setCrashPointRevealed(realCp);
-                    setIsCrashed(true);
-                    setIsPlaying(false);
-                    setProfit(-bet);
-                    playSound("lose");
-                    resolve({ won: false, crashPoint: realCp });
-                  }
-                } catch {
-                  resolve({ won: false });
-                }
-              } else if (local >= cp) {
-                settled = true;
-                clearInterval(animId);
-                roundSettledRef.current = true;
-                setCurrentMultiplier(cp);
-                setCrashPointRevealed(cp);
-                setIsCrashed(true);
-                setIsPlaying(false);
-                setProfit(-bet);
-                playSound("lose");
-                resolve({ won: false, crashPoint: cp });
-              }
-            }, ANIM_MS);
-          }
-        }, 100);
-      }),
-    [supabase, playSound]
-  );
-
-  // 🟢 ৬. অটো বেট লুপ
+  // 🟢 ৫. অটো বেট লুপ (সংশোধিত)
   async function runAutoLoop(currentBet: number, currentCount: number, currentProfit: number) {
     if (!isAutoRef.current) return;
 
@@ -441,35 +375,23 @@ export default function CrashGamePage() {
       setCrashPoint(cp);
       if (startData.nonce) setNonce(Number(startData.nonce));
       if (startData.server_seed_hash) setServerSeedHash(startData.server_seed_hash);
+      
+      setAutoStats({ bets: currentCount, profit: currentProfit });
 
-      const round = await playAutoRound(startData.game_id, currentBet, target, cp);
+      // অটো টাইমার শুরু
+      startCountdown(currentBet, nonceAtStart, cp);
+      
+      // টার্গেট বা ক্র্যাশ চেক করার জন্য আলাদা লজিক
+      const checkInterval = setInterval(() => {
+        if (!isAutoRef.current) {
+          clearInterval(checkInterval);
+          return;
+        }
+        if (isCrashed || hasCashedOut || roundSettledRef.current) {
+          clearInterval(checkInterval);
+        }
+      }, 100);
 
-      const roundProfit = round.won ? currentBet * Number(round.cashoutMult) - currentBet : -currentBet;
-      const newCount = currentCount + 1;
-      const newProfit = currentProfit + roundProfit;
-
-      setAutoStats({ bets: newCount, profit: newProfit });
-      setHistory((prev) => [
-        ...prev,
-        {
-          id: Date.now().toString(),
-          value: round.won ? Number(round.cashoutMult) : 0,
-          crashPoint: round.crashPoint,
-          isWin: round.won,
-          profit: roundProfit,
-          nonce: nonceAtStart,
-          betAmount: currentBet,
-        },
-      ]);
-
-      let nextBet = currentBet;
-      if (round.won && onWinMode === "increase") nextBet = currentBet + (currentBet * Number(onWinValue)) / 100;
-      else if (!round.won && onLossMode === "increase") nextBet = currentBet + (currentBet * Number(onLossValue)) / 100;
-      setBetAmount(nextBet.toFixed(2));
-
-      if (isAutoRef.current) {
-        setTimeout(() => runAutoLoop(nextBet, newCount, newProfit), instantBet ? 300 : 1500);
-      }
     } catch (err: any) {
       setErrorMsg(err.message || "Failed during auto bet.");
       toggleAutoBet();
@@ -478,7 +400,7 @@ export default function CrashGamePage() {
     }
   }
 
-  // 🟢 ৭. অটো বেট টগল
+  // 🟢 ৬. অটো বেট টগল
   function toggleAutoBet() {
     if (isAutoRef.current) {
       isAutoRef.current = false;
@@ -497,6 +419,17 @@ export default function CrashGamePage() {
     setAutoStats({ bets: 0, profit: 0 });
     runAutoLoop(amount, 0, 0);
   }
+
+  // 🟢 ৭. অটো ক্যাশআউট লজিক (টার্গেটে পৌঁছালে)
+  useEffect(() => {
+    if (isPlaying && isAutoBetting && !isCrashed && !hasCashedOut) {
+      const target = Number(autoCashoutAt);
+      if (currentMultiplier >= target) {
+        handleCashout();
+      }
+    }
+  }, [currentMultiplier, isPlaying, isAutoBetting, isCrashed, hasCashedOut, autoCashoutAt, handleCashout]);
+
 
   const totalWagered = history.reduce((s, i) => s + i.betAmount, 0);
   const totalProfit = history.reduce((s, i) => s + i.profit, 0);
