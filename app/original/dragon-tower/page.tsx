@@ -23,7 +23,6 @@ export default function DragonTowerGamePage() {
   const [betAmount, setBetAmount] = useState("10.00");
   const [difficulty, setDifficulty] = useState("easy");
 
-  // গেম স্টেট
   const [gameId, setGameId] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
@@ -32,10 +31,7 @@ export default function DragonTowerGamePage() {
   const [profit, setProfit] = useState(0);
   const [lostDragons, setLostDragons] = useState<any>(null);
 
-  // ট্যাব স্টেট
   const [activeTab, setActiveTab] = useState<"manual" | "auto">("manual");
-
-  // Modals
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isFairnessOpen, setIsFairnessOpen] = useState(false);
 
@@ -61,7 +57,6 @@ export default function DragonTowerGamePage() {
     audio.play().catch(e => console.log("Audio blocked:", e));
   };
 
-  // 🎮 গেম শুরু
   const handleStartGame = async () => {
     const amount = Number(betAmount);
     if (amount <= 0) return setErrorMsg("Invalid bet amount.");
@@ -94,7 +89,6 @@ export default function DragonTowerGamePage() {
     }
   };
 
-  // 🥚 ডিমে ক্লিক করা
   const handleRevealEgg = async (level: number, eggIndex: number) => {
     if (gameState.status !== "playing" || isProcessing) return;
     if (level !== gameState.level) return; 
@@ -148,7 +142,6 @@ export default function DragonTowerGamePage() {
     }
   };
 
-  // 💰 ক্যাশআউট
   const handleCashout = async () => {
     if (gameState.status !== "playing" || gameState.level === 1) return;
 
@@ -194,18 +187,40 @@ export default function DragonTowerGamePage() {
               </div>
             )}
 
-            {/* 🐉 হরর ড্রাগন হেড */}
+            {/* 🐉 নতুন ভয়ংকর ড্রাগন হেড (ছবির আদলে) */}
             <div className="dragon-head-container">
               <svg className="dragon-head" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-                <path d="M50 10 L20 30 L10 70 L30 90 L70 90 L90 70 L80 30 Z" fill="#121816" stroke="#263C32" strokeWidth="2" />
-                <path d="M30 40 L45 45 L40 55 Z" className="dragon-eye" />
-                <path d="M70 40 L55 45 L60 55 Z" className="dragon-eye" />
-                <path d="M40 70 L60 70 L50 85 Z" fill="#263C32" />
-                <path d="M45 60 L55 60 M48 65 L52 65" stroke="#A0ADB0" strokeWidth="2" />
+                <defs>
+                  <linearGradient id="dragonSkin" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor="#1B2A23" />
+                    <stop offset="100%" stopColor="#0C1711" />
+                  </linearGradient>
+                  <linearGradient id="hornGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" stopColor="#263C32" />
+                    <stop offset="100%" stopColor="#121816" />
+                  </linearGradient>
+                </defs>
+                {/* শিং */}
+                <path d="M35 30 L20 5 L45 25 Z" fill="url(#hornGrad)" stroke="#00E701" strokeWidth="1" />
+                <path d="M65 30 L80 5 L55 25 Z" fill="url(#hornGrad)" stroke="#00E701" strokeWidth="1" />
+                <path d="M25 45 L10 25 L30 40 Z" fill="url(#hornGrad)" stroke="#00E701" strokeWidth="1" />
+                <path d="M75 45 L90 25 L70 40 Z" fill="url(#hornGrad)" stroke="#00E701" strokeWidth="1" />
+                {/* মুখমণ্ডল */}
+                <path d="M50 15 C30 15 20 40 25 65 C30 85 40 95 50 95 C60 95 70 85 75 65 C80 40 70 15 50 15 Z" fill="url(#dragonSkin)" stroke="#00E701" strokeWidth="2" />
+                {/* চোখ */}
+                <path d="M30 45 L45 50 L35 55 Z" className="dragon-eye" />
+                <path d="M70 45 L55 50 L65 55 Z" className="dragon-eye" />
+                {/* নাক */}
+                <path d="M45 65 L55 65 L50 70 Z" fill="#121816" stroke="#263C32" strokeWidth="1" />
+                {/* দাঁত/মুখ */}
+                <path d="M40 75 L60 75 L50 85 Z" fill="#0C1711" stroke="#00E701" strokeWidth="2" />
+                <path d="M40 75 L45 80 L45 75 M60 75 L55 80 L55 75" fill="#00E701" />
+                {/* ফাটল */}
+                <path d="M35 30 L40 45 M65 30 L60 45" stroke="#121816" strokeWidth="2" />
               </svg>
             </div>
 
-            {/* 🥚 ড্রাগন টাওয়ার গ্রিড */}
+            {/* 🥚 ড্রাগন টাওয়ার গ্রিড (স্ক্রল ছাড়া) */}
             <div className="dragon-grid">
               {Array.from({ length: 9 }).map((_, levelIndex) => {
                 const level = levelIndex + 1;
@@ -225,7 +240,7 @@ export default function DragonTowerGamePage() {
                         >
                           {isRevealed ? (
                             isDragon ? (
-                              // 💀 প্রিমিয়াম ড্রাগন খুলি (Loss)
+                              // 💀 লাল খুলি
                               <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
                                 <defs>
                                   <linearGradient id="redGrad" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -242,7 +257,7 @@ export default function DragonTowerGamePage() {
                                 <path d="M45 65 L55 65 L50 70 Z" fill="#000" />
                               </svg>
                             ) : (
-                              // 🥚 প্রিমিয়াম সেফ ডিম (Win)
+                              // 🥚 সেফ ডিম
                               <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
                                 <defs>
                                   <linearGradient id="greenGrad" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -253,11 +268,10 @@ export default function DragonTowerGamePage() {
                                 <path d="M50 10 C25 10 15 45 15 65 C15 85 25 95 50 95 C75 95 85 85 85 65 C85 45 75 10 50 10 Z" fill="url(#greenGrad)" stroke="#00E701" strokeWidth="4" />
                                 <path d="M40 40 L50 55 L45 70 L55 80" stroke="#00E701" strokeWidth="3" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
                                 <path d="M40 40 L50 55 L45 70 L55 80" stroke="#FFFFFF" strokeWidth="1" fill="none" strokeLinecap="round" strokeLinejoin="round" opacity="0.5"/>
-                                <circle cx="50" cy="65" r="10" fill="#FFFFFF" opacity="0.2" filter="blur(4px)"/>
                               </svg>
                             )
                           ) : (
-                            // 🥚 প্রিমিয়াম আনরিভিলড ডিম
+                            // 🥚 আনরিভিলড ডিম
                             <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
                               <path d="M50 10 C25 10 15 45 15 65 C15 85 25 95 50 95 C75 95 85 85 85 65 C85 45 75 10 50 10 Z" fill="#1B2A23" stroke="#263C32" strokeWidth="4" />
                               <circle cx="35" cy="45" r="5" fill="#121816" />
@@ -353,7 +367,6 @@ export default function DragonTowerGamePage() {
         else if (page === "sports") router.push("/");
       }} />
 
-      {/* Settings Modal */}
       {isSettingsOpen && (
         <div className="limbo-modal-overlay" onClick={() => setIsSettingsOpen(false)}>
           <div className="limbo-modal-content" onClick={e => e.stopPropagation()}>
@@ -368,7 +381,6 @@ export default function DragonTowerGamePage() {
         </div>
       )}
 
-      {/* Fairness Modal */}
       {isFairnessOpen && (
         <div className="limbo-modal-overlay" onClick={() => setIsFairnessOpen(false)}>
           <div className="limbo-modal-content" onClick={e => e.stopPropagation()}>
