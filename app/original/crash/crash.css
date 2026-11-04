@@ -24,13 +24,15 @@
   left: 0;
 }
 
-.aviator-plane {
-  transition: transform 0.1s linear;
+/* 🌟 FIX: Plane now uses standard HTML img with CSS class */
+.aviator-plane-img {
+  position: absolute;
+  transition: left 0.05s linear, top 0.05s linear, transform 0.1s linear;
 }
 
-.aviator-plane.crashed {
+.aviator-plane-img.crashed {
   opacity: 0;
-  transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+  transition: opacity 0.3s ease-out, transform 0.3s ease-out !important;
   transform: translateY(50px) scale(0.5) rotate(45deg) !important;
 }
 
