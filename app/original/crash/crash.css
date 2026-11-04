@@ -1,0 +1,270 @@
+/* app/original/crash/crash.css */
+@import "../limbo/limbo.css";
+
+/* ========================================= */
+/* 💥 CRASH MULTIPLIER DISPLAY                */
+/* ========================================= */
+.crash-display-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 30px 16px;
+  margin: 12px 0;
+  background: linear-gradient(180deg, #121816 0%, #1B2A23 100%);
+  border: 1px solid var(--limbo-border);
+  border-radius: 12px;
+  min-height: 200px;
+  position: relative;
+  overflow: hidden;
+}
+
+.crash-multiplier-text {
+  font-size: 3.6rem;
+  font-weight: 900;
+  color: #ffffff;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -1px;
+  transition: color 0.15s ease, transform 0.1s ease, text-shadow 0.2s ease;
+  text-shadow: 0 0 20px rgba(0, 231, 1, 0.15);
+  line-height: 1;
+}
+
+.crash-multiplier-text.running {
+  color: var(--limbo-accent);
+  text-shadow: 0 0 32px rgba(0, 231, 1, 0.45),
+               0 0 12px rgba(0, 231, 1, 0.25);
+}
+
+.crash-multiplier-text.crashed {
+  color: #ff4d4d;
+  text-shadow: 0 0 32px rgba(255, 77, 77, 0.5);
+  animation: crashShake 0.5s ease-out;
+}
+
+.crash-label {
+  margin-top: 12px;
+  font-size: 0.85rem;
+  font-weight: 800;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: #ff4d4d;
+  animation: crashShake 0.5s ease-out;
+}
+
+.crash-label.cashed-out {
+  color: var(--limbo-accent);
+  animation: cashedOutPulse 0.6s ease-out;
+}
+
+.crash-subline {
+  margin-top: 14px;
+  font-size: 0.85rem;
+  color: #a0aab2;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.crash-cashout-preview {
+  color: var(--limbo-accent);
+  font-weight: 800;
+  font-size: 1rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.crash-idle-text {
+  color: #5c6a68;
+  font-size: 0.8rem;
+  letter-spacing: 0.5px;
+}
+
+/* Animations */
+@keyframes crashShake {
+  0%, 100% { transform: translateX(0); }
+  15%      { transform: translateX(-8px); }
+  30%      { transform: translateX(8px); }
+  45%      { transform: translateX(-6px); }
+  60%      { transform: translateX(6px); }
+  75%      { transform: translateX(-3px); }
+  90%      { transform: translateX(3px); }
+}
+
+@keyframes cashedOutPulse {
+  0%   { transform: scale(0.85); opacity: 0.4; }
+  50%  { transform: scale(1.06); opacity: 1; }
+  100% { transform: scale(1);    opacity: 1; }
+}
+
+/* Optional: subtle pulse for the multiplier during running */
+@media (prefers-reduced-motion: no-preference) {
+  .crash-multiplier-text.running {
+    animation: crashPulse 1.6s ease-in-out infinite;
+  }
+}
+
+@keyframes crashPulse {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.025); }
+}
+
+/* ========================================= */
+/* ✅ SUGGESTED GAMES (shared look)           */
+/* ========================================= */
+.suggested-section {
+  margin-top: 20px;
+  width: 100%;
+  max-width: 600px;
+  padding: 0 8px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.suggested-title {
+  color: var(--limbo-text);
+  font-size: 1.1rem;
+  font-weight: 800;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.suggested-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  width: 100%;
+  padding-bottom: 10px;
+}
+
+.premium-game-card {
+  position: relative;
+  border-radius: 10px;
+  overflow: hidden;
+  aspect-ratio: 3 / 4;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  transition: transform 0.2s ease;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+  width: 100%;
+}
+
+.premium-game-card:hover {
+  transform: translateY(-4px);
+}
+
+.premium-card-img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 1;
+}
+
+.premium-card-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0) 60%);
+  z-index: 2;
+}
+
+.premium-card-ribbon {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 2px 6px;
+  border-bottom-left-radius: 6px;
+  border-bottom-right-radius: 6px;
+  font-size: 0.45rem;
+  font-weight: 800;
+  color: #fff;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  z-index: 3;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+  white-space: nowrap;
+}
+
+.premium-card-title {
+  position: relative;
+  z-index: 3;
+  text-align: center;
+  font-size: 0.75rem;
+  font-weight: 900;
+  color: #fff;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.8), 0 0 10px rgba(0,0,0,0.5);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 0 4px;
+}
+
+/* ========================================= */
+/* ✅ MODAL THEME OVERRIDES (same as mines)   */
+/* ========================================= */
+.limbo-modal-content {
+  background: #1B2A23 !important;
+  border: 1px solid #263C32 !important;
+}
+
+.limbo-modal-header {
+  border-bottom: 1px solid #263C32 !important;
+}
+
+.limbo-stats-main-card {
+  background: #18231F !important;
+  border: 1px solid #263C32 !important;
+}
+
+.limbo-stats-layout {
+  background: #1B2A23 !important;
+  border: 1px solid #263C32 !important;
+}
+
+.limbo-stat-label-new {
+  color: #A0ADB0 !important;
+}
+
+.limbo-stats-divider {
+  background: #263C32 !important;
+}
+
+.limbo-graph-card-wrapper {
+  background: #1B2A23 !important;
+  border: 1px solid #263C32 !important;
+}
+
+.limbo-graph-area-new {
+  background: #121816 !important;
+}
+
+.limbo-graph-area-new svg line {
+  stroke: #263C32 !important;
+}
+
+/* ========================================= */
+/* 📱 Responsive tweaks                       */
+/* ========================================= */
+@media (max-width: 400px) {
+  .crash-multiplier-text {
+    font-size: 3rem;
+  }
+  .crash-display-area {
+    min-height: 170px;
+    padding: 24px 12px;
+  }
+}
