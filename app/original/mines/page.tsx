@@ -32,6 +32,9 @@ type SuggestedGame = {
   border_color: string;
   ribbon_color: string;
   ribbon_text: string;
+  show_border: boolean; // ✅ নতুন
+  show_ribbon: boolean; // ✅ নতুন
+  show_title: boolean;  // ✅ নতুন
 };
 
 export default function MinesGamePage() {
@@ -679,7 +682,10 @@ export default function MinesGamePage() {
                   <div 
                     key={game.id} 
                     className="premium-game-card" 
-                    style={{ border: `2px solid ${game.border_color || '#00E701'}` }}
+                    style={{ 
+                      // ✅ বর্ডার অন থাকলে বর্ডার দেখাবে, অফ থাকলে বর্ডার থাকবে না
+                      border: game.show_border !== false ? `2px solid ${game.border_color || '#00E701'}` : 'none' 
+                    }}
                     onClick={() => router.push(`/${game.game_link}`)}
                   >
                     <img 
@@ -689,10 +695,18 @@ export default function MinesGamePage() {
                       onError={(e) => { (e.target as HTMLImageElement).src = "https://via.placeholder.com/300x400/1B2A23/00E701?text=Game"; }}
                     />
                     <div className="premium-card-overlay"></div>
-                    <div className="premium-card-ribbon" style={{ backgroundColor: game.ribbon_color || '#00E701', color: '#000' }}>
-                      {game.ribbon_text || "SHUFFLE"}
-                    </div>
-                    <h3 className="premium-card-title">{game.game_name}</h3>
+                    
+                    {/* ✅ রিবন অন থাকলে রিবন দেখাবে, অফ থাকলে দেখাবে না */}
+                    {game.show_ribbon !== false && (
+                      <div className="premium-card-ribbon" style={{ backgroundColor: game.ribbon_color || '#00E701', color: '#000' }}>
+                        {game.ribbon_text || "SHUFFLE"}
+                      </div>
+                    )}
+                    
+                    {/* ✅ টাইটেল অন থাকলে টাইটেল দেখাবে, অফ থাকলে দেখাবে না */}
+                    {game.show_title === true && (
+                      <h3 className="premium-card-title">{game.game_name}</h3>
+                    )}
                   </div>
                 ))}
               </div>
