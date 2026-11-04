@@ -587,7 +587,6 @@ export default function CrashGamePage() {
   // ==========================================
   const renderAviatorCanvas = () => {
     // Coordinate mapping (0 to 100 in X, 0 to 100 in Y)
-    // We use logarithmic scale so the plane slows down as it gets higher
     const maxVisualMultiplier = Math.max(crashPointRevealed || 10, currentMultiplier);
     const p = Math.min(Math.log(currentMultiplier) / Math.log(maxVisualMultiplier), 1);
     
@@ -595,14 +594,11 @@ export default function CrashGamePage() {
     const x = 30 + p * 240; // Range: 30 to 270
     const y = 250 - p * 190; // Range: 250 to 60
 
-    // Plane angle (facing up-right)
     const angle = -25; 
 
-    // Trail path generation
     let pathStr = `M 30 250 `;
     let areaStr = `M 30 250 L 30 250 `;
     
-    // Create a smooth curve by iterating over small steps
     const steps = 30;
     for (let i = 1; i <= steps; i++) {
        const stepP = p * (i / steps);
@@ -611,7 +607,12 @@ export default function CrashGamePage() {
        pathStr += `L ${sx} ${sy} `;
        areaStr += `L ${sx} ${sy} `;
     }
-    areaStr += `L ${x} 280 L 30 280 Z`; // Fill area to the bottom
+    areaStr += `L ${x} 280 L 30 280 Z`;
+
+    // 🌟 FIX: Next.js basePath handle (লোকালহোস্টে টেস্ট করার জন্য শর্ত দেওয়া হলো)
+    const imageSrc = process.env.NODE_ENV === "production" 
+        ? "https://mynextjsproject1.github.io/NextJs/images/crash/crash.png" 
+        : "/images/crash/crash.png";
 
     return (
       <div className="aviator-canvas-container">
@@ -633,10 +634,7 @@ export default function CrashGamePage() {
              <line x1="225" y1="0" x2="225" y2="300" />
           </g>
 
-          {/* Filled Area under curve */}
           {isPlaying && <path d={areaStr} fill="url(#trailGradient)" />}
-
-          {/* The Trail Path */}
           {isPlaying && (
             <path
               d={pathStr}
@@ -648,25 +646,29 @@ export default function CrashGamePage() {
               style={{ filter: `drop-shadow(0 0 8px ${isCrashed ? '#ff4d4d' : '#00E701'})` }}
             />
           )}
-
-          {/* The Custom PNG Plane */}
-          <g
-            transform={`translate(${x}, ${y}) rotate(${angle})`}
-            className={`aviator-plane ${isCrashed ? "crashed" : ""}`}
-          >
-             <image
-              href="/images/crash/crash.png"
-              x="-25"  // Plane size width center adjust
-              y="-25"  // Plane size height center adjust
-              width="50" // Plane width
-              height="50" // Plane height
-              style={{
-                filter: `drop-shadow(0 0 12px ${isCrashed ? '#ff4d4d' : '#00E701'})`,
-                transition: "all 0.1s linear"
-              }}
-            />
-          </g>
         </svg>
+
+        {/* 🌟 FIX: Plane moved outside SVG for better HTML rendering */}
+        {isPlaying && (
+          <img
+            src={imageSrc}
+            alt="plane"
+            className={`aviator-plane-img ${isCrashed ? "crashed" : ""}`}
+            style={{
+              position: "absolute",
+              left: `${(x / 300) * 100}%`,
+              top: `${(y / 300) * 100}%`,
+              width: "55px",
+              height: "55px",
+              objectFit: "contain",
+              transform: `translate(-50%, -50%) rotate(${angle}deg)`,
+              filter: `drop-shadow(0 0 12px ${isCrashed ? '#ff4d4d' : '#00E701'})`,
+              transition: "left 0.05s linear, top 0.05s linear, transform 0.1s linear",
+              zIndex: 5,
+              pointerEvents: "none",
+            }}
+          />
+        )}
 
         {/* Multiplier Overlay */}
         <div className={`aviator-multiplier-overlay ${isCrashed ? "crashed" : ""}`}>
