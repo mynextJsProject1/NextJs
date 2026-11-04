@@ -53,7 +53,6 @@ export default function CrashGamePage() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   
-  // নতুন স্টেট (১৫ সেকেন্ডের জন্য)
   const [currentMultiplier, setCurrentMultiplier] = useState(1.0);
   const [isCrashed, setIsCrashed] = useState(false);
   const [hasCashedOut, setHasCashedOut] = useState(false);
@@ -62,7 +61,6 @@ export default function CrashGamePage() {
   const [countdown, setCountdown] = useState(0);
   const [crashPointRevealed, setCrashPointRevealed] = useState<number | null>(null);
 
-  // Race Condition Fix
   const roundSettledRef = useRef(false);
   const animRef = useRef<number | null>(null);
   const countdownRef = useRef<number | null>(null);
@@ -104,6 +102,7 @@ export default function CrashGamePage() {
   const [isSeedVerified, setIsSeedVerified] = useState(false);
   const [fairnessView, setFairnessView] = useState<"main" | "change_seed" | "verify_seed">("main");
 
+  // ১. সাউন্ড ও স্টপ অ্যানিমেশন (সবার আগে ডিফাইন করতে হবে)
   const playSound = useCallback(
     (type: "click" | "win" | "lose") => {
       if (!soundEnabled) return;
@@ -119,11 +118,10 @@ export default function CrashGamePage() {
     if (countdownRef.current) { clearInterval(countdownRef.current); countdownRef.current = null; }
   }, []);
 
+  // ২. ডেটা ফেচ
   useEffect(() => {
     const fetchData = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         const { data } = await supabase.from("profiles").select("balance").eq("id", user.id).single();
         if (data) setBalance(Number(data.balance) || 0);
@@ -155,26 +153,8 @@ export default function CrashGamePage() {
     if (graphContainerRef.current) graphContainerRef.current.scrollLeft = graphContainerRef.current.scrollWidth;
   }, [history]);
 
-  // ⏳ ১৫ সেকেন্ডের কাউন্টডাউন (কোনো API কল ছাড়া)
-  const startCountdown = useCallback((startAt: number, bet: number, nonceAtStart: number) => {
-    setCountdown(15);
-    if (countdownRef.current) clearInterval(countdownRef.current);
-
-    countdownRef.current = window.setInterval(() => {
-      const now = Date.now();
-      const remaining = Math.max(0, Math.ceil((startAt - now) / 1000));
-      setCountdown(remaining);
-
-      if (now >= startAt) {
-        clearInterval(countdownRef.current!);
-        countdownRef.current = null;
-        startFlying(bet, nonceAtStart, startAt);
-      }
-    }, 100);
-  }, []);
-
-  // ✈️ বিমান ওড়া শুরু (সার্ভার থেকে আসা startAt দিয়ে)
-  const startFlying = useCallback((bet: number, nonceAtStart: number, startAt: number) => {
+  // ৩. বিমান ওড়া শুরু (startFlying - startCountdown এর আগে থাকতে হবে)
+  const startFlying = useCallback((bet: number, nonceAtStart: number, startAt: number, currentCrashPoint: number) => {
     setIsPlaying(true);
     setIsProcessing(false);
     roundSettledRef.current = false;
@@ -189,12 +169,11 @@ export default function CrashGamePage() {
       const current = Math.pow(GROWTH_BASE, elapsed);
       setCurrentMultiplier(current);
 
-      // ক্লায়েন্ট নিজেই জানে ক্র্যাশ পয়েন্ট, তাই API ছাড়াই বিমান থামবে
-      if (current >= (crashPoint || 0)) {
+      if (current >= currentCrashPoint) {
         roundSettledRef.current = true;
         stopAnimations();
-        setCurrentMultiplier(crashPoint!);
-        setCrashPointRevealed(crashPoint!);
+        setCurrentMultiplier(currentCrashPoint);
+        setCrashPointRevealed(currentCrashPoint);
         setIsCrashed(true);
         setIsPlaying(false);
         setProfit(-bet);
@@ -205,7 +184,7 @@ export default function CrashGamePage() {
           {
             id: Date.now().toString(),
             value: 0,
-            crashPoint: crashPoint!,
+            crashPoint: currentCrashPoint,
             isWin: false,
             profit: -bet,
             nonce: nonceAtStart,
@@ -215,8 +194,27 @@ export default function CrashGamePage() {
         setNonce((n) => n + 1);
       }
     }, ANIM_MS);
-  }, [crashPoint, playSound, stopAnimations]);
+  }, [playSound, stopAnimations]);
 
+  // ৪. ১৫ সেকেন্ডের কাউন্টডাউন (startCountdown)
+  const startCountdown = useCallback((startAt: number, bet: number, nonceAtStart: number, currentCrashPoint: number) => {
+    setCountdown(15);
+    if (countdownRef.current) clearInterval(countdownRef.current);
+
+    countdownRef.current = window.setInterval(() => {
+      const now = Date.now();
+      const remaining = Math.max(0, Math.ceil((startAt - now) / 1000));
+      setCountdown(remaining);
+
+      if (now >= startAt) {
+        clearInterval(countdownRef.current!);
+        countdownRef.current = null;
+        startFlying(bet, nonceAtStart, startAt, currentCrashPoint);
+      }
+    }, 100);
+  }, [startFlying]);
+
+  // ৫. ম্যানুয়াল গেম স্টার্ট
   const handleStartGame = async () => {
     const amount = Number(betAmount);
     if (amount <= 0) return setErrorMsg("Invalid bet amount.");
@@ -247,13 +245,14 @@ export default function CrashGamePage() {
       if (data.nonce) setNonce(Number(data.nonce));
 
       playSound("click");
-      startCountdown(Number(data.start_at), amount, nonceAtStart);
+      startCountdown(Number(data.start_at), amount, nonceAtStart, Number(data.crash_point));
     } catch (err: any) {
       setErrorMsg(err.message || "Failed to start game.");
       setIsProcessing(false);
     }
   };
 
+  // ৬. ম্যানুয়াল ক্যাশআউট
   const handleCashout = async () => {
     if (!isPlaying || isProcessing || isCrashed || hasCashedOut) return;
     if (currentMultiplier <= 1.0 || roundSettledRef.current) return;
@@ -324,31 +323,13 @@ export default function CrashGamePage() {
     }
   };
 
-  const toggleAutoBet = () => {
-    if (isAutoRef.current) {
-      isAutoRef.current = false;
-      setIsAutoBetting(false);
-      stopAnimations();
-      return;
-    }
-    const amount = Number(betAmount);
-    const target = Number(autoCashoutAt);
-    if (amount <= 0) return setErrorMsg("Invalid bet amount.");
-    if (target < 1.01) return setErrorMsg("Auto cashout must be ≥ 1.01x.");
-
-    isAutoRef.current = true;
-    setIsAutoBetting(true);
-    setAutoStats({ bets: 0, profit: 0 });
-    runAutoLoop(amount, 0, 0);
-  };
-
+  // ৭. অটো প্লে রাউন্ড
   const playAutoRound = useCallback(
     (gid: string, bet: number, target: number, startAt: number, crashP: number): Promise<{ won: boolean; cashoutMult?: number; crashPoint?: number }> =>
       new Promise((resolve) => {
         let settled = false;
         roundSettledRef.current = false;
         
-        // কাউন্টডাউন শেষ হলে ওড়া শুরু হবে
         setTimeout(() => {
           setIsPlaying(true);
           
@@ -407,7 +388,8 @@ export default function CrashGamePage() {
     [supabase, playSound]
   );
 
-  const runAutoLoop = async (currentBet: number, currentCount: number, currentProfit: number) => {
+  // ৮. অটো বেট লুপ (function ডিক্লেয়ারেশন, যাতে রিকার্সিভ কল ঠিকমতো কাজ করে)
+  async function runAutoLoop(currentBet: number, currentCount: number, currentProfit: number) {
     if (!isAutoRef.current) return;
 
     const maxBets = Number(autoBetCount);
@@ -479,8 +461,28 @@ export default function CrashGamePage() {
     } finally {
       setIsProcessing(false);
     }
-  };
+  }
 
+  // ৯. অটো বেট টগল (function ডিক্লেয়ারেশন)
+  function toggleAutoBet() {
+    if (isAutoRef.current) {
+      isAutoRef.current = false;
+      setIsAutoBetting(false);
+      stopAnimations();
+      return;
+    }
+    const amount = Number(betAmount);
+    const target = Number(autoCashoutAt);
+    if (amount <= 0) return setErrorMsg("Invalid bet amount.");
+    if (target < 1.01) return setErrorMsg("Auto cashout must be ≥ 1.01x.");
+
+    isAutoRef.current = true;
+    setIsAutoBetting(true);
+    setAutoStats({ bets: 0, profit: 0 });
+    runAutoLoop(amount, 0, 0);
+  }
+
+  // ক্যালকুলেশন
   const totalWagered = history.reduce((s, i) => s + i.betAmount, 0);
   const totalProfit = history.reduce((s, i) => s + i.profit, 0);
   const wins = history.filter((h) => h.isWin).length;
@@ -496,6 +498,7 @@ export default function CrashGamePage() {
       : autoStats.profit;
   const showCashout = isPlaying && !isCrashed && !hasCashedOut;
 
+  // গ্রাফ
   const generateGraph = () => {
     if (history.length === 0) {
       return (
@@ -577,6 +580,7 @@ export default function CrashGamePage() {
     );
   };
 
+  // ক্যানভাস রেন্ডার
   const renderAviatorCanvas = () => {
     const maxVisualMultiplier = Math.max(crashPoint || 10, currentMultiplier);
     const p = Math.min(Math.log(currentMultiplier) / Math.log(maxVisualMultiplier), 1);
