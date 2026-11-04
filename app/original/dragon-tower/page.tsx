@@ -187,7 +187,7 @@ export default function DragonTowerGamePage() {
               </div>
             )}
 
-            {/* 🐉 3D আইস ড্রাগন হেড (হুবহু ছবির মতো) */}
+            {/* 🐉 3D আইস ড্রাগন হেড */}
             <div className="dragon-head-container">
               <svg className="dragon-head" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
                 <defs>
@@ -201,6 +201,7 @@ export default function DragonTowerGamePage() {
                     <stop offset="100%" stopColor="#00E5FF" />
                   </linearGradient>
                 </defs>
+                
                 {/* শিং */}
                 <path d="M45 25 L15 0 L35 25 Z" fill="url(#iceSpike)" />
                 <path d="M55 25 L85 0 L65 25 Z" fill="url(#iceSpike)" />
