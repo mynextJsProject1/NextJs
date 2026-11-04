@@ -92,12 +92,12 @@
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  align-items: flex-start; /* ✅ বাম দিক থেকে শুরু হবে */
+  align-items: flex-start;
 }
 
 .suggested-title {
   color: var(--limbo-text);
-  font-size: 1.2rem;
+  font-size: 1.1rem; /* টাইটেল ফন্ট সাইজ একটু কমানো হয়েছে */
   font-weight: 800;
   margin-bottom: 12px;
   display: flex;
@@ -105,24 +105,24 @@
   gap: 8px;
 }
 
-/* ✅ গ্রিডের বদলে হরাইজন্টাল স্ক্রল (ডান থেকে বামে) */
+/* ✅ হরাইজন্টাল স্ক্রল */
 .suggested-grid {
   display: flex;
-  gap: 12px;
+  gap: 10px; /* গ্যাপ একটু কমানো হয়েছে */
   overflow-x: auto;
   padding-bottom: 10px;
   width: 100%;
-  scrollbar-width: none; /* Firefox */
+  scrollbar-width: none; 
 }
 
 .suggested-grid::-webkit-scrollbar {
-  display: none; /* Chrome/Safari */
+  display: none; 
 }
 
-/* ✅ প্রিমিয়াম কার্ড স্টাইল */
+/* ✅ প্রিমিয়াম কার্ড স্টাইল (সাইজ ছোট করা হয়েছে) */
 .premium-game-card {
   position: relative;
-  border-radius: 12px;
+  border-radius: 10px;
   overflow: hidden;
   aspect-ratio: 3 / 4;
   cursor: pointer;
@@ -132,9 +132,8 @@
   transition: transform 0.2s ease;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
   
-  /* ✅ স্ক্রল করার জন্য কার্ডের সাইজ ফিক্স করা হলো */
   flex-shrink: 0;
-  width: 130px; 
+  width: 105px; /* ✅ ১৩০ থেকে কমিয়ে ১০৫ পিক্সেল করা হয়েছে */
 }
 
 .premium-game-card:hover {
@@ -166,14 +165,14 @@
   top: 0;
   left: 50%;
   transform: translateX(-50%);
-  padding: 3px 12px;
-  border-bottom-left-radius: 8px;
-  border-bottom-right-radius: 8px;
-  font-size: 0.6rem;
+  padding: 2px 8px; /* প্যাডিং কমানো হয়েছে */
+  border-bottom-left-radius: 6px;
+  border-bottom-right-radius: 6px;
+  font-size: 0.5rem; /* ফন্ট সাইজ ছোট করা হয়েছে */
   font-weight: 800;
   color: #fff;
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 0.5px;
   z-index: 3;
   box-shadow: 0 2px 5px rgba(0,0,0,0.3);
   white-space: nowrap;
@@ -183,11 +182,11 @@
   position: relative;
   z-index: 3;
   text-align: center;
-  font-size: 1.2rem;
+  font-size: 0.9rem; /* টাইটেল ফন্ট সাইজ ছোট করা হয়েছে */
   font-weight: 900;
   color: #fff;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 0.5px;
   text-shadow: 2px 2px 4px rgba(0,0,0,0.8), 0 0 10px rgba(0,0,0,0.5);
 }
