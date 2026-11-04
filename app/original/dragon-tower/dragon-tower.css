@@ -6,50 +6,52 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  margin-bottom: -10px;
+  margin-top: 5px;
+  margin-bottom: 15px;
   position: relative;
-  z-index: 10;
 }
 
 .dragon-head {
-  width: 120px;
-  height: 120px;
-  animation: floatSway 4s ease-in-out infinite alternate;
-  filter: drop-shadow(0 0 15px rgba(0, 200, 255, 0.4));
+  width: 110px;
+  height: 110px;
+  animation: floatSway 3s ease-in-out infinite alternate;
+  filter: drop-shadow(0 0 20px rgba(0, 231, 1, 0.3));
 }
 
 @keyframes floatSway {
-  0% { transform: translateY(0) rotate(-3deg); }
-  100% { transform: translateY(-10px) rotate(3deg); }
+  0% { transform: translateY(0) scale(1); }
+  100% { transform: translateY(-8px) scale(1.03); }
 }
 
 /* ড্রাগনের চোখের গ্লো */
 .dragon-eye {
-  animation: glow 2s infinite alternate;
+  animation: glow 1.5s infinite alternate;
 }
 
 @keyframes glow {
-  0% { fill: #00E701; opacity: 0.5; }
-  100% { fill: #00E701; opacity: 1; filter: drop-shadow(0 0 8px #00E701); }
+  0% { fill: #00E701; opacity: 0.6; }
+  100% { fill: #00E701; opacity: 1; filter: drop-shadow(0 0 10px #00E701); }
 }
 
-/* ড্রাগন টাওয়ার গ্রিড */
+/* ড্রাগন টাওয়ার গ্রিড (স্ক্রল ছাড়া ফিট করার জন্য) */
 .dragon-grid {
   display: flex;
-  flex-direction: column-reverse; /* নিচ থেকে উপরে লেভেল বাড়বে */
-  gap: 6px;
+  flex-direction: column-reverse; 
+  gap: 4px; /* গ্যাপ কমানো হয়েছে */
   background: var(--limbo-card);
-  padding: 15px;
+  padding: 8px; /* প্যাডিং কমানো হয়েছে */
   border-radius: 12px;
   border: 1px solid var(--limbo-border);
-  margin-bottom: 15px;
+  margin-bottom: 10px;
+  height: 360px; /* মোবাইলে ফিট হওয়ার জন্য ফিক্সড হাইট */
 }
 
 .level-row {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 6px;
-  opacity: 0.4; /* যেসব লেভেল এখনো আনলক হয়নি */
+  gap: 4px;
+  height: 100%; /* প্রতিটি রো সমান জায়গা নেবে */
+  opacity: 0.4;
   pointer-events: none;
   transition: all 0.3s ease;
 }
@@ -60,16 +62,15 @@
 }
 
 .egg-tile {
-  aspect-ratio: 1 / 1;
+  height: 100%; /* রো-এর উচ্চতা অনুযায়ী ডিম ছোট-বড় হবে */
   background: var(--limbo-input-bg);
   border: 1px solid var(--limbo-border);
-  border-radius: 8px;
+  border-radius: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   transition: all 0.2s;
-  font-size: 1.2rem;
   box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
 }
 
@@ -79,22 +80,19 @@
   transform: scale(1.05);
 }
 
-/* ডিম ফুটে যাওয়া (Safe) */
 .egg-tile.safe {
   background: rgba(0, 231, 1, 0.1);
   border-color: rgba(0, 231, 1, 0.5);
   animation: popIn 0.3s ease-out;
 }
 
-/* ড্রাগন (Loss) */
 .egg-tile.dragon {
   background: rgba(255, 77, 77, 0.2);
   border-color: #ff4d4d;
   animation: shake 0.4s ease-in-out;
 }
 
-/* আনরিভিলড ডিমের শেড */
 .egg-tile svg {
-  width: 70%;
-  height: 70%;
+  width: 80%;
+  height: 80%;
 }
