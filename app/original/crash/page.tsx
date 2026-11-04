@@ -649,18 +649,21 @@ export default function CrashGamePage() {
             />
           )}
 
-          {/* The Plane */}
+          {/* The Custom PNG Plane */}
           <g
             transform={`translate(${x}, ${y}) rotate(${angle})`}
             className={`aviator-plane ${isCrashed ? "crashed" : ""}`}
           >
-             {/* Plane Icon (SVG Path) */}
-             <path
-              d="M 20 15 L 0 10 L 5 15 L 0 20 Z" 
-              fill={isCrashed ? "#ff4d4d" : "#fff"}
-              stroke={isCrashed ? "#ff4d4d" : "#00E701"}
-              strokeWidth="1.5"
-              style={{ filter: `drop-shadow(0 0 10px ${isCrashed ? '#ff4d4d' : '#00E701'})` }}
+             <image
+              href="/images/crash/crash.png"
+              x="-25"  // Plane size width center adjust
+              y="-25"  // Plane size height center adjust
+              width="50" // Plane width
+              height="50" // Plane height
+              style={{
+                filter: `drop-shadow(0 0 12px ${isCrashed ? '#ff4d4d' : '#00E701'})`,
+                transition: "all 0.1s linear"
+              }}
             />
           </g>
         </svg>
