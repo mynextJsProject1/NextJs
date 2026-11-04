@@ -46,7 +46,7 @@ export default function DragonTowerGamePage() {
   const [isAutoBetting, setIsAutoBetting] = useState(false);
   const [autoStats, setAutoStats] = useState({ bets: 0, profit: 0 });
   const isAutoRef = useRef(false);
-  const [autoLevels, setAutoLevels] = useState("3"); // কত লেভেল উঠবে
+  const [autoLevels, setAutoLevels] = useState("3");
   const [autoBetCount, setAutoBetCount] = useState("0");
   const [isAdvanced, setIsAdvanced] = useState(false);
   const [onWinMode, setOnWinMode] = useState<"reset" | "increase">("reset");
@@ -82,7 +82,6 @@ export default function DragonTowerGamePage() {
     }
   }, [history]);
 
-  // 🎮 গেম শুরু
   const handleStartGame = async () => {
     const amount = Number(betAmount);
     if (amount <= 0) return setErrorMsg("Invalid bet amount.");
@@ -114,7 +113,6 @@ export default function DragonTowerGamePage() {
     }
   };
 
-  // 🥚 ডিমে ক্লিক
   const handleRevealEgg = async (level: number, eggIndex: number) => {
     if (gameState.status !== "playing" || isProcessing) return;
     if (level !== gameState.level) return; 
@@ -172,7 +170,6 @@ export default function DragonTowerGamePage() {
     }
   };
 
-  // 💰 ক্যাশআউট
   const handleCashout = async () => {
     if (gameState.status !== "playing" || gameState.level === 1) return;
 
@@ -201,7 +198,6 @@ export default function DragonTowerGamePage() {
     }
   };
 
-  // 🤖 অটো বেট লজিক
   const toggleAutoBet = () => {
     if (isAutoRef.current) {
       isAutoRef.current = false;
@@ -262,10 +258,9 @@ export default function DragonTowerGamePage() {
       setMultiplier(1.00);
 
       for (let i = 0; i < levelsToClimb; i++) {
-        // অটো বট র‍্যান্ডমলি একটি ডিম খুঁজে বের করবে
         const eggIndex = Math.floor(Math.random() * 4);
         
-        await new Promise(res => setTimeout(res, 500)); // ডিলে
+        await new Promise(res => setTimeout(res, 500));
 
         const { data: tileData, error: tileError } = await supabase.rpc("reveal_dragon_egg", {
           p_game_id: startData.game_id,
@@ -358,27 +353,27 @@ export default function DragonTowerGamePage() {
               </div>
             )}
 
-            {/* 🐉 3D আইস ড্রাগন হেড */}
+            {/* 🐉 নতুন হরর ড্রাগন হেড (ছবির আদলে) */}
             <div className="dragon-head-container">
               <svg className="dragon-head" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
                 <defs>
-                  <linearGradient id="iceBase" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <linearGradient id="iceSkin" x1="0%" y1="0%" x2="100%" y2="100%">
                     <stop offset="0%" stopColor="#94A3B8" />
                     <stop offset="50%" stopColor="#475569" />
                     <stop offset="100%" stopColor="#1E293B" />
                   </linearGradient>
-                  <linearGradient id="iceSpike" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <linearGradient id="iceHorn" x1="0%" y1="0%" x2="100%" y2="100%">
                     <stop offset="0%" stopColor="#FFFFFF" />
                     <stop offset="100%" stopColor="#00E5FF" />
                   </linearGradient>
                 </defs>
                 
-                <path d="M45 25 L15 0 L35 25 Z" fill="url(#iceSpike)" />
-                <path d="M55 25 L85 0 L65 25 Z" fill="url(#iceSpike)" />
-                <path d="M30 40 L5 20 L25 40 Z" fill="url(#iceSpike)" />
-                <path d="M70 40 L95 20 L75 40 Z" fill="url(#iceSpike)" />
+                <path d="M45 25 L15 0 L35 25 Z" fill="url(#iceHorn)" />
+                <path d="M55 25 L85 0 L65 25 Z" fill="url(#iceHorn)" />
+                <path d="M30 40 L5 20 L25 40 Z" fill="url(#iceHorn)" />
+                <path d="M70 40 L95 20 L75 40 Z" fill="url(#iceHorn)" />
                 
-                <path d="M50 10 C30 10 20 30 20 55 C20 80 30 95 50 95 C70 95 80 80 80 55 C80 30 70 10 50 10 Z" fill="url(#iceBase)" />
+                <path d="M50 10 C30 10 20 30 20 55 C20 80 30 95 50 95 C70 95 80 80 80 55 C80 30 70 10 50 10 Z" fill="url(#iceSkin)" />
                 <path d="M30 60 L70 60 L50 90 Z" fill="#0F172A" />
                 
                 <path d="M25 40 L45 45 L30 50 Z" fill="#0F172A" />
@@ -413,7 +408,6 @@ export default function DragonTowerGamePage() {
                         >
                           {isRevealed ? (
                             isDragon ? (
-                              // 💀 আগুন ও খুলি
                               <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
                                 <defs>
                                   <radialGradient id="fireGrad" cx="50%" cy="50%" r="50%">
@@ -429,7 +423,6 @@ export default function DragonTowerGamePage() {
                                 <path d="M45 60 L55 60 L50 68 Z" fill="#000000" />
                               </svg>
                             ) : (
-                              // 🥚 সেফ ডিম (সাদা)
                               <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
                                 <path d="M50 15 C30 15 20 45 20 65 C20 85 30 95 50 95 C70 95 80 85 80 65 C80 45 70 15 50 15 Z" fill="#F8FAFC" />
                                 <path d="M40 40 L50 50 L45 60 L55 70" stroke="#94A3B8" strokeWidth="2" fill="none" />
@@ -437,7 +430,6 @@ export default function DragonTowerGamePage() {
                               </svg>
                             )
                           ) : (
-                            // 🥚 পাথরের ডিম (আনরিভিলড)
                             <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
                               <path d="M50 15 C30 15 20 45 20 65 C20 85 30 95 50 95 C70 95 80 85 80 65 C80 45 70 15 50 15 Z" fill="#64748B" />
                               <circle cx="35" cy="45" r="4" fill="#475569" />
