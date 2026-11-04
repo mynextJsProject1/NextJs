@@ -187,42 +187,51 @@ export default function DragonTowerGamePage() {
               </div>
             )}
 
-            {/* 🐉 নতুন নীলাভ ভয়ংকর ড্রাগন হেড (ছবির আদলে) */}
+            {/* Reference-style icy dragon artwork (visual only) */}
             <div className="dragon-head-container">
-              <svg className="dragon-head" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+              <svg className="dragon-head" viewBox="0 0 160 180" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                 <defs>
-                  <linearGradient id="iceGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stopColor="#A0ADB0" />
-                    <stop offset="100%" stopColor="#2B4236" />
+                  <linearGradient id="dragonStone" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0" stopColor="#b7c9d8" />
+                    <stop offset=".48" stopColor="#71899e" />
+                    <stop offset="1" stopColor="#34495d" />
                   </linearGradient>
-                  <linearGradient id="darkIce" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stopColor="#1B2A23" />
-                    <stop offset="100%" stopColor="#0C1711" />
+                  <linearGradient id="dragonFace" x1="0" y1="0" x2="0.8" y2="1">
+                    <stop offset="0" stopColor="#9eb4c5" />
+                    <stop offset=".45" stopColor="#526b80" />
+                    <stop offset="1" stopColor="#26394b" />
                   </linearGradient>
+                  <linearGradient id="dragonMouth" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0" stopColor="#20d9ff" />
+                    <stop offset="1" stopColor="#087ba9" />
+                  </linearGradient>
+                  <filter id="dragonGlow">
+                    <feGaussianBlur stdDeviation="3" result="blur" />
+                    <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+                  </filter>
                 </defs>
-                
-                {/* শিং */}
-                <path d="M35 35 L20 5 L45 25 Z" fill="url(#iceGrad)" stroke="#00E5FF" strokeWidth="1" />
-                <path d="M65 35 L80 5 L55 25 Z" fill="url(#iceGrad)" stroke="#00E5FF" strokeWidth="1" />
-                <path d="M20 50 L5 30 L25 45 Z" fill="url(#iceGrad)" stroke="#00E5FF" strokeWidth="1" />
-                <path d="M80 50 L95 30 L75 45 Z" fill="url(#iceGrad)" stroke="#00E5FF" strokeWidth="1" />
-                
-                {/* মুখমণ্ডল */}
-                <path d="M50 20 C35 20 25 40 25 60 C25 80 35 95 50 95 C65 95 75 80 75 60 C75 40 65 20 50 20 Z" fill="url(#darkIce)" stroke="#00E5FF" strokeWidth="2" />
-                
-                {/* কপালের ফাটল */}
-                <path d="M50 20 L45 35 L55 45" stroke="#00E5FF" strokeWidth="1.5" fill="none" />
-                
-                {/* চোখ */}
-                <path d="M28 45 L45 50 L35 58 Z" className="dragon-eye" />
-                <path d="M72 45 L55 50 L65 58 Z" className="dragon-eye" />
-                
-                {/* নাক */}
-                <path d="M45 65 L55 65 L50 72 Z" fill="#1B2A23" stroke="#00E5FF" strokeWidth="1" />
-                
-                {/* মুখ ও দাঁত */}
-                <path d="M35 78 L65 78 L50 92 Z" fill="#0C1711" stroke="#00E5FF" strokeWidth="2" />
-                <path d="M35 78 L40 85 L45 78 M55 78 L60 85 L65 78" fill="#00E5FF" />
+                {/* rear ice spikes */}
+                <path d="M54 62 18 8 68 39Z M106 62 142 8 92 39Z" fill="url(#dragonStone)" stroke="#718da5" strokeWidth="3"/>
+                <path d="M40 82 2 51 49 60Z M120 82 158 51 111 60Z" fill="#627d94" stroke="#9bb0c1" strokeWidth="2"/>
+                <path d="M62 43 48 4 78 34Z M98 43 112 4 82 34Z" fill="#9db4c7" stroke="#607b92" strokeWidth="2"/>
+                {/* cheek armor */}
+                <path d="M43 74 20 91 42 112 55 96Z M117 74 140 91 118 112 105 96Z" fill="#718ba0" stroke="#a9bdcc" strokeWidth="2"/>
+                {/* face silhouette */}
+                <path d="M80 27 C52 25 37 53 34 84 C30 118 46 151 65 163 L80 174 95 163 C114 151 130 118 126 84 C123 53 108 25 80 27Z" fill="url(#dragonFace)" stroke="#a8bdce" strokeWidth="4"/>
+                {/* forehead plates */}
+                <path d="M80 31 66 61 80 75 94 61Z" fill="#8da5b9" stroke="#c3d2de" strokeWidth="2"/>
+                <path d="M57 54 70 70 61 82 49 69Z M103 54 90 70 99 82 111 69Z" fill="#607b91"/>
+                {/* glowing eyes */}
+                <path d="M42 91 72 98 54 116Z M118 91 88 98 106 116Z" fill="#071b2a" stroke="#263c4e" strokeWidth="2"/>
+                <path d="M46 93 66 99 54 110Z M114 93 94 99 106 110Z" fill="#28dfff" filter="url(#dragonGlow)"/>
+                {/* nose and muzzle */}
+                <path d="M70 111 80 119 90 111 86 132 74 132Z" fill="#243b50" stroke="#9bb5c9" strokeWidth="2"/>
+                <path d="M53 123 Q80 135 107 123 L99 151 Q80 169 61 151Z" fill="#172b3d" stroke="#9ab1c4" strokeWidth="3"/>
+                <path d="M60 130 Q80 145 100 130 L91 151 Q80 159 69 151Z" fill="url(#dragonMouth)" stroke="#21dfff" strokeWidth="2"/>
+                <path d="M64 128 73 139 78 128 M96 128 87 139 82 128" fill="#e9f5fb"/>
+                <path d="M70 154 80 166 90 154" fill="#0c1c2b" stroke="#b8cbd8" strokeWidth="2"/>
+                {/* ice cracks */}
+                <path d="M80 38 74 57 84 68 M43 76 55 85 M117 76 105 85" fill="none" stroke="#d5e6f1" strokeWidth="2" opacity=".75"/>
               </svg>
             </div>
 
@@ -246,46 +255,53 @@ export default function DragonTowerGamePage() {
                         >
                           {isRevealed ? (
                             isDragon ? (
-                              // 💀 লাল খুলি
-                              <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                              {/* Flame skull artwork */}
+                              <svg className="egg-art egg-art-skull" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                                 <defs>
-                                  <linearGradient id="redGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                                    <stop offset="0%" stopColor="#ff4d4d" />
-                                    <stop offset="100%" stopColor="#990000" />
+                                  <linearGradient id="flameOuter" x1="0" y1="1" x2=".7" y2="0">
+                                    <stop offset="0" stopColor="#ff4b16"/><stop offset=".55" stopColor="#ff9e24"/><stop offset="1" stopColor="#ffe05b"/>
+                                  </linearGradient>
+                                  <linearGradient id="skullBone" x1="0" y1="0" x2="1" y2="1">
+                                    <stop offset="0" stopColor="#fff9df"/><stop offset="1" stopColor="#d7cba8"/>
                                   </linearGradient>
                                 </defs>
-                                <path d="M50 15 C30 15 20 35 20 55 C20 75 30 85 50 85 C70 85 80 75 80 55 C80 35 70 15 50 15 Z" fill="url(#redGrad)" stroke="#ff1a1a" strokeWidth="3" />
-                                <path d="M35 75 L35 85 L45 80 L50 85 L55 80 L65 85 L65 75" fill="#990000" stroke="#ff1a1a" strokeWidth="2" strokeLinejoin="round" />
-                                <ellipse cx="35" cy="50" rx="10" ry="12" fill="#000" stroke="#ff1a1a" strokeWidth="2" />
-                                <ellipse cx="65" cy="50" rx="10" ry="12" fill="#000" stroke="#ff1a1a" strokeWidth="2" />
-                                <ellipse cx="35" cy="50" rx="5" ry="7" fill="#ff4d4d" />
-                                <ellipse cx="65" cy="50" rx="5" ry="7" fill="#ff4d4d" />
-                                <path d="M45 65 L55 65 L50 70 Z" fill="#000" />
+                                <path d="M55 12 C48 1 43 7 48 20 C32 11 29 25 38 34 C20 30 19 45 31 53 C17 70 31 91 48 92 L79 91 C99 83 105 63 89 49 C98 35 88 27 78 32 C84 14 69 10 64 26 C63 15 59 8 55 12Z" fill="url(#flameOuter)"/>
+                                <path d="M54 24 C48 17 47 27 52 35 M82 30 C91 23 93 36 85 43 M34 57 C26 68 36 81 45 82" fill="none" stroke="#ffcf54" strokeWidth="4" strokeLinecap="round"/>
+                                <path d="M43 48 C43 34 54 28 67 31 C82 34 89 47 85 65 C83 77 77 81 75 89 L49 89 C48 80 40 73 39 62 C38 56 39 52 43 48Z" fill="url(#skullBone)" stroke="#fff4cf" strokeWidth="2"/>
+                                <ellipse cx="53" cy="59" rx="10" ry="12" fill="#102638"/>
+                                <ellipse cx="75" cy="59" rx="10" ry="12" fill="#102638"/>
+                                <path d="M62 69 57 79 67 79Z" fill="#102638"/>
+                                <path d="M48 85 48 96 55 91 61 97 66 91 73 96 76 85" fill="#e8ddbd" stroke="#c8ba97" strokeWidth="2" strokeLinejoin="round"/>
+                                <path d="M55 94V103 M63 95V105 M71 93V101" stroke="#a99c7e" strokeWidth="2"/>
                               </svg>
                             ) : (
-                              // 🥚 সেফ ডিম
-                              <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                              {/* Pale fossil egg: safe reveal */}
+                              <svg className="egg-art egg-art-safe" viewBox="0 0 100 110" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                                 <defs>
-                                  <linearGradient id="greenGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                                    <stop offset="0%" stopColor="#00E701" stopOpacity="0.8" />
-                                    <stop offset="100%" stopColor="#00E701" stopOpacity="0.2" />
+                                  <linearGradient id="safeEggShell" x1="0" y1="0" x2="1" y2="1">
+                                    <stop offset="0" stopColor="#fffef0"/><stop offset=".55" stopColor="#eee8d1"/><stop offset="1" stopColor="#cfc6a8"/>
                                   </linearGradient>
                                 </defs>
-                                <path d="M50 10 C25 10 15 45 15 65 C15 85 25 95 50 95 C75 95 85 85 85 65 C85 45 75 10 50 10 Z" fill="url(#greenGrad)" stroke="#00E701" strokeWidth="4" />
-                                <path d="M40 40 L50 55 L45 70 L55 80" stroke="#00E701" strokeWidth="3" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
-                                <path d="M40 40 L50 55 L45 70 L55 80" stroke="#FFFFFF" strokeWidth="1" fill="none" strokeLinecap="round" strokeLinejoin="round" opacity="0.5"/>
+                                <path d="M50 5 C28 5 13 43 14 70 C15 94 28 104 50 104 C72 104 85 94 86 70 C87 43 72 5 50 5Z" fill="url(#safeEggShell)" stroke="#f8f1d9" strokeWidth="2"/>
+                                <ellipse cx="67" cy="27" rx="7" ry="12" transform="rotate(-28 67 27)" fill="#fff" opacity=".9"/>
+                                <path d="M26 72 Q34 64 40 72 L37 82 Q29 85 26 72Z M46 82 Q54 72 61 82 L59 92 47 94Z M67 70 Q75 62 80 72 L76 83 66 81Z M35 94 Q41 87 47 95 L44 101 35 100Z M62 97 Q69 87 76 95 L72 102 62 102Z" fill="#c9bea0"/>
+                                <circle cx="36" cy="57" r="3" fill="#d8ceb3"/><circle cx="65" cy="48" r="3" fill="#d8ceb3"/>
                               </svg>
                             )
                           ) : (
-                            // 🥚 আনরিভিলড ডিম
-                            <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-                              <path d="M50 10 C25 10 15 45 15 65 C15 85 25 95 50 95 C75 95 85 85 85 65 C85 45 75 10 50 10 Z" fill="#1B2A23" stroke="#263C32" strokeWidth="4" />
-                              <circle cx="35" cy="45" r="5" fill="#121816" />
-                              <circle cx="60" cy="55" r="7" fill="#121816" />
-                              <circle cx="40" cy="75" r="6" fill="#121816" />
-                              <circle cx="65" cy="80" r="4" fill="#121816" />
-                              <circle cx="25" cy="65" r="3" fill="#121816" />
-                              <circle cx="70" cy="40" r="4" fill="#121816" />
+                            {/* Fossil-pattern egg shown before selection */}
+                            <svg className="egg-art egg-art-hidden" viewBox="0 0 100 110" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                              <defs>
+                                <linearGradient id="hiddenEggShell" x1="0" y1="0" x2="1" y2="1">
+                                  <stop offset="0" stopColor="#9b9b91"/><stop offset=".55" stopColor="#777d7c"/><stop offset="1" stopColor="#4f5b60"/>
+                                </linearGradient>
+                              </defs>
+                              <path d="M50 5 C28 5 13 43 14 70 C15 94 28 104 50 104 C72 104 85 94 86 70 C87 43 72 5 50 5Z" fill="url(#hiddenEggShell)" stroke="#9ba4a5" strokeWidth="2"/>
+                              <ellipse cx="68" cy="25" rx="7" ry="12" transform="rotate(-28 68 25)" fill="#b8c1c1" opacity=".28"/>
+                              <g fill="#5e6664" opacity=".72">
+                                <path d="M24 70 Q31 61 39 70 L36 82 27 82Z M43 82 Q51 72 59 82 L57 93 45 94Z M65 69 Q74 60 81 70 L77 83 66 82Z M33 94 Q40 86 47 95 L44 102 34 101Z M61 97 Q68 87 76 95 L72 103 62 102Z"/>
+                                <circle cx="39" cy="51" r="3"/><circle cx="62" cy="47" r="4"/><circle cx="28" cy="61" r="3"/>
+                              </g>
                             </svg>
                           )}
                         </div>
