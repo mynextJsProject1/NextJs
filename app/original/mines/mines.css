@@ -108,8 +108,8 @@
 /* ✅ ৪টি করে পাশাপাশি গ্রিড লেআউট */
 .suggested-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr); /* এক লাইনে ৪টি কার্ড */
-  gap: 8px; /* কার্ডের মাঝে গ্যাপ */
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
   width: 100%;
   padding-bottom: 10px;
 }
@@ -119,14 +119,14 @@
   position: relative;
   border-radius: 10px;
   overflow: hidden;
-  aspect-ratio: 3 / 4; /* কার্ডের উচ্চতা ও প্রস্থের অনুপাত */
+  aspect-ratio: 3 / 4;
   cursor: pointer;
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
   transition: transform 0.2s ease;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
-  width: 100%; /* গ্রিড সেলে ফিট হওয়ার জন্য */
+  width: 100%;
 }
 
 .premium-game-card:hover {
@@ -161,7 +161,7 @@
   padding: 2px 6px;
   border-bottom-left-radius: 6px;
   border-bottom-right-radius: 6px;
-  font-size: 0.45rem; /* ছোট কার্ডের জন্য ফন্ট সাইজ কমানো হয়েছে */
+  font-size: 0.45rem;
   font-weight: 800;
   color: #fff;
   text-transform: uppercase;
@@ -175,7 +175,7 @@
   position: relative;
   z-index: 3;
   text-align: center;
-  font-size: 0.75rem; /* ছোট কার্ডের জন্য টাইটেল ফন্ট সাইজ কমানো হয়েছে */
+  font-size: 0.75rem;
   font-weight: 900;
   color: #fff;
   margin-bottom: 6px;
@@ -186,4 +186,54 @@
   overflow: hidden;
   text-overflow: ellipsis;
   padding: 0 4px;
+}
+
+/* ========================================= */
+/* ✅ Live Stats Modal নতুন কালার ওভাররাইড */
+/* ========================================= */
+
+/* মেইন মডাল ব্যাকগ্রাউন্ড */
+.limbo-modal-content {
+  background: #1B2A23 !important; 
+  border: 1px solid #263C32 !important;
+}
+
+.limbo-modal-header {
+  border-bottom: 1px solid #263C32 !important;
+}
+
+/* স্ট্যাটস কার্ড (মেইন কন্টেইনার) */
+.limbo-stats-main-card {
+  background: #18231F !important; /* আপনার দেওয়া bg-primary */
+  border: 1px solid #263C32 !important;
+}
+
+/* স্ট্যাটস গ্রিড বক্স (যেখানে Profit, Wins লেখা থাকে) */
+.limbo-stats-layout {
+  background: #1B2A23 !important; /* আপনার দেওয়া bg-card */
+  border: 1px solid #263C32 !important;
+}
+
+.limbo-stat-label-new {
+  color: #A0ADB0 !important; /* আপনার দেওয়া text-secondary */
+}
+
+/* ডিভাইডার লাইন */
+.limbo-stats-divider {
+  background: #263C32 !important;
+}
+
+/* গ্রাফ এরিয়া */
+.limbo-graph-card-wrapper {
+  background: #1B2A23 !important;
+  border: 1px solid #263C32 !important;
+}
+
+.limbo-graph-area-new {
+  background: #121816 !important; /* আপনার দেওয়া bg-input */
+}
+
+/* গ্রাফের ভেতরের বেসলাইন */
+.limbo-graph-area-new svg line {
+  stroke: #263C32 !important; 
 }
