@@ -96,3 +96,72 @@
   width: 80%;
   height: 80%;
 }
+
+/* app/original/dragon-tower/dragon-tower.css */
+@import "../limbo/limbo.css";
+
+/* ড্রাগন হেড কন্টেইনার (যাতে গ্রিডের সাথে ওভারল্যাপ না হয়) */
+.dragon-head-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 90px; /* নির্দিষ্ট উচ্চতা দেওয়া হলো */
+  margin-top: 10px;
+  margin-bottom: 10px;
+  position: relative;
+  z-index: 10;
+}
+
+.dragon-head {
+  width: 130px;
+  height: 130px;
+  animation: floatSway 3s ease-in-out infinite alternate;
+  filter: drop-shadow(0 10px 15px rgba(0, 200, 255, 0.4));
+}
+
+@keyframes floatSway {
+  0% { transform: translateY(0) scale(1); }
+  100% { transform: translateY(-8px) scale(1.05); }
+}
+
+.dragon-eye {
+  animation: glow 1.5s infinite alternate;
+}
+
+@keyframes glow {
+  0% { fill: #00E5FF; opacity: 0.6; }
+  100% { fill: #00E5FF; opacity: 1; filter: drop-shadow(0 0 10px #00E5FF); }
+}
+
+/* ড্রাগন টাওয়ার গ্রিড (স্ক্রল ছাড়া ফিট করার জন্য) */
+.dragon-grid {
+  display: flex;
+  flex-direction: column-reverse; 
+  gap: 4px; 
+  background: var(--limbo-card);
+  padding: 8px; 
+  border-radius: 12px;
+  border: 1px solid var(--limbo-border);
+  margin-bottom: 10px;
+  height: calc(100vh - 380px); /* স্ক্রিনের সাইজ অনুযায়ী অটো অ্যাডজাস্ট হবে */
+  min-height: 320px;
+  max-height: 400px;
+}
+
+.level-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+  height: 100%; 
+  opacity: 0.4;
+  pointer-events: none;
+  transition: all 0.3s ease;
+}
+
+/* বাকি CSS আগের মতোই থাকবে... */
+.level-row.active { opacity: 1; pointer-events: auto; }
+.egg-tile { height: 100%; background: var(--limbo-input-bg); border: 1px solid var(--limbo-border); border-radius: 6px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; box-shadow: inset 0 0 10px rgba(0,0,0,0.5); }
+.level-row.active .egg-tile:hover { background: #1c2a24; border-color: var(--limbo-accent); transform: scale(1.05); }
+.egg-tile.safe { background: rgba(0, 231, 1, 0.1); border-color: rgba(0, 231, 1, 0.5); animation: popIn 0.3s ease-out; }
+.egg-tile.dragon { background: rgba(255, 77, 77, 0.2); border-color: #ff4d4d; animation: shake 0.4s ease-in-out; }
+.egg-tile svg { width: 80%; height: 80%; }
