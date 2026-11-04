@@ -1,70 +1,121 @@
-/* app/original/dragon-tower/dragon-tower.css */
+/* app/original/dragon-tower/dragon-tower.css
+   Reference-inspired Dragon Tower board styling.
+   The page.tsx game logic and Supabase functions are intentionally untouched.
+*/
 @import "../limbo/limbo.css";
 
+/* Page layout: allow the board and controls to flow naturally on mobile. */
 .limbo-main-area {
-  /* পুরো পেজ যাতে স্ক্রল না হয় */
-  height: calc(100vh - 120px);
+  width: 100%;
+  min-height: calc(100vh - 120px);
+  height: auto;
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  justify-content: flex-start;
+  align-items: stretch;
+  gap: 12px;
+  padding: 8px 10px 18px;
 }
 
-/* ড্রাগন হেড কন্টেইনার */
+/* Dragon sits over the upper stone edge of the board. */
 .dragon-head-container {
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 70px; /* স্পেস ফিক্স করা হলো */
-  margin-top: 5px;
+  height: 76px;
+  min-height: 76px;
+  margin: 0 0 -23px;
   position: relative;
-  z-index: 10;
+  z-index: 5;
+  pointer-events: none;
 }
 
 .dragon-head {
-  width: 120px;
-  height: 120px;
-  animation: floatSway 3s ease-in-out infinite alternate;
-  filter: drop-shadow(0 5px 10px rgba(0, 200, 255, 0.5));
+  width: clamp(96px, 27vw, 142px);
+  height: clamp(96px, 27vw, 142px);
+  animation: dragonFloat 3s ease-in-out infinite alternate;
+  filter:
+    drop-shadow(0 5px 7px rgba(0, 0, 0, 0.55))
+    drop-shadow(0 0 12px rgba(72, 207, 255, 0.34));
 }
 
-@keyframes floatSway {
-  0% { transform: translateY(0) scale(1); }
-  100% { transform: translateY(-5px) scale(1.03); }
+@keyframes dragonFloat {
+  from { transform: translateY(2px) scale(1); }
+  to { transform: translateY(-5px) scale(1.025); }
 }
 
 .dragon-eye {
-  animation: glow 1.5s infinite alternate;
+  animation: dragonEyeGlow 1.5s ease-in-out infinite alternate;
 }
 
-@keyframes glow {
-  0% { fill: #00E5FF; opacity: 0.6; }
-  100% { fill: #00E5FF; opacity: 1; filter: drop-shadow(0 0 10px #00E5FF); }
+@keyframes dragonEyeGlow {
+  from { fill: #31bce9; opacity: 0.68; }
+  to {
+    fill: #80efff;
+    opacity: 1;
+    filter: drop-shadow(0 0 8px #35cfff);
+  }
 }
 
-/* ড্রাগন টাওয়ার গ্রিড (স্ক্রল বন্ধ) */
+/* Stone tower frame and dark inner playing surface. */
 .dragon-grid {
+  position: relative;
+  isolation: isolate;
   display: flex;
-  flex-direction: column-reverse; 
-  gap: 4px; 
-  background: var(--limbo-card);
-  padding: 6px; 
-  border-radius: 12px;
-  border: 1px solid var(--limbo-border);
-  
-  /* মোবাইলে ফিট হওয়ার জন্য ফ্লেক্সিবল হাইট */
-  flex: 1; 
-  max-height: 55vh; 
-  margin-bottom: 10px;
+  flex-direction: column-reverse;
+  gap: clamp(7px, 1.15vw, 12px);
+  width: 100%;
+  height: clamp(390px, 59vh, 760px);
+  min-height: 390px;
+  max-height: 760px;
+  flex: none;
+  box-sizing: border-box;
+  padding: clamp(12px, 2.4vw, 24px);
+  margin: 0 auto 4px;
+  overflow: hidden;
+  border: clamp(8px, 1.5vw, 15px) solid #60788b;
+  border-radius: 22px;
+  background:
+    linear-gradient(135deg, rgba(255,255,255,.035), transparent 22%),
+    #19283a;
+  box-shadow:
+    inset 0 0 0 2px rgba(13, 24, 38, 0.9),
+    inset 0 12px 28px rgba(0, 0, 0, 0.22),
+    0 12px 28px rgba(0, 0, 0, 0.32);
 }
 
+/* Subtle stone blocks around the tower frame. */
+.dragon-grid::before {
+  content: "";
+  position: absolute;
+  inset: -8px;
+  z-index: -1;
+  pointer-events: none;
+  border: 1px solid rgba(190, 211, 226, 0.18);
+  border-radius: 16px;
+  background:
+    repeating-linear-gradient(
+      90deg,
+      transparent 0,
+      transparent 12.2%,
+      rgba(8, 20, 32, 0.28) 12.35%,
+      rgba(8, 20, 32, 0.28) 12.65%
+    ),
+    linear-gradient(180deg, #8298aa 0%, #536a7d 100%);
+}
+
+/* Nine rows, four selectable tiles per row. */
 .level-row {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 4px;
-  flex: 1; /* প্রতিটি রো সমান জায়গা নেবে */
-  opacity: 0.4;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  align-items: stretch;
+  gap: clamp(8px, 1.7vw, 16px);
+  flex: 1 1 0;
+  min-height: 0;
+  opacity: 0.43;
   pointer-events: none;
-  transition: all 0.3s ease;
+  transition: opacity 0.25s ease;
 }
 
 .level-row.active {
@@ -73,37 +124,177 @@
 }
 
 .egg-tile {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
   height: 100%;
-  background: var(--limbo-input-bg);
-  border: 1px solid var(--limbo-border);
-  border-radius: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: visible;
+  box-sizing: border-box;
   cursor: pointer;
-  transition: all 0.2s;
-  box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+  border: 3px solid #34495d;
+  border-radius: 12px;
+  background-color: #172637;
+  background-image:
+    linear-gradient(31deg, transparent 48.8%, rgba(104, 132, 153, 0.12) 49.5%, transparent 50.5%),
+    linear-gradient(149deg, transparent 48.8%, rgba(104, 132, 153, 0.12) 49.5%, transparent 50.5%),
+    linear-gradient(90deg, transparent 49.5%, rgba(104, 132, 153, 0.07) 50%, transparent 50.5%);
+  box-shadow:
+    inset 0 2px 8px rgba(0, 0, 0, 0.28),
+    0 1px 2px rgba(0, 0, 0, 0.12);
+  transition:
+    border-color 0.18s ease,
+    background-color 0.18s ease,
+    transform 0.18s ease,
+    box-shadow 0.18s ease;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .level-row.active .egg-tile:hover {
-  background: #1c2a24;
-  border-color: var(--limbo-accent);
-  transform: scale(1.05);
+  transform: translateY(-1px);
+  border-color: #7797b0;
+  background-color: #203448;
+  box-shadow: 0 0 0 1px rgba(130, 185, 220, 0.12);
 }
 
-.egg-tile.safe {
-  background: rgba(0, 231, 1, 0.1);
-  border-color: rgba(0, 231, 1, 0.5);
-  animation: popIn 0.3s ease-out;
-}
-
-.egg-tile.dragon {
-  background: rgba(255, 77, 77, 0.2);
-  border-color: #ff4d4d;
-  animation: shake 0.4s ease-in-out;
+.level-row.active .egg-tile:active {
+  transform: scale(0.97);
 }
 
 .egg-tile svg {
-  width: 80%;
-  height: 80%;
+  display: block;
+  width: auto;
+  height: 118%;
+  max-width: 78%;
+  max-height: 132%;
+  overflow: visible;
+  filter: drop-shadow(0 3px 2px rgba(0, 0, 0, 0.18));
+  pointer-events: none;
 }
+
+.egg-tile.safe {
+  background-color: #1b3040;
+  border-color: #66849a;
+  box-shadow:
+    inset 0 0 0 1px rgba(185, 215, 231, 0.08),
+    0 0 10px rgba(112, 174, 210, 0.08);
+  animation: safeEggReveal 0.3s ease-out;
+}
+
+.egg-tile.safe svg {
+  filter: drop-shadow(0 3px 3px rgba(0, 0, 0, 0.25));
+}
+
+.egg-tile.dragon {
+  background-color: rgba(102, 13, 34, 0.62);
+  border-color: #df1746;
+  box-shadow:
+    inset 0 0 0 2px rgba(255, 52, 91, 0.12),
+    0 0 13px rgba(231, 24, 69, 0.18);
+  animation: dragonHit 0.42s ease-in-out;
+}
+
+.egg-tile.dragon svg {
+  width: 112%;
+  height: 145%;
+  max-width: none;
+  max-height: none;
+  filter: drop-shadow(0 3px 5px rgba(255, 86, 35, 0.32));
+}
+
+@keyframes safeEggReveal {
+  0% { transform: scale(0.92); }
+  70% { transform: scale(1.035); }
+  100% { transform: scale(1); }
+}
+
+@keyframes dragonHit {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-3px) rotate(-1deg); }
+  40% { transform: translateX(3px) rotate(1deg); }
+  60% { transform: translateX(-2px); }
+  80% { transform: translateX(2px); }
+}
+
+/* Keep the existing controls visually consistent beneath the board. */
+.limbo-inputs-grid,
+.limbo-amount-section,
+.limbo-bottom-tabs {
+  width: 100%;
+  flex-shrink: 0;
+}
+
+.limbo-inputs-grid {
+  margin-top: 2px;
+}
+
+.limbo-bet-btn {
+  flex-shrink: 0;
+  min-height: 46px;
+}
+
+/* Narrow phones: preserve the four-column board without horizontal overflow. */
+@media (max-width: 420px) {
+  .limbo-main-area {
+    padding: 6px 8px 16px;
+    gap: 10px;
+  }
+
+  .dragon-grid {
+    height: clamp(390px, 57vh, 520px);
+    min-height: 390px;
+    padding: 10px;
+    border-width: 8px;
+    border-radius: 17px;
+    gap: 7px;
+  }
+
+  .level-row {
+    gap: 6px;
+  }
+
+  .egg-tile {
+    border-width: 2px;
+    border-radius: 9px;
+  }
+
+  .egg-tile svg {
+    max-width: 88%;
+    height: 116%;
+  }
+
+  .egg-tile.dragon svg {
+    width: 118%;
+    height: 145%;
+  }
+}
+
+/* Larger screens: board grows while remaining centered. */
+@media (min-width: 768px) {
+  .limbo-main-area {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 14px 20px 24px;
+    gap: 14px;
+  }
+
+  .dragon-grid {
+    width: min(100%, 900px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dragon-head,
+  .dragon-eye,
+  .egg-tile.safe,
+  .egg-tile.dragon {
+    animation: none !important;
+  }
+
+  .egg-tile {
+    transition: none;
+  }
+}
+
