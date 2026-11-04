@@ -15,6 +15,7 @@ type SuggestedGame = {
   sort_order: number;
   show_border: boolean;
   show_ribbon: boolean;
+  show_title: boolean;
 };
 
 export default function AdminSuggestedGamesPage() {
@@ -31,6 +32,7 @@ export default function AdminSuggestedGamesPage() {
   const [ribbonColor, setRibbonColor] = useState("#00E701");
   const [ribbonText, setRibbonText] = useState("SHUFFLE");
   const [showRibbon, setShowRibbon] = useState(true);
+  const [showTitle, setShowTitle] = useState(false); // ✅ নতুন স্টেট
   const [sortOrder, setSortOrder] = useState("0");
 
   const loadData = async () => {
@@ -55,15 +57,14 @@ export default function AdminSuggestedGamesPage() {
       ribbon_color: ribbonColor,
       show_ribbon: showRibbon,
       ribbon_text: ribbonText,
+      show_title: showTitle,
       sort_order: Number(sortOrder)
     };
 
     if (editingId) {
-      // আপডেট করা
       await supabase.from("suggested_game").update(payload).eq("id", editingId);
       alert("Game Updated Successfully!");
     } else {
-      // নতুন যোগ করা
       await supabase.from("suggested_game").insert(payload);
       alert("Game Added Successfully!");
     }
@@ -77,6 +78,7 @@ export default function AdminSuggestedGamesPage() {
     setGameName(""); setGameImage(""); setGameLink(""); setSortOrder("0");
     setBorderColor("#00E701"); setShowBorder(true);
     setRibbonColor("#00E701"); setRibbonText("SHUFFLE"); setShowRibbon(true);
+    setShowTitle(false); // ✅ রিসেট
   };
 
   const handleEditClick = (item: SuggestedGame) => {
@@ -85,10 +87,11 @@ export default function AdminSuggestedGamesPage() {
     setGameImage(item.game_image);
     setGameLink(item.game_link);
     setBorderColor(item.border_color);
-    setShowBorder(item.show_border !== false); // পুরনো ডেটার জন্য ডিফল্ট true
+    setShowBorder(item.show_border !== false); 
     setRibbonColor(item.ribbon_color);
     setRibbonText(item.ribbon_text);
     setShowRibbon(item.show_ribbon !== false);
+    setShowTitle(item.show_title === true); // ✅ এডিট
     setSortOrder(item.sort_order.toString());
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -108,7 +111,6 @@ export default function AdminSuggestedGamesPage() {
 
       <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
         
-        {/* অ্যাড/এডিট ফর্ম */}
         <div style={{ background: "#1B2A23", padding: "16px", borderRadius: "8px", border: "1px solid #263C32" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
             <h2 style={{ fontSize: "1.1rem", margin: 0, color: "#00E701" }}>{editingId ? "Update Game" : "Add New Game"}</h2>
@@ -124,6 +126,14 @@ export default function AdminSuggestedGamesPage() {
             <input required placeholder="Image URL" value={gameImage} onChange={e => setGameImage(e.target.value)} style={{ padding: "8px", borderRadius: "4px", border: "1px solid #263C32", background: "#121816", color: "#fff" }} />
             
             <input required placeholder="Route (e.g. original/mines)" value={gameLink} onChange={e => setGameLink(e.target.value)} style={{ padding: "8px", borderRadius: "4px", border: "1px solid #263C32", background: "#121816", color: "#fff" }} />
+
+            {/* Title Settings */}
+            <div style={{ background: "#121816", padding: "10px", borderRadius: "6px", border: "1px solid #263C32" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <label style={{ fontSize: "13px", color: "#A0ADB0" }}>Show Title / Game Name</label>
+                <input type="checkbox" checked={showTitle} onChange={e => setShowTitle(e.target.checked)} style={{ width: "20px", height: "20px", accentColor: "#00E701" }} />
+              </div>
+            </div>
 
             {/* Border Settings */}
             <div style={{ background: "#121816", padding: "10px", borderRadius: "6px", border: "1px solid #263C32" }}>
@@ -164,7 +174,6 @@ export default function AdminSuggestedGamesPage() {
           </form>
         </div>
 
-        {/* লিস্ট */}
         <div>
           <h2 style={{ fontSize: "1.1rem", marginBottom: "12px" }}>Existing Suggested Games</h2>
           <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
