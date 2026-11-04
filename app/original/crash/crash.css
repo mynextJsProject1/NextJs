@@ -2,81 +2,86 @@
 @import "../limbo/limbo.css";
 
 /* ========================================= */
-/* 💥 CRASH MULTIPLIER DISPLAY                */
+/* 🚀 AVIATOR CANVAS & ANIMATION              */
 /* ========================================= */
-.crash-display-area {
+.aviator-canvas-container {
+  position: relative;
+  width: 100%;
+  height: 260px;
+  background: radial-gradient(circle at 50% 50%, #18231F 0%, #121816 100%);
+  border: 1px solid var(--limbo-border);
+  border-radius: 12px;
+  margin: 15px 0;
+  overflow: hidden;
+  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5);
+}
+
+.aviator-svg {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.aviator-plane {
+  transition: transform 0.1s linear;
+}
+
+.aviator-plane.crashed {
+  opacity: 0;
+  transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+  transform: translateY(50px) scale(0.5) rotate(45deg) !important;
+}
+
+/* Multiplier Text Overlay */
+.aviator-multiplier-overlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 30px 16px;
-  margin: 12px 0;
-  background: linear-gradient(180deg, #121816 0%, #1B2A23 100%);
-  border: 1px solid var(--limbo-border);
-  border-radius: 12px;
-  min-height: 200px;
-  position: relative;
-  overflow: hidden;
+  pointer-events: none;
+  z-index: 10;
 }
 
-.crash-multiplier-text {
-  font-size: 3.6rem;
+.aviator-mult-text {
+  font-size: 3.5rem;
   font-weight: 900;
-  color: #ffffff;
+  color: #fff;
   font-variant-numeric: tabular-nums;
   letter-spacing: -1px;
-  transition: color 0.15s ease, transform 0.1s ease, text-shadow 0.2s ease;
-  text-shadow: 0 0 20px rgba(0, 231, 1, 0.15);
-  line-height: 1;
+  text-shadow: 0 4px 15px rgba(0, 0, 0, 0.6);
+  transition: color 0.2s, transform 0.1s;
 }
 
-.crash-multiplier-text.running {
-  color: var(--limbo-accent);
-  text-shadow: 0 0 32px rgba(0, 231, 1, 0.45),
-               0 0 12px rgba(0, 231, 1, 0.25);
-}
-
-.crash-multiplier-text.crashed {
+.aviator-multiplier-overlay.crashed .aviator-mult-text {
   color: #ff4d4d;
-  text-shadow: 0 0 32px rgba(255, 77, 77, 0.5);
+  text-shadow: 0 0 30px rgba(255, 77, 77, 0.6);
   animation: crashShake 0.5s ease-out;
 }
 
-.crash-label {
-  margin-top: 12px;
-  font-size: 0.85rem;
+.aviator-crash-label {
+  margin-top: 5px;
+  font-size: 0.9rem;
   font-weight: 800;
-  letter-spacing: 3px;
+  letter-spacing: 4px;
+  color: #ff4d4d;
   text-transform: uppercase;
-  color: #ff4d4d;
   animation: crashShake 0.5s ease-out;
 }
 
-.crash-label.cashed-out {
-  color: var(--limbo-accent);
-  animation: cashedOutPulse 0.6s ease-out;
-}
-
-.crash-subline {
-  margin-top: 14px;
-  font-size: 0.85rem;
-  color: #a0aab2;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.crash-cashout-preview {
-  color: var(--limbo-accent);
+.aviator-cashout-label {
+  margin-top: 5px;
+  font-size: 0.9rem;
   font-weight: 800;
-  font-size: 1rem;
-  font-variant-numeric: tabular-nums;
-}
-
-.crash-idle-text {
-  color: #5c6a68;
-  font-size: 0.8rem;
-  letter-spacing: 0.5px;
+  letter-spacing: 4px;
+  color: var(--limbo-accent);
+  text-transform: uppercase;
+  animation: cashedOutPulse 0.6s ease-out;
 }
 
 /* Animations */
@@ -94,18 +99,6 @@
   0%   { transform: scale(0.85); opacity: 0.4; }
   50%  { transform: scale(1.06); opacity: 1; }
   100% { transform: scale(1);    opacity: 1; }
-}
-
-/* Optional: subtle pulse for the multiplier during running */
-@media (prefers-reduced-motion: no-preference) {
-  .crash-multiplier-text.running {
-    animation: crashPulse 1.6s ease-in-out infinite;
-  }
-}
-
-@keyframes crashPulse {
-  0%, 100% { transform: scale(1); }
-  50%      { transform: scale(1.025); }
 }
 
 /* ========================================= */
@@ -214,7 +207,7 @@
 }
 
 /* ========================================= */
-/* ✅ MODAL THEME OVERRIDES (same as mines)   */
+/* ✅ MODAL THEME OVERRIDES                   */
 /* ========================================= */
 .limbo-modal-content {
   background: #1B2A23 !important;
@@ -256,15 +249,12 @@
   stroke: #263C32 !important;
 }
 
-/* ========================================= */
-/* 📱 Responsive tweaks                       */
-/* ========================================= */
+/* Responsive tweaks */
 @media (max-width: 400px) {
-  .crash-multiplier-text {
-    font-size: 3rem;
+  .aviator-mult-text {
+    font-size: 2.8rem;
   }
-  .crash-display-area {
-    min-height: 170px;
-    padding: 24px 12px;
+  .aviator-canvas-container {
+    height: 220px;
   }
 }
