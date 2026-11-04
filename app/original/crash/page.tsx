@@ -64,12 +64,6 @@ export default function CrashGamePage() {
   const roundSettledRef = useRef(false);
   const animRef = useRef<number | null>(null);
   const countdownRef = useRef<number | null>(null);
-  const multiplierRef = useRef<number>(1.0);
-  const startTimeRef = useRef<number>(0);
-
-  useEffect(() => {
-    multiplierRef.current = currentMultiplier;
-  }, [currentMultiplier]);
 
   const [isAutoBetting, setIsAutoBetting] = useState(false);
   const [autoStats, setAutoStats] = useState({ bets: 0, profit: 0 });
@@ -102,7 +96,6 @@ export default function CrashGamePage() {
   const [isSeedVerified, setIsSeedVerified] = useState(false);
   const [fairnessView, setFairnessView] = useState<"main" | "change_seed" | "verify_seed">("main");
 
-  // ১. সাউন্ড ও স্টপ অ্যানিমেশন (সবার আগে ডিফাইন করতে হবে)
   const playSound = useCallback(
     (type: "click" | "win" | "lose") => {
       if (!soundEnabled) return;
@@ -118,7 +111,6 @@ export default function CrashGamePage() {
     if (countdownRef.current) { clearInterval(countdownRef.current); countdownRef.current = null; }
   }, []);
 
-  // ২. ডেটা ফেচ
   useEffect(() => {
     const fetchData = async () => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -126,7 +118,6 @@ export default function CrashGamePage() {
         const { data } = await supabase.from("profiles").select("balance").eq("id", user.id).single();
         if (data) setBalance(Number(data.balance) || 0);
       }
-
       const { data: suggestData } = await supabase
         .from("suggested_game")
         .select("*")
@@ -153,27 +144,29 @@ export default function CrashGamePage() {
     if (graphContainerRef.current) graphContainerRef.current.scrollLeft = graphContainerRef.current.scrollWidth;
   }, [history]);
 
-  // ৩. বিমান ওড়া শুরু (startFlying - startCountdown এর আগে থাকতে হবে)
-  const startFlying = useCallback((bet: number, nonceAtStart: number, startAt: number, currentCrashPoint: number) => {
+  // 🟢 ১. বিমান ওড়ার লজিক (শুধু লোকাল টাইমার ব্যবহার)
+  const startFlying = useCallback((bet: number, nonceAtStart: number, targetCrashPoint: number) => {
     setIsPlaying(true);
     setIsProcessing(false);
     roundSettledRef.current = false;
-    startTimeRef.current = startAt;
+    
+    const cp = Number(targetCrashPoint) > 1 ? Number(targetCrashPoint) : 2.0;
+    const startTime = Date.now();
 
     if (animRef.current) clearInterval(animRef.current);
 
     animRef.current = window.setInterval(() => {
       if (roundSettledRef.current) return;
 
-      const elapsed = (Date.now() - startAt) / 1000;
+      const elapsed = (Date.now() - startTime) / 1000;
       const current = Math.pow(GROWTH_BASE, elapsed);
       setCurrentMultiplier(current);
 
-      if (current >= currentCrashPoint) {
+      if (current >= cp) {
         roundSettledRef.current = true;
         stopAnimations();
-        setCurrentMultiplier(currentCrashPoint);
-        setCrashPointRevealed(currentCrashPoint);
+        setCurrentMultiplier(cp);
+        setCrashPointRevealed(cp);
         setIsCrashed(true);
         setIsPlaying(false);
         setProfit(-bet);
@@ -184,7 +177,7 @@ export default function CrashGamePage() {
           {
             id: Date.now().toString(),
             value: 0,
-            crashPoint: currentCrashPoint,
+            crashPoint: cp,
             isWin: false,
             profit: -bet,
             nonce: nonceAtStart,
@@ -196,25 +189,28 @@ export default function CrashGamePage() {
     }, ANIM_MS);
   }, [playSound, stopAnimations]);
 
-  // ৪. ১৫ সেকেন্ডের কাউন্টডাউন (startCountdown)
-  const startCountdown = useCallback((startAt: number, bet: number, nonceAtStart: number, currentCrashPoint: number) => {
+  // 🟢 ২. লোকাল ১৫ সেকেন্ডের কাউন্টডাউন
+  const startCountdown = useCallback((bet: number, nonceAtStart: number, cp: number) => {
     setCountdown(15);
     if (countdownRef.current) clearInterval(countdownRef.current);
+    
+    const targetTime = Date.now() + 15000;
 
     countdownRef.current = window.setInterval(() => {
       const now = Date.now();
-      const remaining = Math.max(0, Math.ceil((startAt - now) / 1000));
+      const remaining = Math.max(0, Math.ceil((targetTime - now) / 1000));
       setCountdown(remaining);
 
-      if (now >= startAt) {
+      if (now >= targetTime) {
         clearInterval(countdownRef.current!);
         countdownRef.current = null;
-        startFlying(bet, nonceAtStart, startAt, currentCrashPoint);
+        setCountdown(0);
+        startFlying(bet, nonceAtStart, cp);
       }
     }, 100);
   }, [startFlying]);
 
-  // ৫. ম্যানুয়াল গেম স্টার্ট
+  // 🟢 ৩. ম্যানুয়াল গেম স্টার্ট
   const handleStartGame = async () => {
     const amount = Number(betAmount);
     if (amount <= 0) return setErrorMsg("Invalid bet amount.");
@@ -240,24 +236,27 @@ export default function CrashGamePage() {
 
       setGameId(data.game_id);
       setBalance(data.new_balance);
-      setCrashPoint(Number(data.crash_point));
+      
+      const cp = Number(data.crash_point) > 1 ? Number(data.crash_point) : 2.0;
+      setCrashPoint(cp);
       if (data.server_seed_hash) setServerSeedHash(data.server_seed_hash);
       if (data.nonce) setNonce(Number(data.nonce));
 
       playSound("click");
-      startCountdown(Number(data.start_at), amount, nonceAtStart, Number(data.crash_point));
+      startCountdown(amount, nonceAtStart, cp);
     } catch (err: any) {
       setErrorMsg(err.message || "Failed to start game.");
       setIsProcessing(false);
     }
   };
 
-  // ৬. ম্যানুয়াল ক্যাশআউট
+  // 🟢 ৪. ম্যানুয়াল ক্যাশআউট
   const handleCashout = async () => {
     if (!isPlaying || isProcessing || isCrashed || hasCashedOut) return;
     if (currentMultiplier <= 1.0 || roundSettledRef.current) return;
 
     roundSettledRef.current = true; 
+    stopAnimations();
     setIsProcessing(true);
     setErrorMsg("");
     const claimedMult = Number(currentMultiplier.toFixed(2));
@@ -269,8 +268,6 @@ export default function CrashGamePage() {
         p_clicked_mult: claimedMult,
       });
       if (error) throw error;
-
-      stopAnimations();
 
       if (data.won) {
         setBalance(data.new_balance);
@@ -323,72 +320,88 @@ export default function CrashGamePage() {
     }
   };
 
-  // ৭. অটো প্লে রাউন্ড
+  // 🟢 ৫. অটো রাউন্ড প্লে (লোকাল টাইমার)
   const playAutoRound = useCallback(
-    (gid: string, bet: number, target: number, startAt: number, crashP: number): Promise<{ won: boolean; cashoutMult?: number; crashPoint?: number }> =>
+    (gid: string, bet: number, target: number, crashP: number): Promise<{ won: boolean; cashoutMult?: number; crashPoint?: number }> =>
       new Promise((resolve) => {
         let settled = false;
         roundSettledRef.current = false;
-        
-        setTimeout(() => {
-          setIsPlaying(true);
-          
-          const animId = window.setInterval(async () => {
-            if (settled) return;
-            if (!isAutoRef.current) {
-              settled = true;
-              clearInterval(animId);
-              return resolve({ won: false });
-            }
+        const cp = Number(crashP) > 1 ? Number(crashP) : 2.0;
+        const safeTarget = Number(target) > 1 ? Number(target) : 2.0;
 
-            const elapsed = (Date.now() - startAt) / 1000;
-            const local = Math.pow(GROWTH_BASE, elapsed);
-            setCurrentMultiplier(local);
+        setCountdown(15);
+        const targetTime = Date.now() + 15000;
 
-            if (local >= target) {
-              settled = true;
-              clearInterval(animId);
-              try {
-                const { data } = await supabase.rpc("cashout_crash", { p_game_id: gid, p_clicked_mult: target });
-                if (data?.won) {
-                  setBalance(data.new_balance);
-                  setCurrentMultiplier(Number(data.cashout_mult));
-                  setHasCashedOut(true);
-                  setIsPlaying(false);
-                  setProfit(Number(data.profit) || bet * Number(data.cashout_mult) - bet);
-                  playSound("win");
-                  resolve({ won: true, cashoutMult: Number(data.cashout_mult) });
-                } else {
-                  const cp = Number(data?.crash_point) || target;
-                  setCurrentMultiplier(cp);
-                  setCrashPointRevealed(cp);
-                  setIsCrashed(true);
-                  setIsPlaying(false);
-                  setProfit(-bet);
-                  playSound("lose");
-                  resolve({ won: false, crashPoint: cp });
-                }
-              } catch {
-                resolve({ won: false });
+        const countdownInterval = window.setInterval(() => {
+          const now = Date.now();
+          const remaining = Math.max(0, Math.ceil((targetTime - now) / 1000));
+          setCountdown(remaining);
+
+          if (now >= targetTime) {
+            clearInterval(countdownInterval);
+            setCountdown(0);
+            setIsPlaying(true);
+            const startTime = Date.now();
+
+            const animId = window.setInterval(async () => {
+              if (settled) return;
+              if (!isAutoRef.current) {
+                settled = true;
+                clearInterval(animId);
+                return resolve({ won: false });
               }
-            } else if (local >= crashP) {
-              settled = true;
-              clearInterval(animId);
-              setCurrentMultiplier(crashP);
-              setCrashPointRevealed(crashP);
-              setIsCrashed(true);
-              setIsPlaying(false);
-              setProfit(-bet);
-              playSound("lose");
-              resolve({ won: false, crashPoint: crashP });
-            }
-          }, ANIM_MS);
-        }, Math.max(0, startAt - Date.now()));
+
+              const elapsed = (Date.now() - startTime) / 1000;
+              const local = Math.pow(GROWTH_BASE, elapsed);
+              setCurrentMultiplier(local);
+
+              if (local >= safeTarget) {
+                settled = true;
+                clearInterval(animId);
+                roundSettledRef.current = true;
+                try {
+                  const { data } = await supabase.rpc("cashout_crash", { p_game_id: gid, p_clicked_mult: safeTarget });
+                  if (data?.won) {
+                    setBalance(data.new_balance);
+                    setCurrentMultiplier(Number(data.cashout_mult));
+                    setHasCashedOut(true);
+                    setIsPlaying(false);
+                    setProfit(Number(data.profit) || bet * Number(data.cashout_mult) - bet);
+                    playSound("win");
+                    resolve({ won: true, cashoutMult: Number(data.cashout_mult) });
+                  } else {
+                    const realCp = Number(data?.crash_point) || safeTarget;
+                    setCurrentMultiplier(realCp);
+                    setCrashPointRevealed(realCp);
+                    setIsCrashed(true);
+                    setIsPlaying(false);
+                    setProfit(-bet);
+                    playSound("lose");
+                    resolve({ won: false, crashPoint: realCp });
+                  }
+                } catch {
+                  resolve({ won: false });
+                }
+              } else if (local >= cp) {
+                settled = true;
+                clearInterval(animId);
+                roundSettledRef.current = true;
+                setCurrentMultiplier(cp);
+                setCrashPointRevealed(cp);
+                setIsCrashed(true);
+                setIsPlaying(false);
+                setProfit(-bet);
+                playSound("lose");
+                resolve({ won: false, crashPoint: cp });
+              }
+            }, ANIM_MS);
+          }
+        }, 100);
       }),
     [supabase, playSound]
   );
 
-  // ৮. অটো বেট লুপ (function ডিক্লেয়ারেশন, যাতে রিকার্সিভ কল ঠিকমতো কাজ করে)
+  // 🟢 ৬. অটো বেট লুপ
   async function runAutoLoop(currentBet: number, currentCount: number, currentProfit: number) {
     if (!isAutoRef.current) return;
 
@@ -423,11 +436,13 @@ export default function CrashGamePage() {
 
       setGameId(startData.game_id);
       setBalance(startData.new_balance);
-      setCrashPoint(Number(startData.crash_point));
+      
+      const cp = Number(startData.crash_point) > 1 ? Number(startData.crash_point) : 2.0;
+      setCrashPoint(cp);
       if (startData.nonce) setNonce(Number(startData.nonce));
       if (startData.server_seed_hash) setServerSeedHash(startData.server_seed_hash);
 
-      const round = await playAutoRound(startData.game_id, currentBet, target, Number(startData.start_at), Number(startData.crash_point));
+      const round = await playAutoRound(startData.game_id, currentBet, target, cp);
 
       const roundProfit = round.won ? currentBet * Number(round.cashoutMult) - currentBet : -currentBet;
       const newCount = currentCount + 1;
@@ -463,12 +478,13 @@ export default function CrashGamePage() {
     }
   }
 
-  // ৯. অটো বেট টগল (function ডিক্লেয়ারেশন)
+  // 🟢 ৭. অটো বেট টগল
   function toggleAutoBet() {
     if (isAutoRef.current) {
       isAutoRef.current = false;
       setIsAutoBetting(false);
       stopAnimations();
+      setCountdown(0);
       return;
     }
     const amount = Number(betAmount);
@@ -482,7 +498,6 @@ export default function CrashGamePage() {
     runAutoLoop(amount, 0, 0);
   }
 
-  // ক্যালকুলেশন
   const totalWagered = history.reduce((s, i) => s + i.betAmount, 0);
   const totalProfit = history.reduce((s, i) => s + i.profit, 0);
   const wins = history.filter((h) => h.isWin).length;
@@ -498,7 +513,6 @@ export default function CrashGamePage() {
       : autoStats.profit;
   const showCashout = isPlaying && !isCrashed && !hasCashedOut;
 
-  // গ্রাফ
   const generateGraph = () => {
     if (history.length === 0) {
       return (
@@ -580,14 +594,12 @@ export default function CrashGamePage() {
     );
   };
 
-  // ক্যানভাস রেন্ডার
   const renderAviatorCanvas = () => {
     const maxVisualMultiplier = Math.max(crashPoint || 10, currentMultiplier);
     const p = Math.min(Math.log(currentMultiplier) / Math.log(maxVisualMultiplier), 1);
     
     const x = 30 + p * 240; 
     const y = 250 - p * 190; 
-
     const angle = -25; 
 
     let pathStr = `M 30 250 `;
