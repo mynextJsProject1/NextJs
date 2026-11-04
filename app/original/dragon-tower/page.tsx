@@ -1,7 +1,7 @@
 /* app/original/dragon-tower/page.tsx */
 "use client";
 
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Header from "../../../components/Header";
 import Footer from "../../../components/Footer";
@@ -12,7 +12,7 @@ import "./dragon-tower.css";
 type GameState = {
   status: "idle" | "playing" | "cashed_out" | "lost";
   level: number;
-  revealed: { [level: number]: number[] }; // কোন লেভেলে কোন ডিম খোলা হয়েছে
+  revealed: { [level: number]: number[] };
 };
 
 export default function DragonTowerGamePage() {
@@ -30,7 +30,7 @@ export default function DragonTowerGamePage() {
   const [gameState, setGameState] = useState<GameState>({ status: "idle", level: 1, revealed: {} });
   const [multiplier, setMultiplier] = useState(1.00);
   const [profit, setProfit] = useState(0);
-  const [lostDragons, setLostDragons] = useState<any>(null); // হেরে গেলে সব ড্রাগন দেখানোর জন্য
+  const [lostDragons, setLostDragons] = useState<any>(null);
 
   // ট্যাব স্টেট
   const [activeTab, setActiveTab] = useState<"manual" | "auto">("manual");
@@ -97,7 +97,7 @@ export default function DragonTowerGamePage() {
   // 🥚 ডিমে ক্লিক করা
   const handleRevealEgg = async (level: number, eggIndex: number) => {
     if (gameState.status !== "playing" || isProcessing) return;
-    if (level !== gameState.level) return; // শুধুমাত্র বর্তমান লেভেলে ক্লিক করা যাবে
+    if (level !== gameState.level) return; 
     if (gameState.revealed[level]?.includes(eggIndex)) return;
 
     setIsProcessing(true);
@@ -113,7 +113,6 @@ export default function DragonTowerGamePage() {
 
       if (data) {
         if (data.is_dragon) {
-          // ড্রাগনে ক্লিক (Loss)
           setGameState(prev => ({
             ...prev,
             status: "lost",
@@ -124,7 +123,6 @@ export default function DragonTowerGamePage() {
           setLostDragons(data.dragons);
           playSound("lose");
         } else {
-          // সেফ ডিম (Next Level)
           const nextLevel = data.new_level;
           setMultiplier(data.new_multiplier);
           setProfit(Number(betAmount) * data.new_multiplier - Number(betAmount));
@@ -176,7 +174,6 @@ export default function DragonTowerGamePage() {
     }
   };
 
-  // ডিফিকাল্টি অনুযায়ী ড্রাগন সংখ্যা (UI-তে দেখানোর জন্য)
   const getDragonsPerLevel = () => {
     if (difficulty === "easy") return 1;
     if (difficulty === "medium") return 2;
@@ -208,10 +205,10 @@ export default function DragonTowerGamePage() {
               </svg>
             </div>
 
-            {/* 🥚 ড্রাগন টাওয়ার গ্রিড (৪x৯) */}
+            {/* 🥚 ড্রাগন টাওয়ার গ্রিড */}
             <div className="dragon-grid">
               {Array.from({ length: 9 }).map((_, levelIndex) => {
-                const level = levelIndex + 1; // ১ থেকে ৯
+                const level = levelIndex + 1;
                 const isActive = gameState.status === "playing" && gameState.level === level;
                 
                 return (
@@ -228,21 +225,47 @@ export default function DragonTowerGamePage() {
                         >
                           {isRevealed ? (
                             isDragon ? (
-                              // 💀 ড্রাগনের খুলি (Loss)
-                              <svg viewBox="0 0 24 24" fill="#ff4d4d" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M12 2C6.48 2 2 6.48 2 12c0 3.54 1.84 6.65 4.62 8.43V22h10.76v-1.57C20.16 18.65 22 15.54 22 12c0-5.52-4.48-10-10-10zm-2.5 13c-1.38 0-2.5-1.12-2.5-2.5S8.12 10 9.5 10s2.5 1.12 2.5 2.5S10.88 15 9.5 15zm5 0c-1.38 0-2.5-1.12-2.5-2.5S13.12 10 14.5 10s2.5 1.12 2.5 2.5S15.88 15 14.5 15z"/>
+                              // 💀 প্রিমিয়াম ড্রাগন খুলি (Loss)
+                              <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                                <defs>
+                                  <linearGradient id="redGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stopColor="#ff4d4d" />
+                                    <stop offset="100%" stopColor="#990000" />
+                                  </linearGradient>
+                                </defs>
+                                <path d="M50 15 C30 15 20 35 20 55 C20 75 30 85 50 85 C70 85 80 75 80 55 C80 35 70 15 50 15 Z" fill="url(#redGrad)" stroke="#ff1a1a" strokeWidth="3" />
+                                <path d="M35 75 L35 85 L45 80 L50 85 L55 80 L65 85 L65 75" fill="#990000" stroke="#ff1a1a" strokeWidth="2" strokeLinejoin="round" />
+                                <ellipse cx="35" cy="50" rx="10" ry="12" fill="#000" stroke="#ff1a1a" strokeWidth="2" />
+                                <ellipse cx="65" cy="50" rx="10" ry="12" fill="#000" stroke="#ff1a1a" strokeWidth="2" />
+                                <ellipse cx="35" cy="50" rx="5" ry="7" fill="#ff4d4d" />
+                                <ellipse cx="65" cy="50" rx="5" ry="7" fill="#ff4d4d" />
+                                <path d="M45 65 L55 65 L50 70 Z" fill="#000" />
                               </svg>
                             ) : (
-                              // 🥚 সেফ ডিম (Win)
-                              <svg viewBox="0 0 24 24" fill="#00E701" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M12 2C8.13 2 5 9.13 5 13a7 7 0 0 0 14 0c0-3.87-3.13-11-7-11z" fillOpacity="0.3" stroke="#00E701" strokeWidth="2"/>
-                                <path d="M9 13a3 3 0 0 0 6 0" stroke="#00E701" strokeWidth="2" fill="none" strokeLinecap="round"/>
+                              // 🥚 প্রিমিয়াম সেফ ডিম (Win)
+                              <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                                <defs>
+                                  <linearGradient id="greenGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stopColor="#00E701" stopOpacity="0.8" />
+                                    <stop offset="100%" stopColor="#00E701" stopOpacity="0.2" />
+                                  </linearGradient>
+                                </defs>
+                                <path d="M50 10 C25 10 15 45 15 65 C15 85 25 95 50 95 C75 95 85 85 85 65 C85 45 75 10 50 10 Z" fill="url(#greenGrad)" stroke="#00E701" strokeWidth="4" />
+                                <path d="M40 40 L50 55 L45 70 L55 80" stroke="#00E701" strokeWidth="3" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
+                                <path d="M40 40 L50 55 L45 70 L55 80" stroke="#FFFFFF" strokeWidth="1" fill="none" strokeLinecap="round" strokeLinejoin="round" opacity="0.5"/>
+                                <circle cx="50" cy="65" r="10" fill="#FFFFFF" opacity="0.2" filter="blur(4px)"/>
                               </svg>
                             )
                           ) : (
-                            // 🥚 আনরিভিলড ডিম
-                            <svg viewBox="0 0 24 24" fill="#1B2A23" xmlns="http://www.w3.org/2000/svg">
-                              <path d="M12 2C8.13 2 5 9.13 5 13a7 7 0 0 0 14 0c0-3.87-3.13-11-7-11z" stroke="#263C32" strokeWidth="2"/>
+                            // 🥚 প্রিমিয়াম আনরিভিলড ডিম
+                            <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                              <path d="M50 10 C25 10 15 45 15 65 C15 85 25 95 50 95 C75 95 85 85 85 65 C85 45 75 10 50 10 Z" fill="#1B2A23" stroke="#263C32" strokeWidth="4" />
+                              <circle cx="35" cy="45" r="5" fill="#121816" />
+                              <circle cx="60" cy="55" r="7" fill="#121816" />
+                              <circle cx="40" cy="75" r="6" fill="#121816" />
+                              <circle cx="65" cy="80" r="4" fill="#121816" />
+                              <circle cx="25" cy="65" r="3" fill="#121816" />
+                              <circle cx="70" cy="40" r="4" fill="#121816" />
                             </svg>
                           )}
                         </div>
@@ -272,7 +295,6 @@ export default function DragonTowerGamePage() {
               </div>
             </div>
 
-            {/* বাটন */}
             {gameState.status === "playing" ? (
               <button className="limbo-bet-btn" onClick={handleCashout} disabled={isProcessing || gameState.level === 1} style={{ background: multiplier > 1 ? 'var(--limbo-accent)' : '#365244', color: multiplier > 1 ? '#000' : '#fff' }}>
                 {isProcessing ? "Processing..." : multiplier > 1 ? `Cashout ৳ ${(Number(betAmount) * multiplier).toFixed(2)}` : "Pick an Egg"}
@@ -316,7 +338,7 @@ export default function DragonTowerGamePage() {
 
             <GameBottomBar 
               onSettingsClick={() => setIsSettingsOpen(true)}
-              onStatsClick={() => {}} // আপাতত বন্ধ
+              onStatsClick={() => {}} 
               onFairnessClick={() => setIsFairnessOpen(true)}
             />
 
@@ -331,7 +353,7 @@ export default function DragonTowerGamePage() {
         else if (page === "sports") router.push("/");
       }} />
 
-      {/* Settings Modal (লিম্বোর মতো) */}
+      {/* Settings Modal */}
       {isSettingsOpen && (
         <div className="limbo-modal-overlay" onClick={() => setIsSettingsOpen(false)}>
           <div className="limbo-modal-content" onClick={e => e.stopPropagation()}>
