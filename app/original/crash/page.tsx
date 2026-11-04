@@ -144,6 +144,8 @@ export default function CrashGamePage() {
       if (fair) {
         setServerSeedHash(fair.server_seed_hash || "");
         setNonce(Number(fair.nonce) || 0);
+        // 🟢 নতুন যুক্ত হলো: ডেটাবেস থেকে client_seed রিসিভ করা
+        if (fair.client_seed) setClientSeed(fair.client_seed);
       }
     };
     void fetchData();
@@ -586,13 +588,11 @@ export default function CrashGamePage() {
   // 🚀 AVIATOR CANVAS RENDER LOGIC
   // ==========================================
   const renderAviatorCanvas = () => {
-    // Coordinate mapping (0 to 100 in X, 0 to 100 in Y)
     const maxVisualMultiplier = Math.max(crashPointRevealed || 10, currentMultiplier);
     const p = Math.min(Math.log(currentMultiplier) / Math.log(maxVisualMultiplier), 1);
     
-    // Start bottom-left, move to top-right
-    const x = 30 + p * 240; // Range: 30 to 270
-    const y = 250 - p * 190; // Range: 250 to 60
+    const x = 30 + p * 240; 
+    const y = 250 - p * 190; 
 
     const angle = -25; 
 
@@ -609,7 +609,6 @@ export default function CrashGamePage() {
     }
     areaStr += `L ${x} 280 L 30 280 Z`;
 
-    // 🌟 FIX: Next.js basePath handle (লোকালহোস্টে টেস্ট করার জন্য শর্ত দেওয়া হলো)
     const imageSrc = process.env.NODE_ENV === "production" 
         ? "https://mynextjsproject1.github.io/NextJs/images/crash/crash.png" 
         : "/images/crash/crash.png";
@@ -624,7 +623,6 @@ export default function CrashGamePage() {
             </linearGradient>
           </defs>
 
-          {/* Grid Background */}
           <g stroke="#263C32" strokeWidth="0.5" strokeDasharray="4 4">
              <line x1="0" y1="75" x2="300" y2="75" />
              <line x1="0" y1="150" x2="300" y2="150" />
@@ -648,7 +646,6 @@ export default function CrashGamePage() {
           )}
         </svg>
 
-        {/* 🌟 FIX: Plane moved outside SVG for better HTML rendering */}
         {isPlaying && (
           <img
             src={imageSrc}
@@ -670,7 +667,6 @@ export default function CrashGamePage() {
           />
         )}
 
-        {/* Multiplier Overlay */}
         <div className={`aviator-multiplier-overlay ${isCrashed ? "crashed" : ""}`}>
           <div className="aviator-mult-text">
              {(isCrashed ? (crashPointRevealed ?? currentMultiplier) : currentMultiplier).toFixed(2)}x
@@ -715,7 +711,6 @@ export default function CrashGamePage() {
               </div>
             )}
 
-            {/* 🚀 AVIATOR DISPLAY */}
             {renderAviatorCanvas()}
 
             <div className="limbo-inputs-grid">
@@ -1017,7 +1012,6 @@ export default function CrashGamePage() {
         }}
       />
 
-      {/* ================= Modals ================= */}
       {isSettingsOpen && (
         <div className="limbo-modal-overlay" onClick={() => setIsSettingsOpen(false)}>
           <div className="limbo-modal-content" onClick={(e) => e.stopPropagation()}>
