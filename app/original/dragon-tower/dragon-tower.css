@@ -1,0 +1,100 @@
+/* app/original/dragon-tower/dragon-tower.css */
+@import "../limbo/limbo.css";
+
+/* ড্রাগন হেড অ্যানিমেশন */
+.dragon-head-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: -10px;
+  position: relative;
+  z-index: 10;
+}
+
+.dragon-head {
+  width: 120px;
+  height: 120px;
+  animation: floatSway 4s ease-in-out infinite alternate;
+  filter: drop-shadow(0 0 15px rgba(0, 200, 255, 0.4));
+}
+
+@keyframes floatSway {
+  0% { transform: translateY(0) rotate(-3deg); }
+  100% { transform: translateY(-10px) rotate(3deg); }
+}
+
+/* ড্রাগনের চোখের গ্লো */
+.dragon-eye {
+  animation: glow 2s infinite alternate;
+}
+
+@keyframes glow {
+  0% { fill: #00E701; opacity: 0.5; }
+  100% { fill: #00E701; opacity: 1; filter: drop-shadow(0 0 8px #00E701); }
+}
+
+/* ড্রাগন টাওয়ার গ্রিড */
+.dragon-grid {
+  display: flex;
+  flex-direction: column-reverse; /* নিচ থেকে উপরে লেভেল বাড়বে */
+  gap: 6px;
+  background: var(--limbo-card);
+  padding: 15px;
+  border-radius: 12px;
+  border: 1px solid var(--limbo-border);
+  margin-bottom: 15px;
+}
+
+.level-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  opacity: 0.4; /* যেসব লেভেল এখনো আনলক হয়নি */
+  pointer-events: none;
+  transition: all 0.3s ease;
+}
+
+.level-row.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.egg-tile {
+  aspect-ratio: 1 / 1;
+  background: var(--limbo-input-bg);
+  border: 1px solid var(--limbo-border);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 1.2rem;
+  box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+}
+
+.level-row.active .egg-tile:hover {
+  background: #1c2a24;
+  border-color: var(--limbo-accent);
+  transform: scale(1.05);
+}
+
+/* ডিম ফুটে যাওয়া (Safe) */
+.egg-tile.safe {
+  background: rgba(0, 231, 1, 0.1);
+  border-color: rgba(0, 231, 1, 0.5);
+  animation: popIn 0.3s ease-out;
+}
+
+/* ড্রাগন (Loss) */
+.egg-tile.dragon {
+  background: rgba(255, 77, 77, 0.2);
+  border-color: #ff4d4d;
+  animation: shake 0.4s ease-in-out;
+}
+
+/* আনরিভিলড ডিমের শেড */
+.egg-tile svg {
+  width: 70%;
+  height: 70%;
+}
