@@ -187,36 +187,42 @@ export default function DragonTowerGamePage() {
               </div>
             )}
 
-            {/* 🐉 নতুন ভয়ংকর ড্রাগন হেড (ছবির আদলে) */}
+            {/* 🐉 নতুন নীলাভ ভয়ংকর ড্রাগন হেড (ছবির আদলে) */}
             <div className="dragon-head-container">
               <svg className="dragon-head" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
                 <defs>
-                  <linearGradient id="dragonSkin" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <linearGradient id="iceGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor="#A0ADB0" />
+                    <stop offset="100%" stopColor="#2B4236" />
+                  </linearGradient>
+                  <linearGradient id="darkIce" x1="0%" y1="0%" x2="100%" y2="100%">
                     <stop offset="0%" stopColor="#1B2A23" />
                     <stop offset="100%" stopColor="#0C1711" />
                   </linearGradient>
-                  <linearGradient id="hornGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-                    <stop offset="0%" stopColor="#263C32" />
-                    <stop offset="100%" stopColor="#121816" />
-                  </linearGradient>
                 </defs>
+                
                 {/* শিং */}
-                <path d="M35 30 L20 5 L45 25 Z" fill="url(#hornGrad)" stroke="#00E701" strokeWidth="1" />
-                <path d="M65 30 L80 5 L55 25 Z" fill="url(#hornGrad)" stroke="#00E701" strokeWidth="1" />
-                <path d="M25 45 L10 25 L30 40 Z" fill="url(#hornGrad)" stroke="#00E701" strokeWidth="1" />
-                <path d="M75 45 L90 25 L70 40 Z" fill="url(#hornGrad)" stroke="#00E701" strokeWidth="1" />
+                <path d="M35 35 L20 5 L45 25 Z" fill="url(#iceGrad)" stroke="#00E5FF" strokeWidth="1" />
+                <path d="M65 35 L80 5 L55 25 Z" fill="url(#iceGrad)" stroke="#00E5FF" strokeWidth="1" />
+                <path d="M20 50 L5 30 L25 45 Z" fill="url(#iceGrad)" stroke="#00E5FF" strokeWidth="1" />
+                <path d="M80 50 L95 30 L75 45 Z" fill="url(#iceGrad)" stroke="#00E5FF" strokeWidth="1" />
+                
                 {/* মুখমণ্ডল */}
-                <path d="M50 15 C30 15 20 40 25 65 C30 85 40 95 50 95 C60 95 70 85 75 65 C80 40 70 15 50 15 Z" fill="url(#dragonSkin)" stroke="#00E701" strokeWidth="2" />
+                <path d="M50 20 C35 20 25 40 25 60 C25 80 35 95 50 95 C65 95 75 80 75 60 C75 40 65 20 50 20 Z" fill="url(#darkIce)" stroke="#00E5FF" strokeWidth="2" />
+                
+                {/* কপালের ফাটল */}
+                <path d="M50 20 L45 35 L55 45" stroke="#00E5FF" strokeWidth="1.5" fill="none" />
+                
                 {/* চোখ */}
-                <path d="M30 45 L45 50 L35 55 Z" className="dragon-eye" />
-                <path d="M70 45 L55 50 L65 55 Z" className="dragon-eye" />
+                <path d="M28 45 L45 50 L35 58 Z" className="dragon-eye" />
+                <path d="M72 45 L55 50 L65 58 Z" className="dragon-eye" />
+                
                 {/* নাক */}
-                <path d="M45 65 L55 65 L50 70 Z" fill="#121816" stroke="#263C32" strokeWidth="1" />
-                {/* দাঁত/মুখ */}
-                <path d="M40 75 L60 75 L50 85 Z" fill="#0C1711" stroke="#00E701" strokeWidth="2" />
-                <path d="M40 75 L45 80 L45 75 M60 75 L55 80 L55 75" fill="#00E701" />
-                {/* ফাটল */}
-                <path d="M35 30 L40 45 M65 30 L60 45" stroke="#121816" strokeWidth="2" />
+                <path d="M45 65 L55 65 L50 72 Z" fill="#1B2A23" stroke="#00E5FF" strokeWidth="1" />
+                
+                {/* মুখ ও দাঁত */}
+                <path d="M35 78 L65 78 L50 92 Z" fill="#0C1711" stroke="#00E5FF" strokeWidth="2" />
+                <path d="M35 78 L40 85 L45 78 M55 78 L60 85 L65 78" fill="#00E5FF" />
               </svg>
             </div>
 
