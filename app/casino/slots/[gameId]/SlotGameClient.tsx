@@ -2,11 +2,10 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
-// ✅ ৪ লেভেল উপরে গিয়ে কম্পোনেন্ট ইমপোর্ট করতে হবে
 import Header from "../../../../components/Header";
 import Footer from "../../../../components/Footer";
-import GameBottomBar from "../../../../components/GameBottomBar/GameBottomBar";
 import { createClient } from "../../../../lib/supabase/client";
+import "../slots.css"; // ✅ CSS ইমপোর্ট করা হলো
 
 const SYMBOLS = ["🍒", "🍋", "💎", "🔔", "7️⃣", "⭐"];
 
@@ -20,10 +19,6 @@ export default function SlotGameClient({ gameId }: { gameId: string }) {
   const [reels, setReels] = useState([["🍒", "🍋", "💎"], ["🍋", "💎", "🔔"], ["💎", "🔔", "🍒"]]);
   const [errorMsg, setErrorMsg] = useState("");
   const [winAmount, setWinAmount] = useState<number | null>(null);
-
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [isBetHistoryOpen, setIsBetHistoryOpen] = useState(false);
-  const [history, setHistory] = useState<{ id: string, win: number, bet: number }[]>([]);
 
   useEffect(() => {
     const fetchBalance = async () => {
@@ -62,7 +57,7 @@ export default function SlotGameClient({ gameId }: { gameId: string }) {
           [SYMBOLS[Math.floor(Math.random() * 6)], SYMBOLS[Math.floor(Math.random() * 6)], SYMBOLS[Math.floor(Math.random() * 6)]]
         ]);
         spinCount++;
-        if (spinCount > 20) {
+        if (spinCount > 15) {
           clearInterval(spinInterval);
           finishSpin(amount);
         }
@@ -105,38 +100,30 @@ export default function SlotGameClient({ gameId }: { gameId: string }) {
         });
         if (winError) throw winError;
         setBalance(winData.new_balance);
-        
-        setHistory(prev => [{ id: Date.now().toString(), win: amountWon, bet: betAmountPlaced }, ...prev]);
       } catch (err: any) {
         setErrorMsg("উইন ক্রেডিট করতে সমস্যা হয়েছে: " + err.message);
       }
-    } else {
-       setHistory(prev => [{ id: Date.now().toString(), win: 0, bet: betAmountPlaced }, ...prev]);
     }
-
     setIsSpinning(false);
   };
 
   return (
-    <div className="min-h-screen bg-[#0f212e] text-white flex flex-col">
+    <div className="slots-page">
       <Header onMenuClick={() => router.push("/")} onHomeClick={() => router.push("/")} />
 
-      <main className="flex-1 container mx-auto px-4 py-6 max-w-lg pb-24">
-        
-        <h2 className="text-xl font-bold text-center mb-4 capitalize">{gameId.replace("-", " ")}</h2>
+      <main style={{ paddingBottom: "80px" }}>
+        <h2 style={{ textAlign: "center", textTransform: "capitalize", marginBottom: "20px" }}>
+          {gameId.replace("-", " ")}
+        </h2>
 
-        {errorMsg && (
-          <div className="bg-red-500/20 text-red-400 p-2 rounded mb-4 text-center text-sm">
-            {errorMsg}
-          </div>
-        )}
+        {errorMsg && <div className="error-msg">{errorMsg}</div>}
 
-        <div className="bg-[#1a2c38] p-4 rounded-xl border border-[#2a3e4c] mb-6">
-          <div className="bg-black/50 p-4 rounded-lg grid grid-cols-3 gap-2 aspect-square border border-gray-700">
+        <div className="slot-game-container">
+          <div className="reels-grid">
             {[0, 1, 2].map((colIndex) => (
-              <div key={colIndex} className="flex flex-col gap-2 justify-around">
+              <div key={colIndex} className="reel-column">
                 {reels[colIndex].map((symbol, rowIndex) => (
-                  <div key={rowIndex} className="bg-[#213743] rounded-lg flex items-center justify-center text-4xl h-full shadow-inner border border-gray-600/30">
+                  <div key={rowIndex} className="symbol-box">
                     {symbol}
                   </div>
                 ))}
@@ -144,43 +131,40 @@ export default function SlotGameClient({ gameId }: { gameId: string }) {
             ))}
           </div>
 
-          <div className="h-12 mt-4 flex items-center justify-center">
+          <div style={{ height: "50px", display: "flex", alignItems: "center", justifyContent: "center", marginTop: "15px" }}>
             {winAmount !== null && winAmount > 0 && (
-              <div className="text-[#00e701] text-2xl font-bold animate-bounce">
+              <div style={{ color: "#00e701", fontSize: "24px", fontWeight: "bold" }}>
                 WIN {winAmount.toFixed(2)} BDT!
               </div>
             )}
           </div>
         </div>
 
-        <div className="bg-[#1a2c38] p-4 rounded-xl">
-          <div className="flex justify-between items-center mb-4">
-            <div className="text-sm text-gray-400">Balance</div>
-            <div className="font-bold text-[#00e701]">{balance.toFixed(2)} BDT</div>
+        <div className="controls-area">
+          <div className="balance-row">
+            <span>Balance</span>
+            <span className="balance-amount">{balance.toFixed(2)} BDT</span>
           </div>
 
-          <div className="flex items-center gap-2 mb-4">
-            <div className="flex-1 bg-[#213743] rounded-lg p-2 flex items-center border border-gray-700">
-              <span className="text-gray-400 mr-2">৳</span>
-              <input 
-                type="number" 
-                value={betAmount} 
-                onChange={(e) => setBetAmount(e.target.value)}
-                disabled={isSpinning}
-                className="bg-transparent w-full outline-none text-white font-bold"
-              />
-            </div>
+          <div className="input-row">
+            <input 
+              type="number" 
+              value={betAmount} 
+              onChange={(e) => setBetAmount(e.target.value)}
+              disabled={isSpinning}
+              className="bet-input"
+            />
             <button 
               onClick={() => setBetAmount((Number(betAmount) / 2).toFixed(2))}
               disabled={isSpinning}
-              className="bg-[#213743] px-4 py-3 rounded-lg text-sm hover:bg-[#2a3e4c] disabled:opacity-50"
+              className="quick-btn"
             >
               ½
             </button>
             <button 
               onClick={() => setBetAmount((Number(betAmount) * 2).toFixed(2))}
               disabled={isSpinning}
-              className="bg-[#213743] px-4 py-3 rounded-lg text-sm hover:bg-[#2a3e4c] disabled:opacity-50"
+              className="quick-btn"
             >
               2x
             </button>
@@ -189,66 +173,14 @@ export default function SlotGameClient({ gameId }: { gameId: string }) {
           <button 
             onClick={spin}
             disabled={isSpinning}
-            className={`w-full py-4 rounded-lg font-bold text-lg transition-all ${
-              isSpinning 
-                ? "bg-gray-600 cursor-not-allowed" 
-                : "bg-[#00e701] text-black hover:bg-[#00c701] shadow-[0_0_15px_rgba(0,231,1,0.4)]"
-            }`}
+            className="spin-btn"
           >
             {isSpinning ? "Spinning..." : "SPIN"}
           </button>
         </div>
-
-        <GameBottomBar 
-          onSettingsClick={() => setIsSettingsOpen(true)}
-          onStatsClick={() => {}} 
-          onFairnessClick={() => {}}
-        />
       </main>
 
       <Footer activePage="casino" onNavigate={() => {}} />
-
-      {isSettingsOpen && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4" onClick={() => setIsSettingsOpen(false)}>
-          <div className="bg-[#1a2c38] w-full max-w-sm rounded-xl p-4" onClick={e => e.stopPropagation()}>
-            <div className="flex justify-between items-center mb-4 border-b border-gray-700 pb-2">
-              <h3 className="font-bold">Settings</h3>
-              <button onClick={() => setIsSettingsOpen(false)} className="text-gray-400 hover:text-white">✕</button>
-            </div>
-            <button 
-               className="w-full bg-[#213743] py-2 rounded text-sm hover:bg-[#2a3e4c]"
-               onClick={() => { setIsSettingsOpen(false); setIsBetHistoryOpen(true); }}
-            >
-              View Bet History
-            </button>
-          </div>
-        </div>
-      )}
-
-      {isBetHistoryOpen && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4" onClick={() => setIsBetHistoryOpen(false)}>
-          <div className="bg-[#1a2c38] w-full max-w-sm rounded-xl p-4 max-h-[80vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
-            <div className="flex justify-between items-center mb-4 border-b border-gray-700 pb-2">
-              <h3 className="font-bold">Bet History</h3>
-              <button onClick={() => setIsBetHistoryOpen(false)} className="text-gray-400 hover:text-white">✕</button>
-            </div>
-            {history.length === 0 ? (
-              <p className="text-center text-gray-400 text-sm">No bets yet.</p>
-            ) : (
-              <div className="space-y-2">
-                {history.map((h) => (
-                  <div key={h.id} className="flex justify-between text-sm bg-[#213743] p-2 rounded">
-                    <span className="text-gray-400">Bet: {h.bet.toFixed(2)}</span>
-                    <span className={h.win > 0 ? "text-[#00e701]" : "text-red-400"}>
-                      {h.win > 0 ? `+${h.win.toFixed(2)}` : `-${h.bet.toFixed(2)}`}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-      )}
     </div>
   );
 }
