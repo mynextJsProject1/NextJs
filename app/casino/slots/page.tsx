@@ -1,11 +1,9 @@
-/* app/casino/slots/page.tsx */
 "use client";
 
 import { useRouter } from "next/navigation";
 import Header from "../../../components/Header";
 import Footer from "../../../components/Footer";
 
-// ডেমো গেম লিস্ট (পরবর্তীতে আপনি Exactplay বা Slotopol API থেকে ফেচ করতে পারবেন)
 const DEMO_GAMES = [
   { id: "sweet-bonanza", name: "Sweet Bonanza", provider: "Pragmatic Play", image: "🍬" },
   { id: "gates-of-olympus", name: "Gates of Olympus", provider: "Pragmatic Play", image: "⚡" },
