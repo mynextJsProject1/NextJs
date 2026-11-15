@@ -1,0 +1,180 @@
+/* slots.css */
+.slots-page {
+  background-color: #0f212e;
+  color: white;
+  min-height: 100vh;
+  padding: 20px;
+  font-family: sans-serif;
+}
+
+.slots-title {
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 20px;
+}
+
+.slots-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 15px;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+@media (min-width: 768px) {
+  .slots-grid {
+    grid-template-columns: repeat(3, 1fr);
+    max-width: 900px;
+  }
+}
+
+.game-card {
+  background-color: #1a2c38;
+  border-radius: 12px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.2s, border 0.2s;
+  border: 1px solid transparent;
+}
+
+.game-card:hover {
+  transform: scale(1.03);
+  border-color: #00e701;
+}
+
+.game-image {
+  height: 120px;
+  background-color: #213743;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 50px;
+}
+
+.game-info {
+  padding: 12px;
+}
+
+.game-name {
+  font-size: 15px;
+  font-weight: bold;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.game-provider {
+  font-size: 12px;
+  color: #9ca3af;
+  margin: 5px 0 0 0;
+}
+
+/* গেম প্লে পেজের স্টাইল */
+.slot-game-container {
+  max-width: 450px;
+  margin: 0 auto;
+  background-color: #1a2c38;
+  padding: 15px;
+  border-radius: 15px;
+}
+
+.reels-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  background-color: #000;
+  padding: 10px;
+  border-radius: 10px;
+  aspect-ratio: 1 / 1;
+}
+
+.reel-column {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.symbol-box {
+  flex: 1;
+  background-color: #213743;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 35px;
+}
+
+.controls-area {
+  margin-top: 20px;
+  background-color: #1a2c38;
+  padding: 15px;
+  border-radius: 12px;
+}
+
+.balance-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 15px;
+  font-size: 14px;
+}
+
+.balance-amount {
+  color: #00e701;
+  font-weight: bold;
+}
+
+.input-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.bet-input {
+  flex: 1;
+  background-color: #213743;
+  border: 1px solid #374151;
+  color: white;
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 16px;
+  outline: none;
+}
+
+.quick-btn {
+  background-color: #213743;
+  color: white;
+  border: none;
+  padding: 0 15px;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.spin-btn {
+  width: 100%;
+  background-color: #00e701;
+  color: black;
+  font-size: 18px;
+  font-weight: bold;
+  padding: 15px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.spin-btn:disabled {
+  background-color: #555;
+  cursor: not-allowed;
+}
+
+.error-msg {
+  background-color: rgba(255, 77, 77, 0.2);
+  color: #ff4d4d;
+  padding: 10px;
+  border-radius: 8px;
+  margin-bottom: 15px;
+  text-align: center;
+  font-size: 13px;
+}
